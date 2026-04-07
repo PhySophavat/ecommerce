@@ -3,13 +3,14 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
 class StorefrontApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_storefront_payload_contains_catalog_and_cart_data(): void
+    public function test_storefront_payload_contains_user_data_only(): void
     {
         $this->seed();
 
@@ -17,8 +18,14 @@ class StorefrontApiTest extends TestCase
 
         $response
             ->assertOk()
-            ->assertJsonPath('cart.count', 0)
-            ->assertJsonCount(3, 'categories')
-            ->assertJsonCount(9, 'products');
+            ->assertJson(fn (AssertableJson $json) => $json
+                ->where('meta.brand', 'Northstar Users')
+                ->where('links.admin_users', url('/admin/users/create'))
+                ->where('users.count', 3)
+                ->has('users.items', 3)
+                ->missing('categories')
+                ->missing('products')
+                ->missing('featured')
+                ->missing('cart'));
     }
 }

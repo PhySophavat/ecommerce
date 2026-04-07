@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Product;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,35 +10,25 @@ class CheckoutTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_checkout_creates_an_order_and_clears_the_cart(): void
+    public function test_user_form_validates_required_and_unique_fields(): void
     {
-        $this->seed();
-
-        $product = Product::query()->firstOrFail();
-
-        $this->postJson('/api/cart/items', [
-            'product_id' => $product->id,
-            'quantity' => 2,
-        ])->assertOk()->assertJsonPath('cart.count', 2);
-
-        $response = $this->postJson('/api/checkout', [
-            'customer_name' => 'Jamie Carter',
+        User::query()->create([
+            'name' => 'Existing User',
             'email' => 'jamie@example.com',
-            'phone' => '555-0100',
-            'address_line1' => '123 Market Street',
-            'address_line2' => 'Suite 7',
-            'city' => 'Seattle',
-            'postal_code' => '98101',
-            'notes' => 'Leave at the front desk.',
+            'password' => 'password123',
         ]);
 
-        $response
-            ->assertCreated()
-            ->assertJsonPath('order.customer_name', 'Jamie Carter')
-            ->assertJsonPath('cart.count', 0);
+        $response = $this
+            ->from('/admin/users/create')
+            ->post('/admin/users', [
+                'name' => '',
+                'email' => 'jamie@example.com',
+                'password' => 'short',
+                'password_confirmation' => 'different',
+            ]);
 
-        $this->assertDatabaseCount('orders', 1);
-        $this->assertDatabaseCount('order_items', 1);
-        $this->assertSame($product->inventory - 2, $product->fresh()->inventory);
+        $response
+            ->assertRedirect('/admin/users/create')
+            ->assertSessionHasErrors(['name', 'email', 'password']);
     }
 }

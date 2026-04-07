@@ -1,20 +1,15 @@
 <?php
 
-use App\Http\Controllers\Api\CartController;
-use App\Http\Controllers\Api\CheckoutController;
-use App\Http\Controllers\Api\StorefrontController;
+use App\Http\Controllers\Api\Frontend\HomeController as FrontendApiHomeController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'storefront')->name('storefront');
+Route::redirect('/backend', '/admin/users/create');
+Route::redirect('/backend/products', '/admin/users/create');
 
-Route::prefix('api')->group(function (): void {
-    Route::get('/storefront', StorefrontController::class)->name('api.storefront');
-    Route::post('/cart/items', [CartController::class, 'store'])->name('api.cart.store');
-    Route::patch('/cart/items/{product}', [CartController::class, 'update'])
-        ->whereNumber('product')
-        ->name('api.cart.update');
-    Route::delete('/cart/items/{product}', [CartController::class, 'destroy'])
-        ->whereNumber('product')
-        ->name('api.cart.destroy');
-    Route::post('/checkout', CheckoutController::class)->name('api.checkout');
+Route::name('frontend.')->group(base_path('routes/frontend.php'));
+Route::prefix('admin')->name('admin.')->group(base_path('routes/backend.php'));
+Route::prefix('api/frontend')->name('api.frontend.')->group(base_path('routes/api_frontend.php'));
+
+Route::prefix('api')->name('api.legacy.')->group(function (): void {
+    Route::get('/storefront', FrontendApiHomeController::class)->name('storefront');
 });
