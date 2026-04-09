@@ -19,8 +19,8 @@ class HomeController extends Controller
             'meta' => [
                 'brand' => 'Northstar Users',
                 'headline' => 'Frontend user directory powered by Vue.',
-                'subheadline' => 'Laravel handles user creation in Blade. Vue is used only to show users on the frontend.',
-                'stack' => ['Laravel user form', 'Vue 3 frontend list'],
+                'subheadline' => 'Users are created from a Vue-powered backend page and shown here on the frontend.',
+                'stack' => ['Vue backend form', 'Laravel validation', 'Vue 3 frontend list'],
                 'stats' => [
                     ['value' => (string) $users->count(), 'label' => 'registered users'],
                     ['value' => $users->first()?->created_at?->toDateString() ?? 'N/A', 'label' => 'latest join'],

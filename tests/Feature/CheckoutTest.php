@@ -10,7 +10,7 @@ class CheckoutTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_form_validates_required_and_unique_fields(): void
+    public function test_non_json_user_form_validates_required_and_unique_fields(): void
     {
         User::query()->create([
             'name' => 'Existing User',
@@ -30,5 +30,19 @@ class CheckoutTest extends TestCase
         $response
             ->assertRedirect('/admin/users/create')
             ->assertSessionHasErrors(['name', 'email', 'password']);
+    }
+
+    public function test_non_json_user_form_redirects_back_after_success(): void
+    {
+        $response = $this->post('/admin/users', [
+            'name' => 'Morgan Lee',
+            'email' => 'morgan@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response
+            ->assertRedirect('/admin/users/create')
+            ->assertSessionHas('status');
     }
 }

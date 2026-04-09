@@ -77,7 +77,7 @@
                             {{ frontend.users.count }} user{{ frontend.users.count === 1 ? '' : 's' }}
                         </h2>
                         <p class="mt-3 text-sm text-stone-300/70">
-                            Add new users from the Laravel form, then refresh this frontend page to see them here.
+                            Open the Vue backend page to create users, then refresh this frontend page to see them here.
                         </p>
                     </section>
                 </aside>

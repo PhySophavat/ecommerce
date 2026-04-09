@@ -27,9 +27,9 @@ class BackendProductManagementTest extends TestCase
         $this->get('/admin/products')->assertRedirect('/admin/users/create');
     }
 
-    public function test_laravel_form_creates_a_user(): void
+    public function test_backend_vue_request_creates_a_user(): void
     {
-        $response = $this->post('/admin/users', [
+        $response = $this->postJson('/admin/users', [
             'name' => 'Jamie Carter',
             'email' => 'jamie@example.com',
             'password' => 'password123',
@@ -37,8 +37,9 @@ class BackendProductManagementTest extends TestCase
         ]);
 
         $response
-            ->assertRedirect('/frontend')
-            ->assertSessionHas('status');
+            ->assertCreated()
+            ->assertJsonPath('user.name', 'Jamie Carter')
+            ->assertJsonPath('user.email', 'jamie@example.com');
 
         $this->assertDatabaseHas('users', [
             'name' => 'Jamie Carter',
