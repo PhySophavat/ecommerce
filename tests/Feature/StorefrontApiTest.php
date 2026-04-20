@@ -20,7 +20,7 @@ class StorefrontApiTest extends TestCase
             ->assertOk()
             ->assertJson(fn (AssertableJson $json) => $json
                 ->where('meta.brand', 'Northstar Users')
-                ->where('links.admin_users', url('/admin/users/create'))
+                ->where('links.admin_users', url('/admin/products'))
                 ->where('users.count', 3)
                 ->has('users.items', 3)
                 ->missing('categories')

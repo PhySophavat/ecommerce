@@ -20,7 +20,7 @@
             @vite(['resources/css/app.css'])
         @endif
     </head>
-    <body class="antialiased">
+    <body class="antialiased" data-app="{{ $context['app'] ?? 'frontend' }}">
         @if (session('status'))
             <div class="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
                 <div class="glass-panel rounded-3xl border border-emerald-300/30 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-100">

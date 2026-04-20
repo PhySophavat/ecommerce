@@ -39,7 +39,7 @@
                             class="rounded-full bg-stone-50 px-4 py-2 text-sm font-medium text-stone-950 transition hover:-translate-y-0.5 hover:bg-white"
                             :href="frontend.links.admin_users"
                         >
-                            Add user
+                            Open admin
                         </a>
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                             {{ frontend.users.count }} user{{ frontend.users.count === 1 ? '' : 's' }}
                         </h2>
                         <p class="mt-3 text-sm text-stone-300/70">
-                            Open the Vue backend page to create users, then refresh this frontend page to see them here.
+                            Open the admin dashboard, then refresh this frontend page to see the latest users here.
                         </p>
                     </section>
                 </aside>
@@ -177,7 +177,7 @@ function initialFrontend() {
         },
         links: {
             frontend: '/frontend',
-            admin_users: '/admin/users/create',
+            admin_users: '/admin/products',
         },
         users: {
             count: 0,

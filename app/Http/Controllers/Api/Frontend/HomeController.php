@@ -19,8 +19,8 @@ class HomeController extends Controller
             'meta' => [
                 'brand' => 'Northstar Users',
                 'headline' => 'Frontend user directory powered by Vue.',
-                'subheadline' => 'Users are created from a Vue-powered backend page and shown here on the frontend.',
-                'stack' => ['Vue backend form', 'Laravel validation', 'Vue 3 frontend list'],
+                'subheadline' => 'Users are shown here while the main admin area now lives in the product dashboard.',
+                'stack' => ['Laravel validation', 'Vue 3 frontend list', 'Admin products dashboard'],
                 'stats' => [
                     ['value' => (string) $users->count(), 'label' => 'registered users'],
                     ['value' => $users->first()?->created_at?->toDateString() ?? 'N/A', 'label' => 'latest join'],
@@ -28,7 +28,7 @@ class HomeController extends Controller
             ],
             'links' => [
                 'frontend' => route('frontend.home'),
-                'admin_users' => route('admin.users.create'),
+                'admin_users' => route('admin.products.index'),
             ],
             'users' => [
                 'count' => $users->count(),

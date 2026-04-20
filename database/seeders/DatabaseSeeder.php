@@ -15,6 +15,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            AdminMenuSeeder::class,
+            StoreDemoSeeder::class,
+        ]);
+
         collect([
             [
                 'name' => 'Jamie Carter',

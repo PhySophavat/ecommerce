@@ -5,23 +5,12 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\StorefrontData;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class UserManagementController extends Controller
 {
-    public function create(): View
-    {
-        return view('backend.users.create', [
-            'title' => 'Admin | User Management',
-            'context' => [
-                'app' => 'backend-users',
-            ],
-        ]);
-    }
-
     public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
@@ -40,7 +29,7 @@ class UserManagementController extends Controller
         }
 
         return redirect()
-            ->route('admin.users.create')
+            ->route('admin.products.index')
             ->with('status', "{$user->name} was created successfully.");
     }
 }

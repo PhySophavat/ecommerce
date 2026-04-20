@@ -1,11 +1,14 @@
 import './bootstrap';
 import { createApp } from 'vue';
 
-import UserManagementApp from './backend/UserManagementApp.vue';
+import ProductManagerPage from './backend/products/ProductManagerPage.vue';
 import UserDirectoryApp from './frontend/UserDirectoryApp.vue';
 
-const rootComponent = window.__APP_CONTEXT__?.app === 'backend-users'
-    ? UserManagementApp
-    : UserDirectoryApp;
+const appMap = {
+    'backend-products': ProductManagerPage,
+    frontend: UserDirectoryApp,
+};
+
+const rootComponent = appMap[window.__APP_CONTEXT__?.app] ?? UserDirectoryApp;
 
 createApp(rootComponent).mount('#app');

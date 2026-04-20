@@ -42,7 +42,7 @@ class CheckoutTest extends TestCase
         ]);
 
         $response
-            ->assertRedirect('/admin/users/create')
+            ->assertRedirect('/admin/products')
             ->assertSessionHas('status');
     }
 }

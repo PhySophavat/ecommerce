@@ -2,29 +2,191 @@
 
 namespace Tests\Feature;
 
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\StoreDemoSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\Fluent\AssertableJson;
 use Tests\TestCase;
 
 class BackendProductManagementTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_frontend_and_user_routes_are_registered(): void
+    public function test_frontend_and_admin_routes_are_registered(): void
     {
         $this->assertTrue(Route::has('frontend.home'));
+        $this->assertTrue(Route::has('admin.dashboard'));
+        $this->assertTrue(Route::has('admin.products.index'));
+        $this->assertTrue(Route::has('admin.products.create'));
         $this->assertTrue(Route::has('admin.users.create'));
         $this->assertTrue(Route::has('admin.users.store'));
+        $this->assertTrue(Route::has('api.admin.products.index'));
+        $this->assertTrue(Route::has('api.admin.products.store'));
         $this->assertSame(url('/frontend'), route('frontend.home'));
+        $this->assertSame(url('/admin/dashboard'), route('admin.dashboard'));
+        $this->assertSame(url('/admin/products'), route('admin.products.index'));
+        $this->assertSame(url('/admin/products/create'), route('admin.products.create'));
         $this->assertSame(url('/admin/users/create'), route('admin.users.create'));
     }
 
-    public function test_old_backend_routes_redirect_to_user_form(): void
+    public function test_legacy_backend_routes_redirect_to_product_dashboard(): void
     {
-        $this->get('/backend')->assertRedirect('/admin/users/create');
-        $this->get('/backend/products')->assertRedirect('/admin/users/create');
-        $this->get('/admin/products')->assertRedirect('/admin/users/create');
+        $this->get('/backend')->assertRedirect('/admin/products');
+        $this->get('/backend/products')->assertRedirect('/admin/products');
+        $this->get('/admin/users/create')->assertRedirect('/admin/products');
+        $this->get('/admin/dashboard')->assertOk();
+        $this->get('/admin/products/create')->assertOk();
+        $this->assertSame(url('/admin/products'), route('admin.products.index'));
+    }
+
+    public function test_admin_product_dashboard_api_returns_menu_and_products(): void
+    {
+        $this->seed();
+
+        $response = $this->getJson('/api/admin/products');
+
+        $response
+            ->assertOk()
+            ->assertJson(fn (AssertableJson $json) => $json
+                ->where('meta.brand', 'Spodut')
+                ->where('meta.page_title', 'Products')
+                ->where('menu.0.label', 'Dashboard')
+                ->where('menu.1.label', 'Products')
+                ->where('menu.7.children.0.label', 'Admin users')
+                ->where('products.count', 10)
+                ->has('form.categories')
+                ->has('summary', 4)
+                ->has('highlights', 4)
+                ->has('products.items', 10)
+                ->etc());
+    }
+
+    public function test_admin_product_dashboard_api_can_return_dashboard_view_payload(): void
+    {
+        $this->seed();
+
+        $response = $this->getJson('/api/admin/products?screen=dashboard');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('screen', 'dashboard')
+            ->assertJsonPath('meta.page_title', 'Dashboard')
+            ->assertJsonPath('menu.0.is_active', true)
+            ->assertJsonCount(0, 'menu.0.children')
+            ->assertJsonPath('menu.1.is_active', false);
+    }
+
+    public function test_admin_product_dashboard_api_can_return_add_product_view_payload(): void
+    {
+        $this->seed();
+
+        $response = $this->getJson('/api/admin/products?screen=add-product');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('screen', 'add-product')
+            ->assertJsonPath('meta.page_title', 'Add Product')
+            ->assertJsonPath('menu.1.is_active', true)
+            ->assertJsonPath('menu.1.children.1.slug', 'add-product')
+            ->assertJsonPath('menu.1.children.1.is_active', true);
+    }
+
+    public function test_admin_product_dashboard_api_falls_back_to_default_menu_when_no_menu_rows_exist(): void
+    {
+        $response = $this->getJson('/api/admin/products');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('menu.0.label', 'Dashboard')
+            ->assertJsonPath('menu.1.label', 'Products')
+            ->assertJsonCount(12, 'menu');
+    }
+
+    public function test_admin_product_dashboard_api_falls_back_to_default_menu_when_menu_table_is_missing(): void
+    {
+        Schema::dropIfExists('admin_menus');
+
+        $response = $this->getJson('/api/admin/products');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('menu.0.label', 'Dashboard')
+            ->assertJsonPath('menu.1.label', 'Products')
+            ->assertJsonCount(12, 'menu');
+    }
+
+    public function test_admin_product_api_creates_a_product_with_images_and_variants(): void
+    {
+        Storage::fake('public');
+        $this->seed(StoreDemoSeeder::class);
+
+        $category = Category::query()->firstOrFail();
+
+        $response = $this->post('/api/admin/products', [
+            'name' => 'Field Product',
+            'category_id' => $category->id,
+            'type' => 'men',
+            'description' => '<p>Editorial cotton layer for the new season.</p>',
+            'price' => '120.00',
+            'discount_price' => '96.50',
+            'stock_quantity' => 24,
+            'sku' => 'SPD-FIELD-011',
+            'status' => 'active',
+            'images' => [
+                UploadedFile::fake()->image('front.jpg'),
+                UploadedFile::fake()->image('back.jpg'),
+            ],
+            'variants' => [
+                [
+                    'size' => 'M',
+                    'color' => 'Black',
+                    'price' => '96.50',
+                    'stock' => 10,
+                ],
+                [
+                    'size' => 'L',
+                    'color' => 'Red',
+                    'price' => '102.00',
+                    'stock' => 14,
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('message', 'Field Product was created successfully.');
+
+        $product = Product::query()
+            ->with(['images', 'variants'])
+            ->where('sku', 'SPD-FIELD-011')
+            ->firstOrFail();
+
+        $this->assertSame('men', $product->type);
+        $this->assertSame('96.50', $product->price);
+        $this->assertSame('120.00', $product->compare_at_price);
+        $this->assertSame(24, $product->inventory);
+        $this->assertCount(2, $product->variants);
+        $this->assertCount(2, $product->images);
+
+        $this->assertDatabaseHas('product_variants', [
+            'product_id' => $product->id,
+            'size' => 'M',
+            'color' => 'Black',
+            'price' => 96.50,
+            'stock' => 10,
+        ]);
+
+        foreach ($product->images as $image) {
+            Storage::disk('public')->assertExists($image->path);
+        }
     }
 
     public function test_backend_vue_request_creates_a_user(): void
