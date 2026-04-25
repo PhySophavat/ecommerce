@@ -10,7 +10,7 @@ class HomeController extends Controller
     public function __invoke(): View
     {
         return view('frontend.index', [
-            'title' => 'Frontend | Users',
+            'title' => 'Frontend | Storefront',
             'context' => [
                 'app' => 'frontend',
             ],

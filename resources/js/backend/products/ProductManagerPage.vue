@@ -5,6 +5,7 @@
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
                 :screen="screen"
+                @quick-action="handlePrimaryAction"
                 @scroll-add-product="scrollToAddProduct"
                 @select-item="handleMenuSelection"
                 @toggle-menu="toggleMenu"
@@ -34,6 +35,10 @@
                         Loading dashboard data...
                     </div>
 
+                    <div v-else-if="isLoadingEditor" class="admin-card rounded-[28px] px-6 py-12 text-center text-sm text-slate-500">
+                        Loading product editor...
+                    </div>
+
                     <template v-else>
                         <template v-if="screen === 'dashboard'">
                             <SummaryCardsGrid :cards="dashboard.summary" />
@@ -43,7 +48,10 @@
 
                         <template v-else-if="screen === 'products'">
                             <ProductsTable
+                                :deleting-product-id="isDeletingProductId"
                                 :products="dashboard.products"
+                                @delete-product="handleProductDelete"
+                                @edit-product="openProductEditor"
                                 @scroll-add-product="scrollToAddProduct"
                                 @scroll-categories="scrollToSection('#categories')"
                                 @scroll-inventory="scrollToSection('#inventory')"
@@ -57,6 +65,8 @@
                                 :errors="productErrors"
                                 :form="productForm"
                                 :is-saving="isSavingProduct"
+                                :mode="isEditingProduct ? 'edit' : 'create'"
+                                :product-name="editingProductName"
                                 :reset-token="formResetToken"
                                 @reset="resetProductForm"
                                 @submit="handleProductSubmit"
@@ -85,12 +95,19 @@ const addProductSection = ref(null);
 
 const {
     dashboard,
+    deleteProduct,
+    editingProductId,
+    editingProductName,
     editorActions,
     formResetToken,
+    isDeletingProductId,
+    isEditingProduct,
     isLoading,
+    isLoadingEditor,
     isMenuOpen,
     isSavingProduct,
     loadDashboard,
+    loadProductForEdit,
     notice,
     productErrors,
     productForm,
@@ -102,6 +119,11 @@ const {
 
 onMounted(async () => {
     await loadDashboard();
+
+    if (screen === 'add-product' && editingProductId.value) {
+        await loadProductForEdit(editingProductId.value);
+    }
+
     await nextTick();
 
     if (window.location.hash) {
@@ -114,6 +136,20 @@ onMounted(async () => {
         scrollToSection(window.location.hash, false);
     }
 });
+
+async function handleProductDelete(product) {
+    if (!product?.id) {
+        return;
+    }
+
+    const confirmed = window.confirm(`Delete ${product.name}? This action cannot be undone.`);
+
+    if (!confirmed) {
+        return;
+    }
+
+    await deleteProduct(product);
+}
 
 async function handleProductSubmit() {
     const created = await submitProduct();
@@ -163,6 +199,26 @@ function handlePrimaryAction() {
     }
 
     openProductsView();
+}
+
+async function openProductEditor(product) {
+    const productId = typeof product === 'object' ? product?.id : product;
+
+    if (!productId) {
+        return;
+    }
+
+    const targetUrl = `/admin/products/create?edit=${productId}`;
+
+    if (screen !== 'add-product') {
+        window.location.href = targetUrl;
+
+        return;
+    }
+
+    window.history.replaceState({}, '', targetUrl);
+    await loadProductForEdit(productId);
+    scrollToAddProduct(false);
 }
 
 function scrollToAddProduct(shouldFocus = true) {

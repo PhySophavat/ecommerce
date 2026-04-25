@@ -12,8 +12,12 @@ class ProductVariant extends Model
 
     protected $fillable = [
         'product_id',
+        'label',
         'size',
         'color',
+        'option_values',
+        'sku',
+        'image_path',
         'price',
         'stock',
     ];
@@ -21,6 +25,7 @@ class ProductVariant extends Model
     protected function casts(): array
     {
         return [
+            'option_values' => 'array',
             'price' => 'decimal:2',
         ];
     }

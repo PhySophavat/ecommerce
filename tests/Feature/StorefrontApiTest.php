@@ -10,7 +10,7 @@ class StorefrontApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_storefront_payload_contains_user_data_only(): void
+    public function test_storefront_payload_contains_category_navigation_products_and_slides(): void
     {
         $this->seed();
 
@@ -19,13 +19,21 @@ class StorefrontApiTest extends TestCase
         $response
             ->assertOk()
             ->assertJson(fn (AssertableJson $json) => $json
-                ->where('meta.brand', 'Northstar Users')
-                ->where('links.admin_users', url('/admin/products'))
-                ->where('users.count', 3)
-                ->has('users.items', 3)
-                ->missing('categories')
-                ->missing('products')
-                ->missing('featured')
+                ->where('meta.brand', 'Northstar Goods')
+                ->where('meta.eyebrow', 'Category-led storefront')
+                ->where('links.admin_sliders', url('/admin/sliders'))
+                ->where('links.admin_products', url('/admin/products'))
+                ->where('categories.0.slug', 'beauty')
+                ->where('categories.0.products_count', 1)
+                ->where('slides.0.category_slug', 'beauty')
+                ->where('slides.0.title', 'Beauty')
+                ->where('products.count', 8)
+                ->where('products.featured.0.category_slug', 'beauty')
+                ->has('categories', 5)
+                ->has('slides', 2)
+                ->has('products.items', 8)
+                ->has('products.featured', 3)
+                ->missing('users')
                 ->missing('cart'));
     }
 }

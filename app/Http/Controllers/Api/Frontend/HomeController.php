@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Category;
+use App\Models\Product;
+use App\Models\Slide;
 use App\Support\StorefrontData;
 use Illuminate\Http\JsonResponse;
 
@@ -11,29 +13,66 @@ class HomeController extends Controller
 {
     public function __invoke(): JsonResponse
     {
-        $users = User::query()
-            ->latest()
+        $products = Product::query()
+            ->with('category')
+            ->whereIn('status', ['active', 'scheduled'])
+            ->orderByDesc('is_featured')
+            ->orderByDesc('updated_at')
+            ->get();
+
+        $categories = Category::query()
+            ->withCount([
+                'products as products_count' => fn ($query) => $query->whereIn('status', ['active', 'scheduled']),
+            ])
+            ->get()
+            ->sortBy(fn (Category $category): array => [StorefrontData::categoryOrder($category->slug), $category->name])
+            ->values();
+
+        $featuredProducts = $products
+            ->where('is_featured', true)
+            ->take(3)
+            ->values();
+        $featuredCount = $products->where('is_featured', true)->count();
+        $slides = Slide::query()
+            ->with('category')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
             ->get();
 
         return response()->json([
             'meta' => [
-                'brand' => 'Northstar Users',
-                'headline' => 'Frontend user directory powered by Vue.',
-                'subheadline' => 'Users are shown here while the main admin area now lives in the product dashboard.',
-                'stack' => ['Laravel validation', 'Vue 3 frontend list', 'Admin products dashboard'],
+                'brand' => 'Northstar Goods',
+                'eyebrow' => 'Category-led storefront',
+                'headline' => 'Shop the catalog by category.',
+                'subheadline' => 'The website header now pulls its navigation directly from product categories managed in the admin dashboard.',
                 'stats' => [
-                    ['value' => (string) $users->count(), 'label' => 'registered users'],
-                    ['value' => $users->first()?->created_at?->toDateString() ?? 'N/A', 'label' => 'latest join'],
+                    ['value' => (string) $categories->count(), 'label' => 'catalog categories'],
+                    ['value' => (string) $products->count(), 'label' => 'storefront products'],
+                    ['value' => (string) $featuredCount, 'label' => 'featured picks'],
                 ],
             ],
             'links' => [
                 'frontend' => route('frontend.home'),
-                'admin_users' => route('admin.products.index'),
+                'admin_sliders' => route('admin.sliders.index'),
+                'admin_products' => route('admin.products.index'),
             ],
-            'users' => [
-                'count' => $users->count(),
-                'items' => $users
-                    ->map(fn (User $user): array => StorefrontData::user($user))
+            'categories' => $categories
+                ->map(fn (Category $category): array => StorefrontData::category($category))
+                ->values()
+                ->all(),
+            'slides' => $slides
+                ->map(fn (Slide $slide): array => StorefrontData::slide($slide))
+                ->values()
+                ->all(),
+            'products' => [
+                'count' => $products->count(),
+                'featured' => $featuredProducts
+                    ->map(fn (Product $product): array => StorefrontData::product($product))
+                    ->values()
+                    ->all(),
+                'items' => $products
+                    ->map(fn (Product $product): array => StorefrontData::product($product))
                     ->values()
                     ->all(),
             ],

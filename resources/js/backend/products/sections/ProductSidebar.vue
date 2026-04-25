@@ -99,9 +99,9 @@
                     <button
                         type="button"
                         class="flex w-full items-center justify-between rounded-2xl bg-white/90 px-4 py-3 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:text-slate-950"
-                        @click="$emit('scroll-add-product')"
+                        @click="emit('quick-action')"
                     >
-                        <span>Add product form</span><span>&rarr;</span>
+                        <span>{{ quickActionLabel }}</span><span>&rarr;</span>
                     </button>
                 </div>
             </div>
@@ -110,7 +110,9 @@
 </template>
 
 <script setup>
-defineEmits(['scroll-add-product', 'select-item', 'toggle-menu']);
+import { computed } from 'vue';
+
+const emit = defineEmits(['quick-action', 'scroll-add-product', 'select-item', 'toggle-menu']);
 
 const props = defineProps({
     dashboard: {
@@ -126,6 +128,13 @@ const props = defineProps({
         required: true,
     },
 });
+
+const quickActionLabel = computed(() => ({
+    sliders: 'Add slide form',
+    dashboard: 'View products',
+    products: 'Add product form',
+    'add-product': 'Add product form',
+}[props.screen] ?? 'Open manager'));
 
 function menuIsInteractive(item) {
     return item.is_enabled || item.slug === 'add-product';
@@ -168,6 +177,7 @@ function submenuItemClass(item) {
 function iconPath(icon) {
     return {
         dashboard: 'M4 12.5 12 4l8 8.5M6.5 10.5V20h11V10.5',
+        sliders: 'M5 6h14M5 12h14M5 18h14',
         products: 'M4 7.5 12 3l8 4.5-8 4.5L4 7.5ZM4 7.5V16.5L12 21l8-4.5V7.5',
         orders: 'M7 7h10l2 3-7 7-7-7 2-3Zm5 10v4',
         customers: 'M16 19a4 4 0 0 0-8 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 7a3 3 0 0 0-3-3m-8-8a3 3 0 1 0-3-3m13 10a3 3 0 0 1 3 3',

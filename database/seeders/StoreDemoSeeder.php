@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Slide;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 class StoreDemoSeeder extends Seeder
 {
@@ -14,50 +16,18 @@ class StoreDemoSeeder extends Seeder
      */
     public function run(): void
     {
-        $categories = collect([
-            [
-                'name' => 'Women Cloths',
-                'slug' => 'women-cloths',
-                'description' => 'Curated silhouettes for premium everyday dressing.',
-                'accent' => '#3457ff',
-            ],
-            [
-                'name' => 'Man Cloths',
-                'slug' => 'man-cloths',
-                'description' => 'Tailored essentials and soft knit staples.',
-                'accent' => '#0f766e',
-            ],
-            [
-                'name' => 'Kid Cloths',
-                'slug' => 'kid-cloths',
-                'description' => 'Playful fits built for comfort and motion.',
-                'accent' => '#d97706',
-            ],
-            [
-                'name' => 'Sweater',
-                'slug' => 'sweater',
-                'description' => 'Layering pieces with texture and seasonal weight.',
-                'accent' => '#7c3aed',
-            ],
-        ])->mapWithKeys(function (array $category): array {
-            $model = Category::query()->updateOrCreate(
-                ['slug' => $category['slug']],
-                $category,
-            );
-
-            return [$category['slug'] => $model];
-        });
+        $categories = $this->syncCategories();
 
         collect([
             [
-                'category_slug' => 'women-cloths',
-                'name' => 'T-Shirt',
-                'slug' => 't-shirt',
+                'category_slug' => 'beauty',
+                'name' => 'Hydrating Serum',
+                'slug' => 'hydrating-serum',
                 'sku' => 'SPD-TS-001',
-                'tagline' => 'Soft cotton tee with structured shoulders.',
-                'description' => 'A polished staple for daily merchandising layouts.',
-                'price' => 79.80,
-                'compare_at_price' => 98.00,
+                'tagline' => 'Lightweight hydration boost for a daily glow routine.',
+                'description' => 'A fast-absorbing serum designed to keep skin refreshed, smooth, and camera ready across the day.',
+                'price' => 39.80,
+                'compare_at_price' => 49.00,
                 'inventory' => 79,
                 'status' => 'scheduled',
                 'is_featured' => true,
@@ -66,12 +36,12 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 124,
             ],
             [
-                'category_slug' => 'man-cloths',
-                'name' => 'Shirt',
-                'slug' => 'shirt',
+                'category_slug' => 'fashion',
+                'name' => 'Tailored Linen Shirt',
+                'slug' => 'tailored-linen-shirt',
                 'sku' => 'SPD-SH-002',
-                'tagline' => 'Lightweight overshirt for smart layering.',
-                'description' => 'Built to shift between formal edits and casual sets.',
+                'tagline' => 'Breathable staple with a clean smart-casual shape.',
+                'description' => 'A lightweight shirt built for polished everyday styling, easy layering, and steady storefront appeal.',
                 'price' => 76.89,
                 'compare_at_price' => 84.00,
                 'inventory' => 86,
@@ -82,13 +52,13 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 93,
             ],
             [
-                'category_slug' => 'kid-cloths',
-                'name' => 'Pant',
-                'slug' => 'pant',
+                'category_slug' => 'sport',
+                'name' => 'Flex Training Jogger',
+                'slug' => 'flex-training-jogger',
                 'sku' => 'SPD-PT-003',
-                'tagline' => 'Relaxed cotton pant for all-day comfort.',
-                'description' => 'Easy waisted fit with durable finishing.',
-                'price' => 86.65,
+                'tagline' => 'Stretch-built jogger made for training and recovery.',
+                'description' => 'Designed for movement with a streamlined fit, breathable feel, and durable finish for repeat sessions.',
+                'price' => 56.65,
                 'compare_at_price' => null,
                 'inventory' => 74,
                 'status' => 'draft',
@@ -98,14 +68,14 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 58,
             ],
             [
-                'category_slug' => 'man-cloths',
-                'name' => 'Sweater Core',
-                'slug' => 'sweater-core',
+                'category_slug' => 'home',
+                'name' => 'Ceramic Table Lamp',
+                'slug' => 'ceramic-table-lamp',
                 'sku' => 'SPD-SW-004',
-                'tagline' => 'Compact knit with a clean hem finish.',
-                'description' => 'An easy merchandising anchor for cooler drops.',
-                'price' => 56.07,
-                'compare_at_price' => 68.00,
+                'tagline' => 'Warm ambient lighting with a soft matte ceramic base.',
+                'description' => 'A decorative lamp that brings gentle evening light and a refined accent to bedroom and living room spaces.',
+                'price' => 66.07,
+                'compare_at_price' => 78.00,
                 'inventory' => 69,
                 'status' => 'active',
                 'is_featured' => false,
@@ -114,13 +84,13 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 81,
             ],
             [
-                'category_slug' => 'man-cloths',
-                'name' => 'Sweater Studio',
-                'slug' => 'sweater-studio',
+                'category_slug' => 'electronic',
+                'name' => 'Wireless Earbuds',
+                'slug' => 'wireless-earbuds',
                 'sku' => 'SPD-SW-005',
-                'tagline' => 'Textured sweater developed for editorial drops.',
-                'description' => 'A premium seasonal line item with soft hand feel.',
-                'price' => 56.07,
+                'tagline' => 'Compact audio pair with clear sound and stable connection.',
+                'description' => 'A portable everyday audio essential with balanced sound, quick pairing, and a pocket-friendly charging case.',
+                'price' => 86.07,
                 'compare_at_price' => null,
                 'inventory' => 69,
                 'status' => 'scheduled',
@@ -130,12 +100,12 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 104,
             ],
             [
-                'category_slug' => 'women-cloths',
-                'name' => 'Light Jacket',
-                'slug' => 'light-jacket',
+                'category_slug' => 'beauty',
+                'name' => 'Daily Glow Cleanser',
+                'slug' => 'daily-glow-cleanser',
                 'sku' => 'SPD-LJ-006',
-                'tagline' => 'Crisp outer layer for transitional weather.',
-                'description' => 'Refined volume with minimal detailing.',
+                'tagline' => 'Gentle gel cleanser that lifts oil without stripping skin.',
+                'description' => 'A balanced daily cleanser formulated to rinse clean, refresh the complexion, and support a simple skincare routine.',
                 'price' => 36.00,
                 'compare_at_price' => 44.00,
                 'inventory' => 65,
@@ -146,12 +116,12 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 45,
             ],
             [
-                'category_slug' => 'man-cloths',
-                'name' => 'Half Shirt',
-                'slug' => 'half-shirt',
+                'category_slug' => 'sport',
+                'name' => 'Performance Hoodie',
+                'slug' => 'performance-hoodie',
                 'sku' => 'SPD-HS-007',
-                'tagline' => 'Short sleeve shirt with elevated drape.',
-                'description' => 'Strong conversion performer for summer capsules.',
+                'tagline' => 'Training-ready layer with soft structure and easy warmth.',
+                'description' => 'A versatile active hoodie designed for warm-ups, cooldowns, and off-duty comfort between sessions.',
                 'price' => 46.78,
                 'compare_at_price' => 58.00,
                 'inventory' => 58,
@@ -162,13 +132,13 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 89,
             ],
             [
-                'category_slug' => 'sweater',
-                'name' => 'Half Shirt Knit',
-                'slug' => 'half-shirt-knit',
+                'category_slug' => 'electronic',
+                'name' => 'Smart Desk Speaker',
+                'slug' => 'smart-desk-speaker',
                 'sku' => 'SPD-HS-008',
-                'tagline' => 'Boxy cropped knit with tonal ribbing.',
-                'description' => 'High-contrast styling piece for campaign edits.',
-                'price' => 46.78,
+                'tagline' => 'Compact desktop speaker tuned for clear voice and music.',
+                'description' => 'A minimal speaker made for workstations, delivering room-filling sound without taking over the desk.',
+                'price' => 64.78,
                 'compare_at_price' => null,
                 'inventory' => 58,
                 'status' => 'active',
@@ -178,13 +148,13 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 67,
             ],
             [
-                'category_slug' => 'man-cloths',
-                'name' => 'Half Shirt Jacket',
-                'slug' => 'half-shirt-jacket',
+                'category_slug' => 'home',
+                'name' => 'Scented Candle Set',
+                'slug' => 'scented-candle-set',
                 'sku' => 'SPD-HS-009',
-                'tagline' => 'Weighted shirt-jacket in deep indigo.',
-                'description' => 'Carries editorial visual depth without extra bulk.',
-                'price' => 46.78,
+                'tagline' => 'Three-piece candle set for a calmer evening atmosphere.',
+                'description' => 'A layered home fragrance set designed to add warmth, soft light, and a polished shelf presence.',
+                'price' => 42.78,
                 'compare_at_price' => 60.00,
                 'inventory' => 58,
                 'status' => 'scheduled',
@@ -194,12 +164,12 @@ class StoreDemoSeeder extends Seeder
                 'reviews_count' => 73,
             ],
             [
-                'category_slug' => 'kid-cloths',
-                'name' => 'Half Shirt Kids',
-                'slug' => 'half-shirt-kids',
+                'category_slug' => 'fashion',
+                'name' => 'Structured Tote Bag',
+                'slug' => 'structured-tote-bag',
                 'sku' => 'SPD-HS-010',
-                'tagline' => 'Easy-fit kids shirt in a clean poplin finish.',
-                'description' => 'Bright visual tone for family catalog stories.',
+                'tagline' => 'Clean everyday carry bag with structured shape and space.',
+                'description' => 'A versatile tote built for daily errands, office carry, and simple premium presentation in the catalog.',
                 'price' => 46.78,
                 'compare_at_price' => null,
                 'inventory' => 58,
@@ -226,6 +196,50 @@ class StoreDemoSeeder extends Seeder
                     'theme' => $product['theme'],
                     'rating' => $product['rating'],
                     'reviews_count' => $product['reviews_count'],
+                ],
+            );
+        });
+
+        collect([
+            [
+                'category_slug' => 'beauty',
+                'eyebrow' => 'New arrival',
+                'title' => 'Beauty',
+                'highlight' => 'Essentials',
+                'description' => 'Premium skincare and makeup for natural glow.',
+                'button_text' => 'Shop now',
+                'button_url' => '/frontend',
+                'badge_text' => 'Up to 30% off',
+                'sort_order' => 1,
+                'is_active' => true,
+            ],
+            [
+                'category_slug' => 'fashion',
+                'eyebrow' => 'Fresh edit',
+                'title' => 'Modern',
+                'highlight' => 'Layers',
+                'description' => 'Clean silhouettes and elevated essentials for everyday wear.',
+                'button_text' => 'Discover',
+                'button_url' => '/frontend',
+                'badge_text' => 'Weekly drop',
+                'sort_order' => 2,
+                'is_active' => true,
+            ],
+        ])->each(function (array $slide) use ($categories): void {
+            Slide::query()->updateOrCreate(
+                [
+                    'title' => $slide['title'],
+                    'highlight' => $slide['highlight'],
+                ],
+                [
+                    'category_id' => $categories[$slide['category_slug']]->id ?? null,
+                    'eyebrow' => $slide['eyebrow'],
+                    'description' => $slide['description'],
+                    'button_text' => $slide['button_text'],
+                    'button_url' => $slide['button_url'],
+                    'badge_text' => $slide['badge_text'],
+                    'sort_order' => $slide['sort_order'],
+                    'is_active' => $slide['is_active'],
                 ],
             );
         });
@@ -301,5 +315,90 @@ class StoreDemoSeeder extends Seeder
                 $order,
             );
         });
+    }
+
+    /**
+     * @return Collection<string, Category>
+     */
+    private function syncCategories(): Collection
+    {
+        $definitions = collect([
+            [
+                'name' => 'Beauty',
+                'slug' => 'beauty',
+                'description' => 'Skincare, makeup, and self-care essentials for daily routines.',
+                'accent' => '#ec4899',
+                'legacy_slugs' => ['women-cloths'],
+            ],
+            [
+                'name' => 'Fashion',
+                'slug' => 'fashion',
+                'description' => 'Apparel and accessories shaped for modern everyday styling.',
+                'accent' => '#3457ff',
+                'legacy_slugs' => ['man-cloths'],
+            ],
+            [
+                'name' => 'Sport',
+                'slug' => 'sport',
+                'description' => 'Performance gear and active essentials built for movement.',
+                'accent' => '#0f766e',
+                'legacy_slugs' => ['kid-cloths'],
+            ],
+            [
+                'name' => 'Electronic',
+                'slug' => 'electronic',
+                'description' => 'Smart devices and desktop tech for work, focus, and entertainment.',
+                'accent' => '#f97316',
+                'legacy_slugs' => [],
+            ],
+            [
+                'name' => 'Home',
+                'slug' => 'home',
+                'description' => 'Decor and living essentials that add comfort and atmosphere.',
+                'accent' => '#7c3aed',
+                'legacy_slugs' => ['sweater'],
+            ],
+        ]);
+
+        $categories = $definitions->mapWithKeys(function (array $definition): array {
+            $model = Category::query()->where('slug', $definition['slug'])->first();
+
+            if (! $model && $definition['legacy_slugs'] !== []) {
+                $model = Category::query()->whereIn('slug', $definition['legacy_slugs'])->first();
+            }
+
+            $model ??= new Category();
+            $model->fill([
+                'name' => $definition['name'],
+                'slug' => $definition['slug'],
+                'description' => $definition['description'],
+                'accent' => $definition['accent'],
+            ]);
+            $model->save();
+
+            return [$definition['slug'] => $model];
+        });
+
+        $legacyMap = $definitions
+            ->flatMap(fn (array $definition): array => collect($definition['legacy_slugs'])
+                ->mapWithKeys(fn (string $legacySlug): array => [$legacySlug => $definition['slug']])
+                ->all());
+
+        foreach ($legacyMap as $legacySlug => $canonicalSlug) {
+            $legacyCategory = Category::query()->where('slug', $legacySlug)->first();
+            $canonicalCategory = $categories[$canonicalSlug] ?? null;
+
+            if (! $legacyCategory || ! $canonicalCategory || $legacyCategory->is($canonicalCategory)) {
+                continue;
+            }
+
+            Product::query()
+                ->where('category_id', $legacyCategory->id)
+                ->update(['category_id' => $canonicalCategory->id]);
+
+            $legacyCategory->delete();
+        }
+
+        return $categories;
     }
 }

@@ -6,10 +6,12 @@ use App\Models\AdminMenu;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Slide;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class AdminDashboardData
 {
@@ -40,11 +42,12 @@ class AdminDashboardData
             ],
             'form' => [
                 'categories' => Category::query()
-                    ->orderBy('name')
-                    ->get(['id', 'name'])
+                    ->get(['id', 'name', 'slug'])
+                    ->sortBy(fn (Category $category): array => [self::categoryOrder($category->slug), $category->name])
                     ->map(fn (Category $category): array => [
                         'id' => $category->id,
                         'name' => $category->name,
+                        'slug' => $category->slug,
                     ])
                     ->values()
                     ->all(),
@@ -54,10 +57,12 @@ class AdminDashboardData
                 ],
                 'statuses' => [
                     ['label' => 'Active', 'value' => 'active'],
+                    ['label' => 'Scheduled', 'value' => 'scheduled'],
                     ['label' => 'Draft', 'value' => 'draft'],
                 ],
                 'sizes' => ['S', 'M', 'L', 'XL'],
                 'colors' => ['Red', 'Black', 'White', 'Blue', 'Green'],
+                'variant_presets' => self::variantPresets(),
             ],
             'summary' => [
                 [
@@ -121,9 +126,55 @@ class AdminDashboardData
         ];
     }
 
+    public static function slidesIndex(): array
+    {
+        $slides = Slide::query()
+            ->with('category')
+            ->orderBy('sort_order')
+            ->orderByDesc('id')
+            ->get();
+        $meta = self::metaForScreen('sliders');
+
+        return [
+            'screen' => 'sliders',
+            'meta' => [
+                'brand' => 'Spodut',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => [
+                    'frontend' => route('frontend.home'),
+                    'admin_users' => route('admin.products.index'),
+                ],
+            ],
+            'form' => [
+                'categories' => Category::query()
+                    ->get(['id', 'name', 'slug'])
+                    ->sortBy(fn (Category $category): array => [self::categoryOrder($category->slug), $category->name])
+                    ->map(fn (Category $category): array => [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'slug' => $category->slug,
+                    ])
+                    ->values()
+                    ->all(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('sliders')),
+            'slides' => [
+                'count' => $slides->count(),
+                'active_count' => $slides->where('is_active', true)->count(),
+                'next_sort_order' => ((int) $slides->max('sort_order')) + 1,
+                'items' => $slides
+                    ->map(fn (Slide $slide): array => self::slide($slide))
+                    ->values()
+                    ->all(),
+            ],
+        ];
+    }
+
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'products', 'add-product'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product'], true) ? $screen : 'products';
     }
 
     /**
@@ -142,6 +193,11 @@ class AdminDashboardData
                 'kicker' => 'Catalog creation',
                 'subheadline' => 'Create a new catalog item, upload images, and configure stock, pricing, and variants.',
             ],
+            'sliders' => [
+                'page_title' => 'Slides',
+''                'kicker' => 'Hero sliders',
+                'subheadline' => 'Create hero slides for the storefront and control which ones are shown on the frontend.',
+            ],
             default => [
                 'page_title' => 'Products',
                 'kicker' => 'Catalog control center',
@@ -157,6 +213,7 @@ class AdminDashboardData
     {
         return match ($screen) {
             'dashboard' => ['dashboard'],
+            'sliders' => ['sliders'],
             'add-product' => ['products', 'add-product'],
             default => ['products', 'all-products'],
         };
@@ -169,10 +226,10 @@ class AdminDashboardData
     private static function menuTree(array $activeSlugs): array
     {
         if (!Schema::hasTable('admin_menus')) {
-            return collect(AdminMenuCatalog::items())
+            return self::normalizeMenuTree(collect(AdminMenuCatalog::items())
                 ->map(fn (array $menu): array => self::menuDefinitionItem($menu, $activeSlugs))
                 ->values()
-                ->all();
+                ->all(), $activeSlugs);
         }
 
         $menus = AdminMenu::query()
@@ -182,16 +239,90 @@ class AdminDashboardData
             ->get();
 
         if ($menus->isEmpty()) {
-            return collect(AdminMenuCatalog::items())
+            return self::normalizeMenuTree(collect(AdminMenuCatalog::items())
                 ->map(fn (array $menu): array => self::menuDefinitionItem($menu, $activeSlugs))
                 ->values()
-                ->all();
+                ->all(), $activeSlugs);
         }
 
-        return $menus
+        return self::normalizeMenuTree($menus
             ->map(fn (AdminMenu $menu): array => self::menuItem($menu, $activeSlugs))
             ->values()
+            ->all(), $activeSlugs);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $menuItems
+     * @param  array<int, string>  $activeSlugs
+     * @return array<int, array<string, mixed>>
+     */
+    private static function normalizeMenuTree(array $menuItems, array $activeSlugs): array
+    {
+        $sliderItem = null;
+
+        $normalized = collect($menuItems)
+            ->map(function (array $item) use (&$sliderItem, $activeSlugs): ?array {
+                if (($item['slug'] ?? null) === 'sliders') {
+                    $sliderItem ??= self::standaloneSliderMenuItem($item, $activeSlugs);
+
+                    return null;
+                }
+
+                $children = collect($item['children'] ?? [])
+                    ->filter(function (array $child) use (&$sliderItem, $activeSlugs): bool {
+                        if (($child['slug'] ?? null) !== 'sliders') {
+                            return true;
+                        }
+
+                        $sliderItem ??= self::standaloneSliderMenuItem($child, $activeSlugs);
+
+                        return false;
+                    })
+                    ->values()
+                    ->all();
+
+                $childIsActive = collect($children)->contains(fn (array $child): bool => $child['is_active']);
+
+                return [
+                    ...$item,
+                    'children' => $children,
+                    'is_active' => in_array($item['slug'], $activeSlugs, true) || $childIsActive,
+                    'is_expanded' => !empty($children) && ($childIsActive || ($item['is_expanded'] ?? false)),
+                ];
+            })
+            ->filter()
+            ->values()
             ->all();
+
+        if (!$sliderItem || collect($normalized)->contains(fn (array $item): bool => $item['slug'] === 'sliders')) {
+            return $normalized;
+        }
+
+        $dashboardIndex = collect($normalized)->search(fn (array $item): bool => $item['slug'] === 'dashboard');
+        $insertIndex = $dashboardIndex === false ? 0 : $dashboardIndex + 1;
+
+        array_splice($normalized, $insertIndex, 0, [$sliderItem]);
+
+        return array_values($normalized);
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @param  array<int, string>  $activeSlugs
+     * @return array<string, mixed>
+     */
+    private static function standaloneSliderMenuItem(array $item, array $activeSlugs): array
+    {
+        return [
+            ...$item,
+            'label' => 'Slides',
+            'icon' => 'sliders',
+            'path' => $item['path'] ?? '/admin/sliders',
+            'is_enabled' => true,
+            'is_active' => in_array('sliders', $activeSlugs, true),
+            'is_expanded' => false,
+            'children' => [],
+        ];
     }
 
     /**
@@ -279,9 +410,190 @@ class AdminDashboardData
         ];
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private static function slide(Slide $slide): array
+    {
+        return [
+            'id' => $slide->id,
+            'category_id' => $slide->category_id ? (string) $slide->category_id : '',
+            'category' => $slide->category?->name ?? 'All categories',
+            'category_slug' => $slide->category?->slug,
+            'eyebrow' => $slide->eyebrow ?? '',
+            'title' => $slide->title,
+            'highlight' => $slide->highlight ?? '',
+            'description' => $slide->description ?? '',
+            'button_text' => $slide->button_text ?? '',
+            'button_url' => $slide->button_url ?? '',
+            'badge_text' => $slide->badge_text ?? '',
+            'image_url' => $slide->image_path ? self::publicStorageUrl($slide->image_path) : '',
+            'image_name' => $slide->image_path ? basename($slide->image_path) : '',
+            'is_active' => (bool) $slide->is_active,
+            'status' => $slide->is_active ? 'active' : 'draft',
+            'sort_order' => (string) $slide->sort_order,
+            'updated_at' => $slide->updated_at?->format('M d, Y'),
+        ];
+    }
+
     private static function currency(float $value): string
     {
         return '$'.number_format($value, 2);
+    }
+
+    private static function publicStorageUrl(string $path): string
+    {
+        return '/storage/'.ltrim(str_replace('\\', '/', $path), '/');
+    }
+
+    private static function categoryOrder(string $slug): int
+    {
+        return [
+            'beauty' => 1,
+            'fashion' => 2,
+            'sport' => 3,
+            'electronic' => 4,
+            'home' => 5,
+        ][$slug] ?? 99;
+    }
+
+    /**
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    private static function variantPresets(): array
+    {
+        return [
+            'beauty' => [
+                [
+                    'name' => 'Size',
+                    'suggested_options' => ['30ml', '50ml', '100ml'],
+                ],
+                [
+                    'name' => 'Color',
+                    'suggested_options' => ['Red', 'Pink', 'Nude', 'Orange'],
+                ],
+                [
+                    'name' => 'Skin Type',
+                    'suggested_options' => ['Oily', 'Dry', 'Sensitive'],
+                ],
+                [
+                    'name' => 'Scent',
+                    'suggested_options' => ['Rose', 'Lemon', 'Unscented'],
+                ],
+            ],
+            'fashion' => [
+                [
+                    'name' => 'Size',
+                    'suggested_options' => ['S', 'M', 'L', 'XL'],
+                ],
+                [
+                    'name' => 'Color',
+                    'suggested_options' => ['Black', 'White', 'Blue'],
+                ],
+                [
+                    'name' => 'Material',
+                    'suggested_options' => ['Cotton', 'Jeans'],
+                ],
+                [
+                    'name' => 'Style',
+                    'suggested_options' => ['Slim Fit', 'Oversize'],
+                ],
+                [
+                    'name' => 'Gender',
+                    'suggested_options' => ['Men', 'Women', 'Unisex'],
+                ],
+            ],
+            'sport' => [
+                [
+                    'name' => 'Size',
+                    'suggested_options' => ['Small', 'Medium', 'Large'],
+                ],
+                [
+                    'name' => 'Weight',
+                    'suggested_options' => ['5kg', '10kg', '15kg'],
+                ],
+                [
+                    'name' => 'Color',
+                    'suggested_options' => ['Blue', 'Pink', 'Black'],
+                ],
+                [
+                    'name' => 'Material',
+                    'suggested_options' => ['Rubber', 'Foam', 'Steel'],
+                ],
+                [
+                    'name' => 'Thickness',
+                    'suggested_options' => ['5mm', '10mm'],
+                ],
+                [
+                    'name' => 'Resistance Level',
+                    'suggested_options' => ['Light', 'Medium', 'Heavy'],
+                ],
+                [
+                    'name' => 'Usage Type',
+                    'suggested_options' => ['Indoor', 'Outdoor'],
+                ],
+            ],
+            'electronic' => [
+                [
+                    'name' => 'Model',
+                    'suggested_options' => ['Base', 'Pro', 'Ultra'],
+                ],
+                [
+                    'name' => 'RAM',
+                    'suggested_options' => ['8GB', '16GB'],
+                ],
+                [
+                    'name' => 'Storage',
+                    'suggested_options' => ['256GB', '512GB'],
+                ],
+                [
+                    'name' => 'Color',
+                    'suggested_options' => ['Silver', 'Black'],
+                ],
+                [
+                    'name' => 'Plug Type',
+                    'suggested_options' => ['EU', 'US', 'UK'],
+                ],
+                [
+                    'name' => 'Voltage',
+                    'suggested_options' => ['110V', '220V'],
+                ],
+                [
+                    'name' => 'Power',
+                    'suggested_options' => ['20W', '30W'],
+                ],
+                [
+                    'name' => 'Region Version',
+                    'suggested_options' => ['Global', 'US', 'EU', 'Asia'],
+                ],
+            ],
+            'home' => [
+                [
+                    'name' => 'Size',
+                    'suggested_options' => ['Small', 'Medium', 'Large', '20L', '40L', '60L'],
+                ],
+                [
+                    'name' => 'Color',
+                    'suggested_options' => ['Black', 'Brown', 'White'],
+                ],
+                [
+                    'name' => 'Material',
+                    'suggested_options' => ['Wood', 'Steel', 'Plastic', 'Metal'],
+                ],
+                [
+                    'name' => 'Style',
+                    'suggested_options' => ['Modern', 'Classic'],
+                ],
+                [
+                    'name' => 'Dimensions',
+                    'suggested_options' => ['40x40cm', '60x60cm'],
+                ],
+                [
+                    'name' => 'Pattern / Design',
+                    'suggested_options' => ['Plain', 'Striped', 'Floral'],
+                ],
+            ],
+        ];
     }
 
     private static function initials(string $name): string

@@ -30,10 +30,10 @@ body {
 
 body[data-app='frontend'] {
     background:
-        radial-gradient(circle at top left, rgba(249, 115, 22, 0.18), transparent 28%),
-        radial-gradient(circle at top right, rgba(20, 184, 166, 0.14), transparent 24%),
-        linear-gradient(180deg, #17110d 0%, #0c0a09 100%);
-    color: #f7efe6;
+        radial-gradient(circle at top left, rgba(244, 114, 182, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 24%),
+        linear-gradient(180deg, #fffafc 0%, #fff3f7 100%);
+    color: #1c1917;
 }
 
 body[data-app='backend-products'] {

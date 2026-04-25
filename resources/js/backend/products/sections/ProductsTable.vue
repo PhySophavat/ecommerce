@@ -76,9 +76,23 @@
                             </span>
                         </td>
                         <td class="px-4 py-4 text-right">
-                            <button type="button" class="text-sm font-semibold text-[#3457ff] transition hover:text-[#2543b8]" @click="$emit('scroll-add-product')">
-                                Details
-                            </button>
+                            <div class="flex items-center justify-end gap-3">
+                                <button
+                                    type="button"
+                                    class="text-sm font-semibold text-[#3457ff] transition hover:text-[#2543b8]"
+                                    @click="$emit('edit-product', product)"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    type="button"
+                                    class="text-sm font-semibold text-rose-600 transition hover:text-rose-700 disabled:cursor-not-allowed disabled:text-rose-300"
+                                    :disabled="deletingProductId === product.id"
+                                    @click="$emit('delete-product', product)"
+                                >
+                                    {{ deletingProductId === product.id ? 'Deleting...' : 'Delete' }}
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -104,9 +118,13 @@
 </template>
 
 <script setup>
-defineEmits(['scroll-add-product', 'scroll-categories', 'scroll-inventory']);
+defineEmits(['delete-product', 'edit-product', 'scroll-add-product', 'scroll-categories', 'scroll-inventory']);
 
 defineProps({
+    deletingProductId: {
+        type: Number,
+        default: null,
+    },
     products: {
         type: Object,
         required: true,

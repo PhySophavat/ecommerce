@@ -2,8 +2,9 @@
     <form class="admin-card rounded-[28px] px-5 py-5 sm:px-6 sm:py-6" @submit.prevent="$emit('submit')">
         <div class="flex flex-col gap-4 border-b border-slate-200/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">New product</p>
-                <h3 class="chatgpt-title mt-2 text-2xl text-slate-950 sm:text-3xl">Create product</h3>
+                <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">{{ formKicker }}</p>
+                <h3 class="chatgpt-title mt-2 text-2xl text-slate-950 sm:text-3xl">{{ formTitle }}</h3>
+                <p v-if="mode === 'edit' && productName" class="mt-2 text-sm text-slate-500">{{ productName }}</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 <span class="chatgpt-pill rounded-full border border-[#d7defe] bg-[#eef3ff] px-3 py-1 text-xs uppercase text-[#3457ff]">
@@ -14,7 +15,7 @@
                     class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition hover:-translate-y-0.5 hover:text-slate-950"
                     @click="$emit('reset')"
                 >
-                    Reset form
+                    {{ mode === 'edit' ? 'Reset changes' : 'Reset form' }}
                 </button>
             </div>
         </div>
@@ -45,14 +46,14 @@
                     class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:text-slate-950"
                     @click="$emit('reset')"
                 >
-                    Clear
+                    {{ mode === 'edit' ? 'Discard edits' : 'Clear' }}
                 </button>
                 <button
                     type="submit"
                     class="rounded-2xl bg-[linear-gradient(135deg,#3457ff,#2543b8)] px-5 py-3 text-sm font-semibold text-white shadow-[0_18px_28px_rgba(52,87,255,0.28)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
                     :disabled="isSaving"
                 >
-                    {{ isSaving ? 'Saving product...' : 'Save product' }}
+                    {{ submitLabel }}
                 </button>
             </div>
         </div>
@@ -60,6 +61,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+
 import BasicInformationSection from './BasicInformationSection.vue';
 import ImagesSection from './ImagesSection.vue';
 import InventorySection from './InventorySection.vue';
@@ -88,6 +91,14 @@ const props = defineProps({
         type: Boolean,
         required: true,
     },
+    mode: {
+        type: String,
+        default: 'create',
+    },
+    productName: {
+        type: String,
+        default: '',
+    },
     resetToken: {
         type: Number,
         required: true,
@@ -95,6 +106,16 @@ const props = defineProps({
 });
 
 defineEmits(['reset', 'submit']);
+
+const formKicker = computed(() => (props.mode === 'edit' ? 'Product editor' : 'New product'));
+const formTitle = computed(() => (props.mode === 'edit' ? 'Edit product' : 'Create product'));
+const submitLabel = computed(() => {
+    if (props.isSaving) {
+        return props.mode === 'edit' ? 'Saving changes...' : 'Saving product...';
+    }
+
+    return props.mode === 'edit' ? 'Save changes' : 'Save product';
+});
 
 function selectedStatusLabel() {
     const status = (props.dashboard.form?.statuses ?? []).find((item) => item.value === props.form.status);
