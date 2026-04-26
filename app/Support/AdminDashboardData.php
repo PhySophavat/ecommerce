@@ -11,21 +11,23 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Storage;
 
 class AdminDashboardData
 {
     public static function productsIndex(string $screen = 'products'): array
     {
         $screen = self::normalizedScreen($screen);
-        $products = Product::query()
+        $catalogProducts = Product::query()
             ->with('category')
             ->orderByDesc('id')
             ->get();
+        $products = $screen === 'featured-products'
+            ? $catalogProducts->where('is_featured', true)->values()
+            : $catalogProducts;
 
         $orders = Order::query()->get();
         $customerCount = User::query()->count();
-        $lowStockCount = $products->where('inventory', '<=', 60)->count();
+        $lowStockCount = $catalogProducts->where('inventory', '<=', 60)->count();
         $meta = self::metaForScreen($screen);
 
         return [
@@ -97,15 +99,15 @@ class AdminDashboardData
                 ],
                 [
                     'label' => 'Active',
-                    'value' => (string) $products->where('status', 'active')->count(),
+                    'value' => (string) $catalogProducts->where('status', 'active')->count(),
                 ],
                 [
                     'label' => 'Scheduled',
-                    'value' => (string) $products->where('status', 'scheduled')->count(),
+                    'value' => (string) $catalogProducts->where('status', 'scheduled')->count(),
                 ],
                 [
                     'label' => 'Draft',
-                    'value' => (string) $products->where('status', 'draft')->count(),
+                    'value' => (string) $catalogProducts->where('status', 'draft')->count(),
                 ],
             ],
             'menu' => self::menuTree(self::activeSlugsForScreen($screen)),
@@ -174,7 +176,7 @@ class AdminDashboardData
 
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products'], true) ? $screen : 'products';
     }
 
     /**
@@ -195,8 +197,13 @@ class AdminDashboardData
             ],
             'sliders' => [
                 'page_title' => 'Slides',
-''                'kicker' => 'Hero sliders',
+                'kicker' => 'Hero sliders',
                 'subheadline' => 'Create hero slides for the storefront and control which ones are shown on the frontend.',
+            ],
+            'featured-products' => [
+                'page_title' => 'Featured Products',
+                'kicker' => 'Storefront highlights',
+                'subheadline' => 'Manage the products promoted in the storefront featured collection.',
             ],
             default => [
                 'page_title' => 'Products',
@@ -215,6 +222,7 @@ class AdminDashboardData
             'dashboard' => ['dashboard'],
             'sliders' => ['sliders'],
             'add-product' => ['products', 'add-product'],
+            'featured-products' => ['content-management', 'featured-products'],
             default => ['products', 'all-products'],
         };
     }
@@ -262,7 +270,7 @@ class AdminDashboardData
 
         $normalized = collect($menuItems)
             ->map(function (array $item) use (&$sliderItem, $activeSlugs): ?array {
-                if (($item['slug'] ?? null) === 'sliders') {
+                if (self::isSliderSlug($item['slug'] ?? null)) {
                     $sliderItem ??= self::standaloneSliderMenuItem($item, $activeSlugs);
 
                     return null;
@@ -270,7 +278,7 @@ class AdminDashboardData
 
                 $children = collect($item['children'] ?? [])
                     ->filter(function (array $child) use (&$sliderItem, $activeSlugs): bool {
-                        if (($child['slug'] ?? null) !== 'sliders') {
+                        if (!self::isSliderSlug($child['slug'] ?? null)) {
                             return true;
                         }
 
@@ -316,6 +324,7 @@ class AdminDashboardData
         return [
             ...$item,
             'label' => 'Slides',
+            'slug' => 'sliders',
             'icon' => 'sliders',
             'path' => $item['path'] ?? '/admin/sliders',
             'is_enabled' => true,
@@ -323,6 +332,11 @@ class AdminDashboardData
             'is_expanded' => false,
             'children' => [],
         ];
+    }
+
+    private static function isSliderSlug(?string $slug): bool
+    {
+        return in_array($slug, ['slider', 'sliders'], true);
     }
 
     /**
@@ -397,7 +411,9 @@ class AdminDashboardData
             'id' => $product->id,
             'name' => $product->name,
             'initials' => self::initials($product->name),
+            'category_id' => $product->category_id ? (string) $product->category_id : '',
             'category' => $product->category?->name ?? 'Uncategorized',
+            'category_slug' => $product->category?->slug,
             'price' => self::currency((float) $product->price),
             'base_price' => $product->compare_at_price ? self::currency((float) $product->compare_at_price) : null,
             'stock' => $product->inventory,
@@ -405,6 +421,7 @@ class AdminDashboardData
             'sku' => $product->sku,
             'type' => $product->type,
             'tagline' => $product->tagline,
+            'is_featured' => (bool) $product->is_featured,
             'theme' => $product->theme,
             'updated_at' => $product->updated_at?->format('M d, Y'),
         ];
@@ -427,8 +444,8 @@ class AdminDashboardData
             'button_text' => $slide->button_text ?? '',
             'button_url' => $slide->button_url ?? '',
             'badge_text' => $slide->badge_text ?? '',
-            'image_url' => $slide->image_path ? self::publicStorageUrl($slide->image_path) : '',
-            'image_name' => $slide->image_path ? basename($slide->image_path) : '',
+            'image_url' => $slide->resolvedImageUrl(),
+            'image_name' => $slide->resolvedImageName(),
             'is_active' => (bool) $slide->is_active,
             'status' => $slide->is_active ? 'active' : 'draft',
             'sort_order' => (string) $slide->sort_order,
@@ -439,11 +456,6 @@ class AdminDashboardData
     private static function currency(float $value): string
     {
         return '$'.number_format($value, 2);
-    }
-
-    private static function publicStorageUrl(string $path): string
-    {
-        return '/storage/'.ltrim(str_replace('\\', '/', $path), '/');
     }
 
     private static function categoryOrder(string $slug): int

@@ -22,6 +22,11 @@ class ProductManagementController extends Controller
         return $this->page('add-product', 'Admin | Add Product');
     }
 
+    public function featured(): View
+    {
+        return $this->page('featured-products', 'Admin | Featured Products');
+    }
+
     private function page(string $screen, string $title): View
     {
         return view('backend.products.index', [

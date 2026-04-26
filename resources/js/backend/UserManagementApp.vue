@@ -140,23 +140,27 @@
                         No users found.
                     </div>
 
-                    <div v-else class="mt-6 space-y-4">
-                        <article
-                            v-for="user in users.items"
-                            :key="`backend-user-${user.id}`"
-                            class="rounded-[1.5rem] border border-white/10 bg-black/12 p-5"
-                        >
-                            <div class="flex items-start justify-between gap-4">
-                                <div>
-                                    <p class="text-xs uppercase tracking-[0.25em] text-stone-300/60">User</p>
-                                    <h3 class="mt-2 font-display text-2xl text-stone-50">{{ user.name }}</h3>
-                                    <p class="mt-2 text-sm text-stone-300/75">{{ user.email }}</p>
-                                </div>
-                                <p class="text-xs uppercase tracking-[0.2em] text-stone-400">
-                                    {{ user.joined_at ?? 'unknown' }}
-                                </p>
-                            </div>
-                        </article>
+                    <div v-else class="mt-6 overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-white/10">
+                                    <th class="pb-3 text-left text-xs uppercase tracking-[0.25em] text-stone-300/60">Name</th>
+                                    <th class="pb-3 text-left text-xs uppercase tracking-[0.25em] text-stone-300/60">Email</th>
+                                    <th class="pb-3 text-right text-xs uppercase tracking-[0.25em] text-stone-300/60">Joined</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="user in users.items"
+                                    :key="`backend-user-${user.id}`"
+                                    class="border-b border-white/5"
+                                >
+                                    <td class="py-3 pr-4 text-stone-50">{{ user.name }}</td>
+                                    <td class="py-3 pr-4 text-stone-300/75">{{ user.email }}</td>
+                                    <td class="py-3 text-right text-stone-400">{{ user.joined_at ?? 'unknown' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </section>
             </div>

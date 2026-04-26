@@ -24,7 +24,7 @@ class SlideController extends Controller
 
     public function update(Request $request, Slide $slide): JsonResponse
     {
-        $validated = $request->validate($this->rules($slide));
+        $validated = $request->validate($this->rules());
         $slide = $this->persistSlide($request, $validated, $slide);
 
         return response()->json([
@@ -35,7 +35,7 @@ class SlideController extends Controller
 
     public function destroy(Slide $slide): JsonResponse
     {
-        $imagePath = $slide->image_path;
+        $imagePath = $slide->resolvedImagePath();
         $title = $slide->title;
 
         $slide->delete();
@@ -43,6 +43,8 @@ class SlideController extends Controller
         if ($imagePath) {
             Storage::disk('public')->delete($imagePath);
         }
+
+        Storage::disk('public')->deleteDirectory("slides/{$slide->id}");
 
         return response()->json([
             'message' => "{$title} slide was deleted successfully.",
@@ -53,8 +55,12 @@ class SlideController extends Controller
     {
         $slide ??= new Slide();
 
-        $existingImagePath = $slide->image_path;
+        $existingImagePath = $slide->resolvedImagePath();
         $removeExistingImage = filter_var($validated['remove_existing_image'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$slide->image_path && $existingImagePath) {
+            $slide->image_path = $existingImagePath;
+        }
 
         $slide->fill([
             'category_id' => $validated['category_id'] ?? null,
@@ -78,23 +84,24 @@ class SlideController extends Controller
         $uploadedImage = $request->file('image');
 
         if ($uploadedImage) {
-            $newPath = $uploadedImage->store("slides/{$slide->id}", 'public');
-            $slide->image_path = $newPath;
-            $slide->save();
+            Storage::disk('public')->deleteDirectory("slides/{$slide->id}");
 
-            if ($existingImagePath && $existingImagePath !== $newPath) {
+            if ($existingImagePath) {
                 Storage::disk('public')->delete($existingImagePath);
             }
 
-            $existingImagePath = $newPath;
+            $newPath = $uploadedImage->store("slides/{$slide->id}", 'public');
+            $slide->image_path = $newPath;
+            $slide->save();
         } elseif ($removeExistingImage && $existingImagePath) {
             Storage::disk('public')->delete($existingImagePath);
+            Storage::disk('public')->deleteDirectory("slides/{$slide->id}");
         }
 
         return $slide->fresh('category');
     }
 
-    private function rules(?Slide $slide = null): array
+    private function rules(): array
     {
         return [
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
@@ -127,8 +134,8 @@ class SlideController extends Controller
             'badge_text' => $slide->badge_text ?? '',
             'is_active' => (bool) $slide->is_active,
             'sort_order' => (string) $slide->sort_order,
-            'existing_image_url' => $slide->image_path ? $this->publicStorageUrl($slide->image_path) : '',
-            'existing_image_name' => $slide->image_path ? basename($slide->image_path) : '',
+            'existing_image_url' => $slide->resolvedImageUrl(),
+            'existing_image_name' => $slide->resolvedImageName(),
             'remove_existing_image' => false,
         ];
     }
@@ -138,10 +145,5 @@ class SlideController extends Controller
         $string = trim((string) ($value ?? ''));
 
         return $string === '' ? null : $string;
-    }
-
-    private function publicStorageUrl(string $path): string
-    {
-        return '/storage/'.ltrim(str_replace('\\', '/', $path), '/');
     }
 }

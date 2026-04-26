@@ -1,126 +1,105 @@
 <template>
-    <section class="admin-card mt-6 overflow-hidden rounded-[30px]">
-        <div class="flex flex-col gap-4 border-b border-slate-200/80 px-6 py-6 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-                <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Products list</p>
-                <h3 class="chatgpt-title mt-2 text-3xl text-slate-950">All products</h3>
-                <p class="chatgpt-copy mt-3 text-sm">
-                    Showing {{ products.pagination.from }}-{{ products.pagination.to }}
-                    of {{ products.pagination.total }} items
-                </p>
-            </div>
-            <div class="flex flex-wrap items-center gap-3">
-                <button
-                    type="button"
-                    class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition hover:-translate-y-0.5 hover:text-slate-950"
-                    @click="$emit('scroll-categories')"
-                >
-                    Filter
-                </button>
-                <button
-                    type="button"
-                    class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition hover:-translate-y-0.5 hover:text-slate-950"
-                    @click="$emit('scroll-inventory')"
-                >
-                    See all
-                </button>
-                <button
-                    type="button"
-                    class="rounded-2xl bg-[linear-gradient(135deg,#3457ff,#2543b8)] px-4 py-3 text-sm font-semibold text-white shadow-[0_18px_28px_rgba(52,87,255,0.28)] transition hover:-translate-y-0.5"
-                    @click="$emit('scroll-add-product')"
-                >
-                    + Add product
-                </button>
+    <section class="admin-card mt-6 overflow-hidden rounded-[32px]">
+        <div class="flex flex-col gap-2 border-b border-[#e2e7f6] px-3 py-3">
+            <div class="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
+                <h3 class="font-bold text-base text-slate-950">{{ sectionTitle }}</h3>
+                <div class="flex flex-wrap items-center gap-2">
+                    <select
+                        v-model="selectedCategory"
+                        class="min-w-[120px] rounded border border-[#dde4f7] bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none"
+                    >
+                        <option value="">All</option>
+                        <option v-for="category in categories" :key="category.id" :value="String(category.id)">
+                            {{ category.name }}
+                        </option>
+                    </select>
+                    <button
+                        type="button"
+                        class="rounded px-2 py-1 text-xs font-semibold text-[#2563eb] border border-[#dbeafe] bg-[#f0f6ff] hover:bg-[#e0eaff]"
+                        @click="$emit('scroll-add-product')"
+                    >
+                        + Add
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div id="inventory" class="soft-scroll overflow-x-auto">
-            <table class="w-full min-w-[920px]">
-                <thead class="chatgpt-table-head bg-[#fafbff] text-left text-[11px] uppercase text-slate-400">
+        <div id="inventory" class="soft-scroll overflow-x-auto px-2 pb-2 pt-2">
+            <table class="w-full min-w-[600px] text-xs">
+                <thead class="text-left text-[10px] uppercase text-slate-400">
                     <tr>
-                        <th class="px-6 py-4"><input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-[#3457ff]" /></th>
-                        <th class="px-2 py-4">Product name</th>
-                        <th class="px-4 py-4">Category</th>
-                        <th class="px-4 py-4">Price</th>
-                        <th class="px-4 py-4">Stock</th>
-                        <th class="px-4 py-4">Status</th>
-                        <th class="px-4 py-4 text-right">Action</th>
+                        <th class="px-2 py-1">Product</th>
+                        <th class="px-2 py-1">Price</th>
+                        <th class="px-2 py-1">Stock</th>
+                        <th class="px-2 py-1">Status</th>
+                        <th class="px-2 py-1 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="product in products.items" :key="product.id" class="border-t border-slate-200/80 bg-white transition hover:bg-[#f8faff]">
-                        <td class="px-6 py-4 align-top"><input type="checkbox" class="mt-3 h-4 w-4 rounded border-slate-300 text-[#3457ff]" /></td>
-                        <td class="px-2 py-4">
-                            <div class="flex items-start gap-3">
-                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-semibold text-white" :class="themeClass(product.theme)">
-                                    {{ product.initials }}
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="truncate text-base font-semibold text-slate-900">{{ product.name }}</p>
-                                    <p class="mt-1 truncate text-sm text-slate-500">{{ product.tagline }}</p>
-                                    <p class="chatgpt-kicker mt-2 text-[11px] uppercase text-slate-300">{{ product.sku }}</p>
-                                </div>
-                            </div>
+                    <tr v-if="!filteredProducts.length">
+                        <td colspan="5" class="px-2 py-4 text-center text-xs text-slate-400">
+                            No products.
                         </td>
-                        <td class="px-4 py-4 text-sm text-slate-600">{{ product.category }}</td>
-                        <td class="px-4 py-4 text-sm font-medium text-slate-700">
-                            <div class="space-y-1">
-                                <p>{{ product.price }}</p>
-                                <p v-if="product.base_price" class="text-xs text-slate-400 line-through">{{ product.base_price }}</p>
-                            </div>
-                        </td>
-                        <td class="px-4 py-4 text-sm font-medium text-slate-700">{{ product.stock }}</td>
-                        <td class="px-4 py-4">
-                            <span class="chatgpt-pill rounded-full border px-3 py-1 text-xs capitalize" :class="statusClass(product.status)">
+                    </tr>
+                    <tr
+                        v-for="product in filteredProducts"
+                        :key="product.id"
+                        class="border-b border-[#f1f5fa]"
+                    >
+                        <td class="px-2 py-2 font-bold text-slate-900">{{ product.name }}</td>
+                        <td class="px-2 py-2">{{ product.price }}</td>
+                        <td class="px-2 py-2">{{ product.stock }}</td>
+                        <td class="px-2 py-2">
+                            <span class="rounded px-2 py-1 text-[10px] font-bold uppercase" :class="statusClass(product.status)">
                                 {{ product.status }}
                             </span>
                         </td>
-                        <td class="px-4 py-4 text-right">
-                            <div class="flex items-center justify-end gap-3">
-                                <button
-                                    type="button"
-                                    class="text-sm font-semibold text-[#3457ff] transition hover:text-[#2543b8]"
-                                    @click="$emit('edit-product', product)"
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    type="button"
-                                    class="text-sm font-semibold text-rose-600 transition hover:text-rose-700 disabled:cursor-not-allowed disabled:text-rose-300"
-                                    :disabled="deletingProductId === product.id"
-                                    @click="$emit('delete-product', product)"
-                                >
-                                    {{ deletingProductId === product.id ? 'Deleting...' : 'Delete' }}
-                                </button>
-                            </div>
+                        <td class="px-2 py-2 text-right">
+                            <button
+                                type="button"
+                                class="rounded bg-[#2563eb] px-2 py-1 text-xs font-semibold text-white hover:bg-[#174ea6]"
+                                @click="$emit('edit-product', product)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                type="button"
+                                class="rounded bg-rose-100 px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-200 ml-1"
+                                :disabled="deletingProductId === product.id"
+                                @click="$emit('delete-product', product)"
+                            >
+                                {{ deletingProductId === product.id ? '...' : 'Del' }}
+                            </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="flex flex-col gap-4 border-t border-slate-200/80 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-            <button type="button" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition hover:-translate-y-0.5 hover:text-slate-950 sm:w-auto">
-                Previous
-            </button>
-            <div class="flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
-                <button class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#eef3ff] text-[#3457ff]">1</button>
-                <button class="flex h-10 w-10 items-center justify-center rounded-2xl transition hover:bg-slate-100">2</button>
-                <button class="flex h-10 w-10 items-center justify-center rounded-2xl transition hover:bg-slate-100">3</button>
-                <span class="px-1">...</span>
-                <button class="flex h-10 w-10 items-center justify-center rounded-2xl transition hover:bg-slate-100">10</button>
-            </div>
-            <button type="button" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition hover:-translate-y-0.5 hover:text-slate-950 sm:w-auto">
-                Next
+        <div class="flex flex-col gap-3 border-t border-[#e2e7f6] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-slate-500">{{ footerMessage }}</p>
+            <button
+                v-if="selectedCategory"
+                type="button"
+                class="rounded-2xl border border-[#d8e0f5] bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:text-slate-900"
+                @click="selectedCategory = ''"
+            >
+                Clear filter
             </button>
         </div>
     </section>
 </template>
 
 <script setup>
+import { computed, ref } from 'vue';
+
 defineEmits(['delete-product', 'edit-product', 'scroll-add-product', 'scroll-categories', 'scroll-inventory']);
 
-defineProps({
+const props = defineProps({
+    categories: {
+        type: Array,
+        default: () => [],
+    },
     deletingProductId: {
         type: Number,
         default: null,
@@ -129,28 +108,78 @@ defineProps({
         type: Object,
         required: true,
     },
+    screen: {
+        type: String,
+        default: 'products',
+    },
+});
+
+const sectionKicker = computed(() => props.screen === 'featured-products' ? 'Storefront highlights' : 'Product list');
+const sectionTitle = computed(() => props.screen === 'featured-products' ? 'Featured products' : 'All products');
+const itemLabel = computed(() => props.screen === 'featured-products' ? 'featured items' : 'items');
+const selectedCategory = ref('');
+const filteredProducts = computed(() => {
+    if (!selectedCategory.value) {
+        return props.products.items ?? [];
+    }
+
+    return (props.products.items ?? []).filter((product) => String(product.category_id ?? '') === selectedCategory.value);
+});
+const selectedCategoryLabel = computed(() => (
+    props.categories.find((category) => String(category.id) === selectedCategory.value)?.name ?? ''
+));
+const summaryCopy = computed(() => {
+    const total = props.products.pagination?.total ?? props.products.items?.length ?? 0;
+
+    if (selectedCategoryLabel.value) {
+        return `Showing ${filteredProducts.value.length} of ${total} ${itemLabel.value} in ${selectedCategoryLabel.value}.`;
+    }
+
+    if (!total) {
+        return `Showing 0 ${itemLabel.value}.`;
+    }
+
+    return `Showing 1-${filteredProducts.value.length} of ${total} ${itemLabel.value}.`;
+});
+const emptyStateMessage = computed(() => {
+    if (selectedCategoryLabel.value) {
+        return props.screen === 'featured-products'
+            ? `No featured products found in ${selectedCategoryLabel.value}.`
+            : `No products found in ${selectedCategoryLabel.value}.`;
+    }
+
+    return props.screen === 'featured-products'
+        ? 'No featured products yet. Open a product and mark it as featured to show it here.'
+        : 'No products found.';
+});
+const footerMessage = computed(() => {
+    if (selectedCategoryLabel.value) {
+        return `${filteredProducts.value.length} ${filteredProducts.value.length === 1 ? 'item matches' : 'items match'} ${selectedCategoryLabel.value}.`;
+    }
+
+    return 'All records for this view are loaded.';
 });
 
 function statusClass(status) {
     return {
-        active: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-        scheduled: 'border-sky-200 bg-sky-50 text-sky-700',
-        draft: 'border-amber-200 bg-amber-50 text-amber-700',
-    }[status] ?? 'border-slate-200 bg-slate-50 text-slate-600';
+        active: 'bg-[#e8fbf4] text-[#1fb586]',
+        scheduled: 'bg-[#eef4ff] text-[#5462ea]',
+        draft: 'bg-[#fff4df] text-[#ee9d15]',
+    }[status] ?? 'bg-[#eef2f8] text-[#64748b]';
 }
 
 function themeClass(theme) {
     return {
-        cobalt: 'bg-[linear-gradient(135deg,#3457ff,#6ea8ff)]',
-        forest: 'bg-[linear-gradient(135deg,#0f766e,#34d399)]',
-        sand: 'bg-[linear-gradient(135deg,#a16207,#fbbf24)]',
-        graphite: 'bg-[linear-gradient(135deg,#0f172a,#475569)]',
-        midnight: 'bg-[linear-gradient(135deg,#111827,#4338ca)]',
-        sky: 'bg-[linear-gradient(135deg,#38bdf8,#bfdbfe)]',
-        ink: 'bg-[linear-gradient(135deg,#1e293b,#334155)]',
-        plum: 'bg-[linear-gradient(135deg,#7c3aed,#c084fc)]',
-        denim: 'bg-[linear-gradient(135deg,#1d4ed8,#60a5fa)]',
-        lilac: 'bg-[linear-gradient(135deg,#8b5cf6,#e9d5ff)]',
-    }[theme] ?? 'bg-[linear-gradient(135deg,#334155,#94a3b8)]';
+        cobalt: 'bg-[linear-gradient(135deg,#5865f2,#8791ff)]',
+        forest: 'bg-[linear-gradient(135deg,#1fb586,#72dbbb)]',
+        sand: 'bg-[linear-gradient(135deg,#d18c17,#f4c15f)]',
+        graphite: 'bg-[linear-gradient(135deg,#303a66,#6473a1)]',
+        midnight: 'bg-[linear-gradient(135deg,#2b3d8f,#5967ea)]',
+        sky: 'bg-[linear-gradient(135deg,#37a4f5,#82d2ff)]',
+        ink: 'bg-[linear-gradient(135deg,#27314f,#536387)]',
+        plum: 'bg-[linear-gradient(135deg,#7a56e8,#bb9eff)]',
+        denim: 'bg-[linear-gradient(135deg,#315be8,#73a8ff)]',
+        lilac: 'bg-[linear-gradient(135deg,#8f63f4,#dbc8ff)]',
+    }[theme] ?? 'bg-[linear-gradient(135deg,#445078,#9aa6cb)]';
 }
 </script>

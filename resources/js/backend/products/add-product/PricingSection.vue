@@ -1,5 +1,5 @@
 <template>
-    <section class="rounded-[24px] border border-slate-200/80 bg-white p-5 sm:p-6">
+    <section class="admin-form-section rounded-[24px] p-5 sm:p-6">
         <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Pricing</p>
         <h4 class="chatgpt-title mt-2 text-lg text-slate-950">Price</h4>
         <div class="mt-5 grid gap-5">

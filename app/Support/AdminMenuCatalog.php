@@ -119,8 +119,8 @@ class AdminMenuCatalog
                 'is_enabled' => false,
                 'children' => [
                     ['label' => 'Homepage banners', 'slug' => 'homepage-banners', 'path' => null, 'is_enabled' => false],
-                    ['label' => 'Slides', 'slug' => 'slider', 'path' => '/admin/sliders', 'is_enabled' => true],
-                    ['label' => 'Featured products', 'slug' => 'featured-products', 'path' => null, 'is_enabled' => false],
+                    ['label' => 'Slides', 'slug' => 'sliders', 'path' => '/admin/sliders', 'is_enabled' => true],
+                    ['label' => 'Featured products', 'slug' => 'featured-products', 'path' => '/admin/products/featured', 'is_enabled' => true],
                     ['label' => 'Blog / news', 'slug' => 'blog-news', 'path' => null, 'is_enabled' => false],
                     ['label' => 'FAQ', 'slug' => 'faq', 'path' => null, 'is_enabled' => false],
                 ],

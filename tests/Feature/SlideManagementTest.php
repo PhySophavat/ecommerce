@@ -74,4 +74,44 @@ class SlideManagementTest extends TestCase
             ->assertJsonPath('menu.1.label', 'Slides')
             ->assertJsonPath('menu.1.path', '/admin/sliders');
     }
+
+    public function test_slide_payloads_can_resolve_legacy_images_from_the_slide_directory(): void
+    {
+        Storage::fake('public');
+        $this->seed(StoreDemoSeeder::class);
+
+        $category = Category::query()->where('slug', 'beauty')->firstOrFail();
+        $slide = Slide::query()->create([
+            'category_id' => $category->id,
+            'title' => 'Legacy image slide',
+            'highlight' => 'Archive',
+            'description' => 'A slide that still has a stored image file but no saved image path.',
+            'button_text' => 'Review',
+            'button_url' => '/frontend',
+            'is_active' => true,
+            'sort_order' => 0,
+            'image_path' => null,
+        ]);
+
+        Storage::disk('public')->deleteDirectory("slides/{$slide->id}");
+
+        UploadedFile::fake()
+            ->image('legacy-slide.jpg', 1600, 720)
+            ->store("slides/{$slide->id}", 'public');
+
+        $dashboardResponse = $this->getJson('/api/admin/slides/dashboard')->assertOk();
+        $dashboardSlide = collect($dashboardResponse->json('slides.items'))->firstWhere('title', 'Legacy image slide');
+
+        $this->assertNotNull($dashboardSlide);
+        $this->assertSame('Legacy image slide', $dashboardSlide['title']);
+        $this->assertStringStartsWith("/storage/slides/{$slide->id}/", $dashboardSlide['image_url']);
+        $this->assertStringEndsWith('.jpg', $dashboardSlide['image_name']);
+
+        $storefrontResponse = $this->getJson('/api/storefront')->assertOk();
+        $storefrontSlide = collect($storefrontResponse->json('slides'))->firstWhere('title', 'Legacy image slide');
+
+        $this->assertNotNull($storefrontSlide);
+        $this->assertSame('Legacy image slide', $storefrontSlide['title']);
+        $this->assertStringStartsWith("/storage/slides/{$slide->id}/", $storefrontSlide['image_url']);
+    }
 }

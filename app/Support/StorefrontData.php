@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\Slide;
 use App\Models\User;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class StorefrontData
 {
@@ -65,7 +64,7 @@ class StorefrontData
             'button_text' => $slide->button_text ?? '',
             'button_url' => $slide->button_url ?: '/frontend',
             'badge_text' => $slide->badge_text ?? '',
-            'image_url' => $slide->image_path ? self::publicStorageUrl($slide->image_path) : '',
+            'image_url' => $slide->resolvedImageUrl(),
             'accent' => $slide->category?->accent ?: '#f97316',
             'sort_order' => (int) $slide->sort_order,
         ];
@@ -87,8 +86,4 @@ class StorefrontData
         return '$'.number_format($value, 2);
     }
 
-    private static function publicStorageUrl(string $path): string
-    {
-        return '/storage/'.ltrim(str_replace('\\', '/', $path), '/');
-    }
 }

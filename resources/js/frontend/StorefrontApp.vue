@@ -56,7 +56,7 @@
 
         <!-- Hero Section with Slides -->
         <section v-if="slides.length > 0" class="relative overflow-hidden bg-slate-900">
-            <div class="relative h-[60vh] min-h-[400px] max-w-7xl mx-auto">
+            <div class="relative h-[35vh] min-h-[250px] max-w-7xl mx-auto">
                 <div
                     v-for="(slide, index) in slides"
                     :key="slide.id"
@@ -79,9 +79,11 @@
                             <p v-if="slide.eyebrow" class="mb-3 text-sm font-medium uppercase tracking-wider text-orange-400">
                                 {{ slide.eyebrow }}
                             </p>
-                            <h1 class="mb-4 text-4xl font-bold text-white sm:text-5xl lg:text-6xl">
+                            <h2 v-if="slide.title" class="mb-2 text-4xl font-bold text-white sm:text-5xl">
                                 {{ slide.title }}
-                            </h1>
+                                <span v-if="slide.highlight" class="text-orange-400"> {{ slide.highlight }}</span>
+                            </h2>
+                           
                             <p v-if="slide.description" class="mb-6 text-lg text-slate-200">
                                 {{ slide.description }}
                             </p>

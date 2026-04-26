@@ -24,6 +24,7 @@ class BackendProductManagementTest extends TestCase
         $this->assertTrue(Route::has('admin.dashboard'));
         $this->assertTrue(Route::has('admin.products.index'));
         $this->assertTrue(Route::has('admin.products.create'));
+        $this->assertTrue(Route::has('admin.products.featured'));
         $this->assertTrue(Route::has('admin.users.create'));
         $this->assertTrue(Route::has('admin.users.store'));
         $this->assertTrue(Route::has('api.admin.products.index'));
@@ -32,6 +33,7 @@ class BackendProductManagementTest extends TestCase
         $this->assertSame(url('/admin/dashboard'), route('admin.dashboard'));
         $this->assertSame(url('/admin/products'), route('admin.products.index'));
         $this->assertSame(url('/admin/products/create'), route('admin.products.create'));
+        $this->assertSame(url('/admin/products/featured'), route('admin.products.featured'));
         $this->assertSame(url('/admin/users/create'), route('admin.users.create'));
     }
 
@@ -57,8 +59,9 @@ class BackendProductManagementTest extends TestCase
                 ->where('meta.brand', 'Spodut')
                 ->where('meta.page_title', 'Products')
                 ->where('menu.0.label', 'Dashboard')
-                ->where('menu.1.label', 'Products')
-                ->where('menu.7.children.0.label', 'Admin users')
+                ->where('menu.1.label', 'Slides')
+                ->where('menu.2.label', 'Products')
+                ->where('menu.8.children.0.label', 'Admin users')
                 ->where('products.count', 10)
                 ->has('form.categories')
                 ->has('summary', 4)
@@ -79,7 +82,8 @@ class BackendProductManagementTest extends TestCase
             ->assertJsonPath('meta.page_title', 'Dashboard')
             ->assertJsonPath('menu.0.is_active', true)
             ->assertJsonCount(0, 'menu.0.children')
-            ->assertJsonPath('menu.1.is_active', false);
+            ->assertJsonPath('menu.1.is_active', false)
+            ->assertJsonPath('menu.2.is_active', false);
     }
 
     public function test_admin_product_dashboard_api_can_return_add_product_view_payload(): void
@@ -92,9 +96,23 @@ class BackendProductManagementTest extends TestCase
             ->assertOk()
             ->assertJsonPath('screen', 'add-product')
             ->assertJsonPath('meta.page_title', 'Add Product')
-            ->assertJsonPath('menu.1.is_active', true)
-            ->assertJsonPath('menu.1.children.1.slug', 'add-product')
-            ->assertJsonPath('menu.1.children.1.is_active', true);
+            ->assertJsonPath('menu.2.is_active', true)
+            ->assertJsonPath('menu.2.children.1.slug', 'add-product')
+            ->assertJsonPath('menu.2.children.1.is_active', true);
+    }
+
+    public function test_admin_product_dashboard_api_can_return_featured_products_view_payload(): void
+    {
+        $this->seed();
+
+        $response = $this->getJson('/api/admin/products?screen=featured-products');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('screen', 'featured-products')
+            ->assertJsonPath('meta.page_title', 'Featured Products')
+            ->assertJsonPath('products.count', 5)
+            ->assertJsonPath('products.items.0.is_featured', true);
     }
 
     public function test_admin_product_dashboard_api_falls_back_to_default_menu_when_no_menu_rows_exist(): void
@@ -104,8 +122,9 @@ class BackendProductManagementTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonPath('menu.0.label', 'Dashboard')
-            ->assertJsonPath('menu.1.label', 'Products')
-            ->assertJsonCount(12, 'menu');
+            ->assertJsonPath('menu.1.label', 'Slides')
+            ->assertJsonPath('menu.2.label', 'Products')
+            ->assertJsonCount(13, 'menu');
     }
 
     public function test_admin_product_dashboard_api_falls_back_to_default_menu_when_menu_table_is_missing(): void
@@ -117,8 +136,9 @@ class BackendProductManagementTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonPath('menu.0.label', 'Dashboard')
-            ->assertJsonPath('menu.1.label', 'Products')
-            ->assertJsonCount(12, 'menu');
+            ->assertJsonPath('menu.1.label', 'Slides')
+            ->assertJsonPath('menu.2.label', 'Products')
+            ->assertJsonCount(13, 'menu');
     }
 
     public function test_admin_product_api_creates_a_product_with_images_and_variants(): void
@@ -138,20 +158,29 @@ class BackendProductManagementTest extends TestCase
             'stock_quantity' => 24,
             'sku' => 'SPD-FIELD-011',
             'status' => 'active',
+            'is_featured' => '1',
             'images' => [
                 UploadedFile::fake()->image('front.jpg'),
                 UploadedFile::fake()->image('back.jpg'),
             ],
             'variants' => [
                 [
-                    'size' => 'M',
-                    'color' => 'Black',
+                    'label' => 'Black / M',
+                    'attributes' => [
+                        ['name' => 'Color', 'value' => 'Black'],
+                        ['name' => 'Size', 'value' => 'M'],
+                    ],
+                    'variant_sku' => 'SPD-FIELD-011-BLK-M',
                     'price' => '96.50',
                     'stock' => 10,
                 ],
                 [
-                    'size' => 'L',
-                    'color' => 'Red',
+                    'label' => 'Red / L',
+                    'attributes' => [
+                        ['name' => 'Color', 'value' => 'Red'],
+                        ['name' => 'Size', 'value' => 'L'],
+                    ],
+                    'variant_sku' => 'SPD-FIELD-011-RED-L',
                     'price' => '102.00',
                     'stock' => 14,
                 ],
@@ -173,6 +202,7 @@ class BackendProductManagementTest extends TestCase
         $this->assertSame('96.50', $product->price);
         $this->assertSame('120.00', $product->compare_at_price);
         $this->assertSame(24, $product->inventory);
+        $this->assertTrue($product->is_featured);
         $this->assertCount(2, $product->variants);
         $this->assertCount(2, $product->images);
 

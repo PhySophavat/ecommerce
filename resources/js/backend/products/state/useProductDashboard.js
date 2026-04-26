@@ -186,6 +186,7 @@ export function useProductDashboard() {
         formData.append('stock_quantity', productForm.stock_quantity);
         formData.append('sku', productForm.sku);
         formData.append('status', productForm.status);
+        formData.append('is_featured', productForm.is_featured ? '1' : '0');
 
         if (String(productForm.discount_price).trim() !== '') {
             formData.append('discount_price', productForm.discount_price);
@@ -331,7 +332,7 @@ export function useProductDashboard() {
 }
 
 function normalizeScreen(screen) {
-    return ['dashboard', 'products', 'add-product'].includes(screen) ? screen : 'products';
+    return ['dashboard', 'products', 'add-product', 'featured-products'].includes(screen) ? screen : 'products';
 }
 
 function initialProductForm() {
@@ -346,6 +347,7 @@ function initialProductForm() {
         stock_quantity: '',
         sku: '',
         status: 'active',
+        is_featured: false,
         images: [],
         existing_images: [],
         removed_image_ids: [],
@@ -388,6 +390,7 @@ function normalizeEditableProduct(product) {
         stock_quantity: product.stock_quantity ?? '',
         sku: product.sku ?? '',
         status: product.status ?? 'active',
+        is_featured: Boolean(product.is_featured),
         images: [],
         existing_images: Array.isArray(product.existing_images)
             ? product.existing_images.map((image) => ({
@@ -415,6 +418,7 @@ function cloneProductForm(product) {
         stock_quantity: product.stock_quantity ?? '',
         sku: product.sku ?? '',
         status: product.status ?? 'active',
+        is_featured: Boolean(product.is_featured),
         images: [],
         existing_images: Array.isArray(product.existing_images)
             ? product.existing_images.map((image) => ({
@@ -486,6 +490,11 @@ function initialDashboard() {
             page_title: 'Products',
             kicker: 'Catalog control center',
             subheadline: 'Loading products...',
+        },
+        'featured-products': {
+            page_title: 'Featured Products',
+            kicker: 'Storefront highlights',
+            subheadline: 'Loading featured products...',
         },
         'add-product': {
             page_title: 'Add Product',

@@ -42,7 +42,7 @@ class HomeController extends Controller
 
         return response()->json([
             'meta' => [
-                'brand' => 'Northstar Goods',
+                'brand' => 'Northstar Goodsdfgh',
                 'eyebrow' => 'Category-led storefront',
                 'headline' => 'Shop the catalog by category.',
                 'subheadline' => 'The website header now pulls its navigation directly from product categories managed in the admin dashboard.',

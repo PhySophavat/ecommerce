@@ -8,7 +8,14 @@ export default defineConfig({
         vue(),
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],
-            refresh: true,
+            refresh: [
+                'app/**/*.php',
+                'bootstrap/**/*.php',
+                'config/**/*.php',
+                'database/**/*.php',
+                'resources/views/**/*.blade.php',
+                'routes/**/*.php',
+            ],
         }),
         tailwindcss(),
     ],
@@ -19,9 +26,12 @@ export default defineConfig({
         cors: true,
         hmr: {
             host: '127.0.0.1',
+            protocol: 'ws',
             port: 5173,
         },
         watch: {
+            usePolling: true,
+            interval: 300,
             ignored: ['**/storage/framework/views/**'],
         },
     },

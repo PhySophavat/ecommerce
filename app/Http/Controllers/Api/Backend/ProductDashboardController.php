@@ -111,11 +111,11 @@ class ProductDashboardController extends Controller
                 'compare_at_price' => $discountPrice ? $originalPrice : null,
                 'inventory' => $validated['stock_quantity'],
                 'status' => $validated['status'],
+                'is_featured' => filter_var($validated['is_featured'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ]);
 
             if (! $product->exists) {
                 $product->theme = 'cobalt';
-                $product->is_featured = false;
                 $product->rating = 4.80;
                 $product->reviews_count = 0;
             }
@@ -266,6 +266,7 @@ class ProductDashboardController extends Controller
             'stock_quantity' => ['required', 'integer', 'min:0'],
             'sku' => ['required', 'string', 'max:255', $skuRule],
             'status' => ['required', Rule::in(['active', 'draft', 'scheduled'])],
+            'is_featured' => ['nullable', 'boolean'],
             'images' => ['nullable', 'array'],
             'images.*' => ['image', 'max:4096'],
             'variants' => ['nullable', 'array'],
@@ -306,6 +307,7 @@ class ProductDashboardController extends Controller
             'stock_quantity' => (string) $product->inventory,
             'sku' => $product->sku,
             'status' => $product->status,
+            'is_featured' => (bool) $product->is_featured,
             'existing_images' => $product->images
                 ->sortBy('sort_order')
                 ->values()
