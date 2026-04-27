@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Backend;
+namespace App\Http\Controllers\Api\Backend\Slide;
 
 use App\Http\Controllers\Controller;
 use App\Support\AdminDashboardData;

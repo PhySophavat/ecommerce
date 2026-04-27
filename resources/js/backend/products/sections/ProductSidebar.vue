@@ -31,21 +31,21 @@
                         v-if="item.children.length"
                         type="button"
                         class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition text-sm"
-                        :class="[item.is_active || isMenuOpen(item.slug) ? 'bg-[#2563eb] text-white font-bold shadow' : 'hover:bg-[#e0eaff] text-[#222]/80', 'focus:ring-2 focus:ring-[#2563eb] outline-none']"
+                        :class="[parentItemClass(item), 'focus:ring-2 focus:ring-[#2563eb] outline-none']"
                         @click="$emit('toggle-menu', item.slug)"
                     >
                         <span class="flex h-7 w-7 items-center justify-center rounded-lg"
-                              :class="item.is_active || isMenuOpen(item.slug) ? 'bg-[#2563eb]' : 'bg-[#F8FAFC]'">
+                              :class="parentIconWrapClass(item)">
                             <svg class="h-4 w-4"
-                                 :class="item.is_active || isMenuOpen(item.slug) ? 'text-white' : 'text-[#2563eb]'"
+                                 :class="parentIconClass(item)"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" :d="iconPath(item.icon)" />
                             </svg>
                         </span>
                         <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
                         <svg
-                            class="h-3 w-3 text-[#A0A4AE] transition"
-                            :class="isMenuOpen(item.slug) ? 'rotate-180' : ''"
+                            class="h-3 w-3 transition"
+                            :class="[parentChevronClass(item), isMenuOpen(item.slug) ? 'rotate-180' : '']"
                             viewBox="0 0 20 20"
                             fill="none"
                             stroke="currentColor"
@@ -72,7 +72,11 @@
                         </span>
                         <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
                     </button>
-                    <div v-if="item.children.length && isMenuOpen(item.slug)" class="ml-3 mt-1 space-y-1 border-l-2 border-[#e3e7ef] pl-3">
+                    <div
+                        v-if="item.children.length && isMenuOpen(item.slug)"
+                        class="ml-3 mt-1 space-y-1 border-l-2 pl-3"
+                        :class="hasActiveChild(item) ? 'border-[#bfd1ff]' : 'border-[#e3e7ef]'"
+                    >
                         <button
                             v-for="child in item.children"
                             :key="child.slug"
@@ -170,38 +174,42 @@ function menuIsInteractive(item) {
     return item.is_enabled || item.slug === 'add-product';
 }
 
-function menuBadgeLabel(item) {
-    if (item.slug === 'add-product') {
-        return 'Open';
-    }
-
-    return item.is_enabled ? '' : 'Soon';
+function hasActiveChild(item) {
+    return Array.isArray(item.children) && item.children.some((child) => child.is_active);
 }
 
-function menuItemClass(item) {
-    if (!menuIsInteractive(item) && !item.children.length) {
-        return 'cursor-not-allowed text-white/35';
+function parentItemClass(item) {
+    if (hasActiveChild(item)) {
+        return 'bg-[#e8efff] text-[#2c4ecf] font-semibold shadow-sm';
     }
 
-    return item.is_active || props.isMenuOpen(item.slug)
-        ? 'bg-white text-[#4250c7] shadow-[0_12px_30px_rgba(15,23,42,0.16)]'
-        : 'text-white/78 hover:bg-white/12 hover:text-white';
-}
-
-function menuIconClass(item) {
-    return item.is_active || props.isMenuOpen(item.slug)
-        ? 'bg-[#eef2ff] text-[#4a59d4]'
-        : 'bg-white/10 text-white/80';
-}
-
-function submenuItemClass(item) {
-    if (!menuIsInteractive(item)) {
-        return 'cursor-not-allowed text-white/35';
+    if (props.isMenuOpen(item.slug)) {
+        return 'bg-white text-[#111827] shadow-sm ring-1 ring-[#dbe3f5]';
     }
 
-    return item.is_active
-        ? 'bg-white/14 font-semibold text-white'
-        : 'text-white/68 hover:bg-white/10 hover:text-white';
+    return 'hover:bg-[#e0eaff] text-[#222]/80';
+}
+
+function parentIconWrapClass(item) {
+    if (hasActiveChild(item)) {
+        return 'bg-white';
+    }
+
+    return props.isMenuOpen(item.slug)
+        ? 'bg-[#F8FAFC]'
+        : 'bg-[#F8FAFC]';
+}
+
+function parentIconClass(item) {
+    return hasActiveChild(item) || props.isMenuOpen(item.slug)
+        ? 'text-[#2563eb]'
+        : 'text-[#2563eb]';
+}
+
+function parentChevronClass(item) {
+    return hasActiveChild(item) || props.isMenuOpen(item.slug)
+        ? 'text-[#2563eb]'
+        : 'text-[#A0A4AE]';
 }
 
 function iconPath(icon) {

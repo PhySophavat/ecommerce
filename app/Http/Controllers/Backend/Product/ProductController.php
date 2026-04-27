@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Backend;
+namespace App\Http\Controllers\Backend\Product;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 
-class ProductManagementController extends Controller
+class ProductController extends Controller
 {
     public function dashboard(): View
     {

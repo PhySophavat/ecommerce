@@ -1,116 +1,16 @@
 <template>
     <div class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-        <!-- Header with Category Navigation -->
-        <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
-            <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between">
-                    <!-- Brand Logo -->
-                    <a href="/frontend" class="flex items-center gap-2">
-                        <span class="text-2xl font-bold text-slate-900">{{ meta?.brand || 'Store' }}</span>
-                    </a>
+        <!-- Header Component -->
+        <Header
+            :meta="meta"
+            :categories="categories"
+            :activeCategory="activeCategory"
+            :isMobileMenuOpen="isMobileMenuOpen"
+            @toggle-mobile-menu="isMobileMenuOpen = !isMobileMenuOpen"
+        />
 
-                    <!-- Category Navigation -->
-                    <nav class="hidden items-center gap-1 md:flex">
-                        <a
-                            v-for="category in categories"
-                            :key="category.id"
-                            :href="`/frontend?category=${category.slug}`"
-                            class="rounded-full px-4 py-2 text-sm font-medium transition"
-                            :class="activeCategory === category.slug 
-                                ? 'bg-slate-900 text-white' 
-                                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'"
-                        >
-                            {{ category.name }}
-                        </a>
-                    </nav>
-
-                    <!-- Mobile Menu Toggle -->
-                    <button
-                        type="button"
-                        class="rounded-full p-2 text-slate-600 hover:bg-slate-100 md:hidden"
-                        @click="isMobileMenuOpen = !isMobileMenuOpen"
-                    >
-                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Mobile Category Menu -->
-                <div v-if="isMobileMenuOpen" class="mt-4 flex flex-wrap gap-2 pb-2 md:hidden">
-                    <a
-                        v-for="category in categories"
-                        :key="category.id"
-                        :href="`/frontend?category=${category.slug}`"
-                        class="rounded-full px-4 py-2 text-sm font-medium transition"
-                        :class="activeCategory === category.slug 
-                            ? 'bg-slate-900 text-white' 
-                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                    >
-                        {{ category.name }}
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <!-- Hero Section with Slides -->
-        <section v-if="slides.length > 0" class="relative overflow-hidden bg-slate-900">
-            <div class="relative h-[35vh] min-h-[250px] max-w-7xl mx-auto">
-                <div
-                    v-for="(slide, index) in slides"
-                    :key="slide.id"
-                    class="absolute inset-0 transition-opacity duration-700"
-                    :class="index === currentSlide ? 'opacity-100' : 'opacity-0'"
-                >
-                    <!-- Slide Image -->
-                    <div
-                        v-if="slide.image_url"
-                        class="absolute inset-0 bg-cover bg-center"
-                        :style="{ backgroundImage: `url(${slide.image_url})` }"
-                    >
-                        <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-slate-900/20"></div>
-                    </div>
-                    <div v-else class="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900"></div>
-
-                    <!-- Slide Content -->
-                    <div class="relative flex h-full items-center px-4 sm:px-6 lg:px-8">
-                        <div class="max-w-2xl">
-                            <p v-if="slide.eyebrow" class="mb-3 text-sm font-medium uppercase tracking-wider text-orange-400">
-                                {{ slide.eyebrow }}
-                            </p>
-                            <h2 v-if="slide.title" class="mb-2 text-4xl font-bold text-white sm:text-5xl">
-                                {{ slide.title }}
-                                <span v-if="slide.highlight" class="text-orange-400"> {{ slide.highlight }}</span>
-                            </h2>
-                           
-                            <p v-if="slide.description" class="mb-6 text-lg text-slate-200">
-                                {{ slide.description }}
-                            </p>
-                            <a
-                                v-if="slide.button_text"
-                                :href="slide.button_url"
-                                class="inline-block rounded-full bg-orange-500 px-6 py-3 text-sm font-semibold text-white transition hover:bg-orange-600 hover:-translate-y-0.5"
-                            >
-                                {{ slide.button_text }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Slide Navigation -->
-                <div class="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
-                    <button
-                        v-for="(slide, index) in slides"
-                        :key="`dot-${slide.id}`"
-                        type="button"
-                        class="h-2 w-2 rounded-full transition"
-                        :class="index === currentSlide ? 'bg-white' : 'bg-white/40 hover:bg-white/60'"
-                        @click="currentSlide = index"
-                    />
-                </div>
-            </div>
-        </section>
+        <!-- Slides Component -->
+        <Slides :slides="slides" :currentSlide="currentSlide" @update:currentSlide="currentSlide = $event" />
 
         <!-- Main Content -->
         <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -190,6 +90,8 @@
 </template>
 
 <script setup>
+import Header from './components/header/Header.vue';
+import Slides from './components/slides/Slides.vue';
 import { computed, onMounted, ref } from 'vue';
 
 const isLoading = ref(true);
@@ -230,7 +132,7 @@ function startSlideRotation() {
     if (slides.value.length > 1) {
         setInterval(() => {
             currentSlide.value = (currentSlide.value + 1) % slides.value.length;
-        }, 5000);
+        }, 2000);
     }
 }
 

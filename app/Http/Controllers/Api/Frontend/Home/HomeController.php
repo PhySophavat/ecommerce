@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Frontend;
+namespace App\Http\Controllers\Api\Frontend\Home;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
@@ -30,7 +30,6 @@ class HomeController extends Controller
 
         $featuredProducts = $products
             ->where('is_featured', true)
-            ->take(3)
             ->values();
         $featuredCount = $products->where('is_featured', true)->count();
         $slides = Slide::query()
@@ -42,7 +41,7 @@ class HomeController extends Controller
 
         return response()->json([
             'meta' => [
-                'brand' => 'Northstar Goodsdfgh',
+                'brand' => 'Northstar Goods',
                 'eyebrow' => 'Category-led storefront',
                 'headline' => 'Shop the catalog by category.',
                 'subheadline' => 'The website header now pulls its navigation directly from product categories managed in the admin dashboard.',

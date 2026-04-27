@@ -1,5 +1,12 @@
 import { computed, reactive, ref } from 'vue';
 
+import {
+    categoryFieldsForSlug,
+    emptyVariantValues,
+    variantAttributesFromValues,
+    variantValuesFromAttributes,
+} from '../add-product/categoryConfig.js';
+
 const editorActions = [
     { label: 'Bold', command: 'bold', value: null },
     { label: 'Italic', command: 'italic', value: null },
@@ -54,7 +61,7 @@ export function useProductDashboard() {
 
     function syncOpenMenus(menuItems) {
         openMenus.value = menuItems.reduce((state, item) => {
-            state[item.slug] = Boolean(item.is_expanded || item.is_active);
+            state[item.slug] = Boolean(item.is_expanded);
 
             return state;
         }, {});
@@ -86,20 +93,10 @@ export function useProductDashboard() {
     }
 
     function applyFormDefaults() {
-        const categories = dashboard.value.form?.categories ?? [];
-        const types = dashboard.value.form?.types ?? [];
         const statuses = dashboard.value.form?.statuses ?? [];
 
-        if (!productForm.category_id && categories.length) {
-            productForm.category_id = String(categories[0].id);
-        }
-
-        if (!types.find((item) => item.value === productForm.type) && types.length) {
-            productForm.type = types[0].value;
-        }
-
         if (!statuses.find((item) => item.value === productForm.status) && statuses.length) {
-            productForm.status = statuses[0].value;
+            productForm.status = statuses.find((item) => item.value === 'active')?.value ?? statuses[0].value;
         }
     }
 
@@ -176,17 +173,38 @@ export function useProductDashboard() {
         clearProductErrors();
         notice.value = null;
 
+        const productPayload = buildProductPayload(productForm, dashboard.value.form?.categories ?? []);
+        const validationErrors = validateProductPayload(productPayload);
+
+        if (Object.keys(validationErrors).length > 0) {
+            assignProductErrors(validationErrors);
+            notice.value = {
+                type: 'error',
+                text: 'Please fix the highlighted fields and try again.',
+            };
+            isSavingProduct.value = false;
+
+            return false;
+        }
+
+        const submissionVariants = buildSubmissionVariants(productPayload);
         const formData = new FormData();
 
-        formData.append('name', productForm.name);
+        formData.append('name', productPayload.name);
         formData.append('category_id', productForm.category_id);
-        formData.append('type', productForm.type);
-        formData.append('description', productForm.description);
-        formData.append('price', productForm.price);
-        formData.append('stock_quantity', productForm.stock_quantity);
-        formData.append('sku', productForm.sku);
-        formData.append('status', productForm.status);
+        formData.append('description', productPayload.description);
+        formData.append('price', String(productPayload.price));
+        formData.append('stock_quantity', String(productPayload.stock));
+        formData.append('status', productPayload.status);
         formData.append('is_featured', productForm.is_featured ? '1' : '0');
+
+        if (String(productForm.type ?? '').trim() !== '') {
+            formData.append('type', productForm.type);
+        }
+
+        if (String(productForm.sku ?? '').trim() !== '') {
+            formData.append('sku', productForm.sku);
+        }
 
         if (String(productForm.discount_price).trim() !== '') {
             formData.append('discount_price', productForm.discount_price);
@@ -200,7 +218,7 @@ export function useProductDashboard() {
             formData.append('images[]', file);
         });
 
-        productForm.variants.forEach((variant, index) => {
+        submissionVariants.forEach((variant, index) => {
             formData.append(`variants[${index}][label]`, variant.label);
             formData.append(`variants[${index}][variant_sku]`, variant.variant_sku ?? '');
 
@@ -340,7 +358,7 @@ function initialProductForm() {
         id: null,
         name: '',
         category_id: '',
-        type: 'men',
+        type: '',
         description: '',
         price: '',
         discount_price: '',
@@ -354,6 +372,7 @@ function initialProductForm() {
         variant_groups: [],
         variant_group_source: null,
         variants: [],
+        variant_values: emptyVariantValues(),
     };
 }
 
@@ -379,11 +398,13 @@ function currentEditProductId() {
 }
 
 function normalizeEditableProduct(product) {
+    const normalizedVariants = normalizeVariants(product.variants);
+
     return {
         id: product.id ?? null,
         name: product.name ?? '',
         category_id: product.category_id ? String(product.category_id) : '',
-        type: product.type ?? 'men',
+        type: product.type ?? '',
         description: product.description ?? '',
         price: product.price ?? '',
         discount_price: product.discount_price ?? '',
@@ -402,16 +423,19 @@ function normalizeEditableProduct(product) {
         removed_image_ids: [],
         variant_groups: normalizeVariantGroups(product.variant_groups),
         variant_group_source: product.variant_group_source ?? product.category_slug ?? null,
-        variants: normalizeVariants(product.variants),
+        variants: normalizedVariants,
+        variant_values: variantValuesFromAttributes(normalizedVariants[0]?.attributes ?? []),
     };
 }
 
 function cloneProductForm(product) {
+    const normalizedVariants = normalizeVariants(product.variants);
+
     return {
         id: product.id ?? null,
         name: product.name ?? '',
         category_id: product.category_id ?? '',
-        type: product.type ?? 'men',
+        type: product.type ?? '',
         description: product.description ?? '',
         price: product.price ?? '',
         discount_price: product.discount_price ?? '',
@@ -432,7 +456,11 @@ function cloneProductForm(product) {
             : [],
         variant_groups: normalizeVariantGroups(product.variant_groups),
         variant_group_source: product.variant_group_source ?? product.category_slug ?? null,
-        variants: normalizeVariants(product.variants),
+        variants: normalizedVariants,
+        variant_values: {
+            ...emptyVariantValues(),
+            ...(product.variant_values ?? variantValuesFromAttributes(normalizedVariants[0]?.attributes ?? [])),
+        },
     };
 }
 
@@ -477,6 +505,85 @@ function clearVariantPreviewUrls(variants = []) {
             URL.revokeObjectURL(variant.image_preview_url);
         }
     });
+}
+
+function buildProductPayload(form, categories = []) {
+    const selectedCategory = categories.find((item) => String(item.id) === String(form.category_id));
+
+    return {
+        name: String(form.name ?? '').trim(),
+        category: selectedCategory?.slug ?? '',
+        description: String(form.description ?? '').trim(),
+        price: Number.parseFloat(String(form.price ?? '')),
+        stock: Number.parseInt(String(form.stock_quantity ?? ''), 10),
+        status: String(form.status ?? '').trim() || 'active',
+        images: Array.isArray(form.images) ? [...form.images] : [],
+        variants: {
+            ...emptyVariantValues(),
+            ...(form.variant_values ?? {}),
+        },
+    };
+}
+
+function validateProductPayload(payload) {
+    const errors = {};
+
+    if (!payload.name) {
+        errors.name = ['Product name is required.'];
+    }
+
+    if (!payload.category) {
+        errors.category_id = ['Category is required.'];
+    }
+
+    if (!payload.description) {
+        errors.description = ['Description is required.'];
+    }
+
+    if (!Number.isFinite(payload.price)) {
+        errors.price = ['Price is required.'];
+    } else if (payload.price <= 0) {
+        errors.price = ['Price must be greater than 0.'];
+    }
+
+    if (!Number.isFinite(payload.stock)) {
+        errors.stock_quantity = ['Stock is required.'];
+    } else if (payload.stock < 0) {
+        errors.stock_quantity = ['Stock cannot be negative.'];
+    }
+
+    if (!payload.status) {
+        errors.status = ['Status is required.'];
+    }
+
+    categoryFieldsForSlug(payload.category).forEach((field) => {
+        if (!String(payload.variants[field.key] ?? '').trim()) {
+            errors[`variant_values.${field.key}`] = [`${field.label} is required.`];
+        }
+    });
+
+    return errors;
+}
+
+function buildSubmissionVariants(payload) {
+    const attributes = variantAttributesFromValues(payload.category, payload.variants);
+
+    if (attributes.length === 0) {
+        return [];
+    }
+
+    return [
+        {
+            label: attributes.map((attribute) => attribute.value).join(' / '),
+            attributes,
+            variant_sku: '',
+            price: String(payload.price),
+            stock: String(payload.stock),
+            image: null,
+            existing_image_path: '',
+            remove_existing_image: false,
+        },
+    ];
 }
 
 function initialDashboard() {

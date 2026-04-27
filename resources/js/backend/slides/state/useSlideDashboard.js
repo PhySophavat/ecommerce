@@ -46,7 +46,7 @@ export function useSlideDashboard() {
 
     function syncOpenMenus(menuItems) {
         openMenus.value = menuItems.reduce((state, item) => {
-            state[item.slug] = Boolean(item.is_expanded || item.is_active);
+            state[item.slug] = Boolean(item.is_expanded);
 
             return state;
         }, {});

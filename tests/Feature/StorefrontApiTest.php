@@ -32,7 +32,7 @@ class StorefrontApiTest extends TestCase
                 ->has('categories', 5)
                 ->has('slides', 2)
                 ->has('products.items', 8)
-                ->has('products.featured', 3)
+                ->has('products.featured', 5)
                 ->missing('users')
                 ->missing('cart'));
     }

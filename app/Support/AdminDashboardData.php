@@ -365,7 +365,7 @@ class AdminDashboardData
             'path' => $menu->path,
             'is_enabled' => $menu->is_enabled,
             'is_active' => $isActive,
-            'is_expanded' => $childIsActive || in_array($menu->slug, ['products'], true),
+                    'is_expanded' => $childIsActive,
             'children' => $children,
         ];
     }
@@ -397,7 +397,7 @@ class AdminDashboardData
             'path' => $menu['path'],
             'is_enabled' => $menu['is_enabled'],
             'is_active' => $isActive,
-            'is_expanded' => $childIsActive || in_array($menu['slug'], ['products'], true),
+            'is_expanded' => $childIsActive,
             'children' => $children,
         ];
     }

@@ -219,6 +219,47 @@ class BackendProductManagementTest extends TestCase
         }
     }
 
+    public function test_admin_product_api_can_generate_a_sku_for_the_simplified_vue_form(): void
+    {
+        Storage::fake('public');
+        $this->seed(StoreDemoSeeder::class);
+
+        $category = Category::query()->where('slug', 'fashion')->firstOrFail();
+
+        $response = $this->post('/api/admin/products', [
+            'name' => 'Vue Form Product',
+            'category_id' => $category->id,
+            'description' => 'Created from the simplified Vue admin form.',
+            'price' => '88.00',
+            'stock_quantity' => 9,
+            'status' => 'active',
+            'variants' => [
+                [
+                    'label' => 'M / Black / Cotton',
+                    'attributes' => [
+                        ['name' => 'Size', 'value' => 'M'],
+                        ['name' => 'Color', 'value' => 'Black'],
+                        ['name' => 'Material', 'value' => 'Cotton'],
+                    ],
+                    'price' => '88.00',
+                    'stock' => 9,
+                ],
+            ],
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('product.name', 'Vue Form Product');
+
+        $product = Product::query()->where('name', 'Vue Form Product')->firstOrFail();
+
+        $this->assertNotEmpty($product->sku);
+        $this->assertSame('SPD-VUE-FORM-PRODUCT', $product->sku);
+        $this->assertNull($product->type);
+    }
+
     public function test_backend_vue_request_creates_a_user(): void
     {
         $response = $this->postJson('/admin/users', [

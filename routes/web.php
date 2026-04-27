@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\Frontend\HomeController as FrontendApiHomeController;
+use App\Http\Controllers\Api\Frontend\Home\HomeController as FrontendApiHomeController;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/backend', '/admin/products');

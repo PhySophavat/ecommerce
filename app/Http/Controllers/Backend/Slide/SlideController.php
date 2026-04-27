@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Backend;
+namespace App\Http\Controllers\Backend\Slide;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 
-class SlideManagementController extends Controller
+class SlideController extends Controller
 {
     public function index(): View
     {

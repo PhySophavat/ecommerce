@@ -97,7 +97,7 @@ async function handleSlideSubmit() {
     const saved = await submitSlide();
 
     if (saved) {
-        scrollToSection(document.querySelector('main'));
+        scrollToSection(document.getElementById('slides-table'));
     }
 }
 

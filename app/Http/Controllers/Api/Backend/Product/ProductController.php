@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Backend;
+namespace App\Http\Controllers\Api\Backend\Product;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use App\Support\AdminDashboardData;
 
-class ProductDashboardController extends Controller
+class ProductController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
@@ -102,9 +102,9 @@ class ProductDashboardController extends Controller
 
             $product->fill([
                 'category_id' => $validated['category_id'],
-                'type' => $validated['type'],
+                'type' => $this->nullableString($validated['type'] ?? null),
                 'name' => $validated['name'],
-                'sku' => $validated['sku'],
+                'sku' => $this->resolvedProductSku($validated, $product),
                 'tagline' => Str::limit(strip_tags($validated['description']), 90, ''),
                 'description' => $validated['description'],
                 'price' => $discountPrice ?? $originalPrice,
@@ -259,12 +259,12 @@ class ProductDashboardController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'type' => ['required', Rule::in(['men', 'women'])],
+            'type' => ['nullable', Rule::in(['men', 'women'])],
             'description' => ['required', 'string'],
             'price' => ['required', 'numeric', 'min:0'],
             'discount_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'stock_quantity' => ['required', 'integer', 'min:0'],
-            'sku' => ['required', 'string', 'max:255', $skuRule],
+            'sku' => ['nullable', 'string', 'max:255', $skuRule],
             'status' => ['required', Rule::in(['active', 'draft', 'scheduled'])],
             'is_featured' => ['nullable', 'boolean'],
             'images' => ['nullable', 'array'],
@@ -356,6 +356,21 @@ class ProductDashboardController extends Controller
         return $string === '' ? null : $string;
     }
 
+    private function resolvedProductSku(array $validated, Product $product): string
+    {
+        $sku = $this->nullableString($validated['sku'] ?? null);
+
+        if ($sku !== null) {
+            return $sku;
+        }
+
+        if ($product->exists && $product->sku) {
+            return $product->sku;
+        }
+
+        return $this->uniqueSku($validated['name'], $product);
+    }
+
     /**
      * @return array<int, array{name: string, value: string}>
      */
@@ -433,5 +448,23 @@ class ProductDashboardController extends Controller
         }
 
         return $slug;
+    }
+
+    private function uniqueSku(string $name, ?Product $product = null): string
+    {
+        $base = Str::upper(Str::substr(Str::slug($name, '-'), 0, 18));
+        $base = $base !== '' ? $base : 'PRODUCT';
+        $sku = "SPD-{$base}";
+        $suffix = 2;
+
+        while (Product::query()
+            ->where('sku', $sku)
+            ->when($product?->exists, fn ($query) => $query->whereKeyNot($product->id))
+            ->exists()) {
+            $sku = "SPD-{$base}-{$suffix}";
+            $suffix++;
+        }
+
+        return $sku;
     }
 }
