@@ -14,6 +14,7 @@
             <div class="flex min-w-0 flex-1 flex-col">
                 <ProductHeader
                     :dashboard="dashboard"
+                    :is-menu-open="isMenuOpen"
                     :screen="screen"
                     @refresh="loadDashboard"
                     @primary-action="handlePrimaryAction"

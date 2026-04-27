@@ -67,20 +67,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="soft-scroll mt-5 flex gap-3 overflow-x-auto pb-1 lg:hidden">
-            <button
-                v-for="item in dashboard.menu"
-                :key="`mobile-${item.slug}`"
-                type="button"
-                class="shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition"
-                :class="item.is_active ? 'border-[#5b68ef] bg-[#eef1ff] text-[#4b57d2]' : 'border-[#dbe3f5] bg-white text-slate-500'"
-                :disabled="item.children.length ? false : !menuIsInteractive(item)"
-                @click="item.children.length ? $emit('toggle-menu', item.slug) : $emit('select-item', item)"
-            >
-                {{ item.label }}
-            </button>
-        </div>
     </header>
 </template>
 
@@ -98,6 +84,10 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    isMenuOpen: {
+        type: Function,
+        default: () => false,
+    },
 });
 
 const todayLabel = computed(() => new Intl.DateTimeFormat('en-US', {
@@ -111,24 +101,24 @@ const updatedLabel = computed(() => new Intl.DateTimeFormat('en-US', {
 }).format(new Date()));
 const heroEyebrow = computed(() => ({
     dashboard: 'Overview',
-    sliders: 'Website content',
-    products: 'Catalog management',
+    sliders: '',
+    products: '',
     'featured-products': 'Storefront highlights',
     'add-product': 'Product workspace',
 }[props.screen] ?? 'Admin workspace'));
 const heroTitle = computed(() => ({
     dashboard: `Welcome back, ${props.dashboard.meta.brand}.`,
-    sliders: 'Design the storefront slide flow.',
-    products: 'Manage the full product catalog.',
+    sliders: '',
+    products: '',
     'featured-products': 'Curate products that lead the storefront.',
-    'add-product': 'Create or refine a product entry.',
+    // 'add-product': 'Create or refine a product entry.',
 }[props.screen] ?? props.dashboard.meta.page_title));
 const heroSubtitle = computed(() => props.dashboard.meta.subheadline || ({
     dashboard: 'Track the latest product changes, featured placements, and inventory signals from one admin surface.',
-    sliders: 'Upload, reorder, and publish hero slides using the same visual language as the rest of the admin suite.',
-    products: 'Review every item, spot featured placements quickly, and jump into editing without leaving the main workspace.',
+    sliders: '',
+    products: '',
     'featured-products': 'Focus on products with the strongest storefront visibility and update them without scanning the full catalog.',
-    'add-product': 'Use the editor below to manage descriptions, media, variants, pricing, and storefront visibility in one pass.',
+    // 'add-product': 'Use the editor below to manage descriptions, media, variants, pricing, and storefront visibility in one pass.',
 }[props.screen] ?? ''));
 const primaryActionLabel = computed(() => ({
     dashboard: 'Open products',
@@ -141,5 +131,9 @@ const showUtilityActions = computed(() => props.screen !== 'sliders');
 
 function menuIsInteractive(item) {
     return item.is_enabled || item.slug === 'add-product';
+}
+
+function isMobileMenuHighlighted(item) {
+    return Boolean(item.is_active || (item.children.length && props.isMenuOpen(item.slug)));
 }
 </script>

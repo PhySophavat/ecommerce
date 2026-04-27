@@ -3,11 +3,11 @@
         <article class="admin-card rounded-[32px] px-6 py-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Recent activity</p>
-                    <h3 class="chatgpt-title mt-2 text-2xl text-slate-950">Latest catalog movement</h3>
-                    <p class="chatgpt-copy mt-3 max-w-2xl text-sm">
+                    <!-- <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Recent activity</p> -->
+                    <!-- <h3 class="chatgpt-title mt-2 text-2xl text-slate-950">Latest catalog movement</h3> -->
+                    <!-- <p class="chatgpt-copy mt-3 max-w-2xl text-sm">
                         Follow the newest edits, featured updates, and inventory shifts without opening the full table first.
-                    </p>
+                    </p> -->
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
                     <button

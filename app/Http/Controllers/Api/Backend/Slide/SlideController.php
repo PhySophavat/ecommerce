@@ -7,7 +7,6 @@ use App\Models\Slide;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rule;
 
 class SlideController extends Controller
 {
@@ -24,7 +23,7 @@ class SlideController extends Controller
 
     public function update(Request $request, Slide $slide): JsonResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules($slide));
         $slide = $this->persistSlide($request, $validated, $slide);
 
         return response()->json([
@@ -57,17 +56,26 @@ class SlideController extends Controller
 
         $currentImagePath = $slide->exists ? $slide->image_path : null;
         $newImagePath = $currentImagePath;
+        $removeExistingImage = (bool) ($validated['remove_existing_image'] ?? false);
 
         if ($request->hasFile('image')) {
             $newImagePath = $request->file('image')->store('slides', 'public');
+        } elseif ($removeExistingImage) {
+            $newImagePath = null;
         }
 
         $slide->fill([
+            'category_id' => $validated['category_id'] ?? null,
+            'eyebrow' => $validated['eyebrow'] ?? null,
             'title' => $validated['title'],
-            'subtitle' => $validated['subtitle'] ?? null,
+            'highlight' => $validated['highlight'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'button_text' => $validated['button_text'] ?? null,
+            'button_url' => $validated['button_url'] ?? null,
+            'badge_text' => $validated['badge_text'] ?? null,
             'image_path' => $newImagePath,
-            'link' => $validated['link'] ?? null,
             'is_active' => $validated['is_active'] ?? true,
+            'sort_order' => $validated['sort_order'] ?? 1,
         ]);
 
         $slide->save();
@@ -76,17 +84,24 @@ class SlideController extends Controller
             Storage::disk('public')->delete($currentImagePath);
         }
 
-        return $slide;
+        return $slide->loadMissing('category');
     }
 
     private function rules(?Slide $slide = null): array
     {
         $rules = [
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'eyebrow' => ['nullable', 'string', 'max:100'],
             'title' => ['required', 'string', 'max:255'],
-            'subtitle' => ['nullable', 'string', 'max:500'],
+            'highlight' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'button_text' => ['nullable', 'string', 'max:100'],
+            'button_url' => ['nullable', 'string', 'max:255'],
+            'badge_text' => ['nullable', 'string', 'max:100'],
             'image' => [$slide ? 'nullable' : 'required', 'image', 'max:4096'],
-            'link' => ['nullable', 'string', 'max:500', 'url'],
             'is_active' => ['nullable', 'boolean'],
+            'sort_order' => ['required', 'integer', 'min:0'],
+            'remove_existing_image' => ['nullable', 'boolean'],
         ];
 
         if ($slide) {
@@ -100,12 +115,20 @@ class SlideController extends Controller
     {
         return [
             'id' => $slide->id,
+            'category_id' => $slide->category_id ? (string) $slide->category_id : '',
+            'category' => $slide->category?->name ?? 'All categories',
+            'category_slug' => $slide->category?->slug,
+            'eyebrow' => $slide->eyebrow ?? '',
             'title' => $slide->title,
-            'subtitle' => $slide->subtitle,
-            'image_url' => $slide->image_path ? Storage::disk('public')->url($slide->image_path) : null,
-            'image_path' => $slide->image_path,
-            'link' => $slide->link,
-            'is_active' => $slide->is_active,
+            'highlight' => $slide->highlight ?? '',
+            'description' => $slide->description ?? '',
+            'button_text' => $slide->button_text ?? '',
+            'button_url' => $slide->button_url ?? '',
+            'badge_text' => $slide->badge_text ?? '',
+            'image_url' => $slide->resolvedImageUrl(),
+            'image_name' => $slide->resolvedImageName(),
+            'is_active' => (bool) $slide->is_active,
+            'sort_order' => (string) $slide->sort_order,
         ];
     }
 }

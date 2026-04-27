@@ -191,14 +191,14 @@ class AdminDashboardData
                 'subheadline' => 'Track sales, customers, orders, and inventory from a focused admin summary.',
             ],
             'add-product' => [
-                'page_title' => 'Add Product',
-                'kicker' => 'Catalog creation',
-                'subheadline' => 'Create a new catalog item, upload images, and configure stock, pricing, and variants.',
+                'page_title' => '',
+                'kicker' => '',
+                'subheadline' => '',
             ],
             'sliders' => [
                 'page_title' => 'Slides',
                 'kicker' => 'Hero sliders',
-                'subheadline' => 'Create hero slides for the storefront and control which ones are shown on the frontend.',
+                'subheadline' => '',
             ],
             'featured-products' => [
                 'page_title' => 'Featured Products',
@@ -208,7 +208,7 @@ class AdminDashboardData
             default => [
                 'page_title' => 'Products',
                 'kicker' => 'Catalog control center',
-                'subheadline' => 'Review the product catalog, check stock, and move into product creation when needed.',
+                'subheadline' => '',
             ],
         };
     }

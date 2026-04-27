@@ -2,7 +2,7 @@
     <section class="admin-card mt-6 overflow-hidden rounded-[32px]">
         <div class="flex flex-col gap-2 border-b border-[#e2e7f6] px-3 py-3">
             <div class="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
-                <h3 class="font-bold text-base text-slate-950">{{ sectionTitle }}</h3>
+                <!-- <h3 class="font-bold text-base text-slate-950">{{ sectionTitle }}</h3> -->
                 <div class="flex flex-wrap items-center gap-2">
                     <select
                         v-model="selectedCategory"

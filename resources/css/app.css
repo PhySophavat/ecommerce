@@ -18,6 +18,27 @@
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-chat-mono: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
         monospace;
+
+    /* Brand Colors */
+    --color-primary: #A25F88;
+    --color-primary-hover: #8B4E73;
+    --color-primary-light: #F3E8F1;
+    
+    /* Background & Layout */
+    --color-background: #F8FAFC;
+    --color-card: #FFFFFF;
+    --color-border: #E5E7EB;
+    
+    /* Text Colors */
+    --color-text-main: #111827;
+    --color-text-secondary: #6B7280;
+    --color-text-muted: #9CA3AF;
+    
+    /* Status Colors */
+    --color-info: #3B82F6;
+    --color-success: #10B981;
+    --color-error: #EF4444;
+    --color-warning: #F59E0B;
 }
 
 html {
@@ -31,10 +52,10 @@ body {
 
 body[data-app='frontend'] {
     background:
-        radial-gradient(circle at top left, rgba(244, 114, 182, 0.18), transparent 28%),
-        radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 24%),
-        linear-gradient(180deg, #fffafc 0%, #fff3f7 100%);
-    color: #1c1917;
+        radial-gradient(circle at top left, rgba(162, 95, 136, 0.15), transparent 28%),
+        radial-gradient(circle at top right, rgba(139, 78, 115, 0.1), transparent 24%),
+        linear-gradient(180deg, #F8FAFC 0%, #F3E8F1 100%);
+    color: #111827;
 }
 
 body[data-app^='backend-'] {

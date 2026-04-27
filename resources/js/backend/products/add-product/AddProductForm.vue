@@ -7,9 +7,7 @@
                     <h2 class="mt-2 text-2xl font-semibold text-[#111827]">
                         {{ mode === 'edit' ? `Edit ${productName || 'product'}` : 'Add a new product' }}
                     </h2>
-                    <p class="mt-2 max-w-2xl text-sm text-[#6B7280]">
-                        Create a product with category-based variant dropdowns, image preview, and admin-friendly validation.
-                    </p>
+                    
                 </div>
 
                 <button

@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
+    <div class="min-h-screen bg-gradient-to-b from-[#F8FAFC] to-[#F3E8F1]">
         <!-- Header Component -->
         <Header
             :meta="meta"
@@ -16,13 +16,13 @@
         <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             <!-- Page Meta -->
             <div class="mb-8 text-center">
-                <p v-if="meta?.eyebrow" class="mb-2 text-sm font-medium uppercase tracking-wider text-slate-500">
+                <p v-if="meta?.eyebrow" class="mb-2 text-sm font-medium uppercase tracking-wider text-[#6B7280]">
                     {{ meta.eyebrow }}
                 </p>
-                <h2 class="text-3xl font-bold text-slate-900 sm:text-4xl">
+                <h2 class="text-3xl font-bold text-[#111827] sm:text-4xl">
                     {{ meta?.headline || 'Shop the catalog' }}
                 </h2>
-                <p v-if="meta?.subheadline" class="mt-2 text-slate-600">
+                <p v-if="meta?.subheadline" class="mt-2 text-[#6B7280]">
                     {{ meta.subheadline }}
                 </p>
             </div>
@@ -30,18 +30,18 @@
             <!-- Stats -->
             <div v-if="meta?.stats" class="mb-12 flex justify-center gap-8 sm:gap-12">
                 <div v-for="stat in meta.stats" :key="stat.label" class="text-center">
-                    <div class="text-2xl font-bold text-slate-900">{{ stat.value }}</div>
-                    <div class="text-sm text-slate-500">{{ stat.label }}</div>
+                    <div class="text-2xl font-bold text-[#111827]">{{ stat.value }}</div>
+                    <div class="text-sm text-[#6B7280]">{{ stat.label }}</div>
                 </div>
             </div>
 
             <!-- Products Grid -->
             <section v-if="filteredProducts.length > 0">
                 <div class="mb-6 flex items-center justify-between">
-                    <h3 class="text-xl font-semibold text-slate-900">
+                    <h3 class="text-xl font-semibold text-[#111827]">
                         {{ activeCategory ? getCategoryName(activeCategory) : 'All Products' }}
                     </h3>
-                    <span class="text-sm text-slate-500">{{ filteredProducts.length }} products</span>
+                    <span class="text-sm text-[#6B7280]">{{ filteredProducts.length }} products</span>
                 </div>
 
                 <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -51,21 +51,21 @@
                         class="group rounded-3xl bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
                     >
                         <!-- Product Image -->
-                        <div class="relative aspect-square overflow-hidden rounded-2xl bg-slate-100">
+                        <div class="relative aspect-square overflow-hidden rounded-2xl bg-[#F3E8F1]">
                             <div class="absolute inset-0 bg-cover bg-center transition group-hover:scale-105" :style="getProductBackground(product)"></div>
-                            <div v-if="product.is_featured" class="absolute left-3 top-3 rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white">
+                            <div v-if="product.is_featured" class="absolute left-3 top-3 rounded-full bg-[#A25F88] px-3 py-1 text-xs font-semibold text-white">
                                 Featured
                             </div>
                         </div>
 
                         <!-- Product Info -->
                         <div class="mt-4">
-                            <p class="text-xs text-slate-500">{{ product.category }}</p>
-                            <h4 class="mt-1 text-lg font-semibold text-slate-900">{{ product.name }}</h4>
-                            <p class="mt-1 text-sm text-slate-600">{{ product.tagline }}</p>
+                            <p class="text-xs text-[#6B7280]">{{ product.category }}</p>
+                            <h4 class="mt-1 text-lg font-semibold text-[#111827]">{{ product.name }}</h4>
+                            <p class="mt-1 text-sm text-[#6B7280]">{{ product.tagline }}</p>
                             <div class="mt-3 flex items-center gap-2">
-                                <span class="text-lg font-bold text-slate-900">{{ product.price }}</span>
-                                <span v-if="product.compare_at_price" class="text-sm text-slate-500 line-through">
+                                <span class="text-lg font-bold text-[#111827]">{{ product.price }}</span>
+                                <span v-if="product.compare_at_price" class="text-sm text-[#9CA3AF] line-through">
                                     {{ product.compare_at_price }}
                                 </span>
                             </div>
@@ -76,14 +76,14 @@
 
             <!-- Empty State -->
             <div v-else class="py-12 text-center">
-                <p class="text-slate-500">No products found.</p>
+                <p class="text-[#6B7280]">No products found.</p>
             </div>
         </main>
 
         <!-- Footer -->
-        <footer class="border-t border-slate-200 bg-white py-8">
+        <footer class="border-t border-[#E5E7EB] bg-white py-8">
             <div class="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-                <p class="text-sm text-slate-500">&copy; {{ new Date().getFullYear() }} {{ meta?.brand || 'Store' }}. All rights reserved.</p>
+                <p class="text-sm text-[#6B7280]">&copy; {{ new Date().getFullYear() }} {{ meta?.brand || 'Store' }}. All rights reserved.</p>
             </div>
         </footer>
     </div>
@@ -132,7 +132,7 @@ function startSlideRotation() {
     if (slides.value.length > 1) {
         setInterval(() => {
             currentSlide.value = (currentSlide.value + 1) % slides.value.length;
-        }, 2000);
+        }, 3000);
     }
 }
 

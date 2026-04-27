@@ -31,7 +31,7 @@
                         v-if="item.children.length"
                         type="button"
                         class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition text-sm"
-                        :class="[parentItemClass(item), 'focus:ring-2 focus:ring-[#2563eb] outline-none']"
+                        :class="[parentItemClass(item), 'focus:ring-2 focus:ring-[#A25F88] outline-none']"
                         @click="$emit('toggle-menu', item.slug)"
                     >
                         <span class="flex h-7 w-7 items-center justify-center rounded-lg"
@@ -58,14 +58,14 @@
                         v-else
                         type="button"
                         class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition text-sm"
-                        :class="[item.is_active ? 'bg-[#2563eb] text-white font-bold shadow' : 'hover:bg-[#e0eaff] text-[#222]/80', 'focus:ring-2 focus:ring-[#2563eb] outline-none']"
+                        :class="[item.is_active ? 'bg-[#A25F88] text-white font-bold shadow' : 'hover:bg-[#F3E8F1] text-[#222]/80', 'focus:ring-2 focus:ring-[#A25F88] outline-none']"
                         :disabled="!menuIsInteractive(item)"
                         @click="$emit('select-item', item)"
                     >
                         <span class="flex h-7 w-7 items-center justify-center rounded-lg"
-                              :class="item.is_active ? 'bg-[#2563eb]' : 'bg-[#F8FAFC]'">
+                                                            :class="item.is_active ? 'bg-[#A25F88]' : 'bg-[#F8FAFC]'">
                             <svg class="h-4 w-4"
-                                 :class="item.is_active ? 'text-white' : 'text-[#2563eb]'"
+                                                                    :class="item.is_active ? 'text-white' : 'text-[#A25F88]'"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                                 <path stroke-linecap="round" stroke-linejoin="round" :d="iconPath(item.icon)" />
                             </svg>
@@ -75,14 +75,14 @@
                     <div
                         v-if="item.children.length && isMenuOpen(item.slug)"
                         class="ml-3 mt-1 space-y-1 border-l-2 pl-3"
-                        :class="hasActiveChild(item) ? 'border-[#bfd1ff]' : 'border-[#e3e7ef]'"
+                        :class="isParentMenuHighlighted(item) ? 'border-[#A25F88]/40' : 'border-[#e3e7ef]'"
                     >
                         <button
                             v-for="child in item.children"
                             :key="child.slug"
                             type="button"
                             class="flex w-full items-center rounded px-2 py-1.5 text-left text-xs font-medium transition"
-                            :class="[child.is_active ? 'bg-[#2563eb] text-white font-bold' : 'hover:bg-[#e0eaff] text-[#222]/70', 'focus:ring-2 focus:ring-[#2563eb] outline-none']"
+                            :class="[child.is_active ? 'bg-[#A25F88] text-white font-bold' : 'hover:bg-[#F3E8F1] text-[#222]/70', 'focus:ring-2 focus:ring-[#A25F88] outline-none']"
                             :disabled="!menuIsInteractive(child)"
                             @click="$emit('select-item', child)"
                         >
@@ -174,41 +174,33 @@ function menuIsInteractive(item) {
     return item.is_enabled || item.slug === 'add-product';
 }
 
-function hasActiveChild(item) {
-    return Array.isArray(item.children) && item.children.some((child) => child.is_active);
+function isParentMenuHighlighted(item) {
+    return Boolean(item.is_active || props.isMenuOpen(item.slug));
 }
 
 function parentItemClass(item) {
-    if (hasActiveChild(item)) {
-        return 'bg-[#e8efff] text-[#2c4ecf] font-semibold shadow-sm';
+    if (isParentMenuHighlighted(item)) {
+        return 'bg-[#A25F88] text-white font-bold shadow';
     }
 
-    if (props.isMenuOpen(item.slug)) {
-        return 'bg-white text-[#111827] shadow-sm ring-1 ring-[#dbe3f5]';
-    }
-
-    return 'hover:bg-[#e0eaff] text-[#222]/80';
+    return 'hover:bg-[#F3E8F1] text-[#222]/80';
 }
 
 function parentIconWrapClass(item) {
-    if (hasActiveChild(item)) {
-        return 'bg-white';
-    }
-
-    return props.isMenuOpen(item.slug)
-        ? 'bg-[#F8FAFC]'
+    return isParentMenuHighlighted(item)
+        ? 'bg-[#A25F88]'
         : 'bg-[#F8FAFC]';
 }
 
 function parentIconClass(item) {
-    return hasActiveChild(item) || props.isMenuOpen(item.slug)
-        ? 'text-[#2563eb]'
-        : 'text-[#2563eb]';
+    return isParentMenuHighlighted(item)
+        ? 'text-white'
+        : 'text-[#A25F88]';
 }
 
 function parentChevronClass(item) {
-    return hasActiveChild(item) || props.isMenuOpen(item.slug)
-        ? 'text-[#2563eb]'
+    return isParentMenuHighlighted(item)
+        ? 'text-white'
         : 'text-[#A0A4AE]';
 }
 

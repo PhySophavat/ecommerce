@@ -1,5 +1,5 @@
 <template>
-    <section v-if="slides.length > 0" class="relative overflow-hidden bg-slate-900">
+    <section v-if="slides.length > 0" class="relative overflow-hidden bg-[#111827]">
         <div class="relative h-[75vh] min-h-[250px] max-w-7xl mx-auto">
             <div
                 v-for="(slide, index) in slides"
@@ -13,9 +13,9 @@
                     class="absolute inset-0 bg-cover bg-center"
                     :style="{ backgroundImage: `url(${slide.image_url})` }"
                 >
-                    <div class="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-slate-900/20"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#111827]/80 to-[#111827]/20"></div>
                 </div>
-                <div v-else class="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900"></div>
+                <div v-else class="absolute inset-0 bg-gradient-to-br from-[#A25F88] to-[#111827]"></div>
                 <!-- Slide Content -->
                 <div class="relative flex h-full items-center px-4 sm:px-6 lg:px-8">
                     <div class="max-w-2xl">
@@ -32,7 +32,7 @@
                     :key="`dot-${slide.id}`"
                     type="button"
                     class="h-2 w-2 rounded-full transition"
-                    :class="index === currentSlide ? 'bg-white' : 'bg-white/40 hover:bg-white/60'"
+                    :class="index === currentSlide ? 'bg-[#A25F88]' : 'bg-white/40 hover:bg-white/60'"
                     @click="$emit('update:currentSlide', index)"
                 />
             </div>
