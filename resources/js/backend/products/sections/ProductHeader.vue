@@ -40,9 +40,7 @@
             <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div class="max-w-3xl">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6c78da]">{{ heroEyebrow }}</p>
-                    <h2 class="mt-3 text-3xl font-extrabold tracking-[-0.05em] text-slate-950 sm:text-4xl">
-                        {{ heroTitle }}
-                    </h2>
+                    
                     <p class="mt-2 text-sm leading-7 text-slate-500">
                         {{ heroSubtitle }}
                     </p>
@@ -104,21 +102,25 @@ const heroEyebrow = computed(() => ({
     sliders: '',
     products: '',
     'featured-products': 'Storefront highlights',
-    'add-product': 'Product workspace',
+    'add-product': '',
+    users: 'Access control',
+    merchants: 'Seller management',
 }[props.screen] ?? 'Admin workspace'));
 const heroTitle = computed(() => ({
     dashboard: `Welcome back, ${props.dashboard.meta.brand}.`,
     sliders: '',
     products: '',
     'featured-products': 'Curate products that lead the storefront.',
-    // 'add-product': 'Create or refine a product entry.',
+    users: 'Manage backend access for admin users.',
+    merchants: 'Review and create merchant accounts.',
 }[props.screen] ?? props.dashboard.meta.page_title));
 const heroSubtitle = computed(() => props.dashboard.meta.subheadline || ({
     dashboard: 'Track the latest product changes, featured placements, and inventory signals from one admin surface.',
     sliders: '',
     products: '',
     'featured-products': 'Focus on products with the strongest storefront visibility and update them without scanning the full catalog.',
-    // 'add-product': 'Use the editor below to manage descriptions, media, variants, pricing, and storefront visibility in one pass.',
+    users: 'Keep administrator access tidy, create backend users, and review who is currently active in the dashboard.',
+    merchants: 'Create seller accounts, check merchant product activity, and keep storefront operators organized.',
 }[props.screen] ?? ''));
 const primaryActionLabel = computed(() => ({
     dashboard: 'Open products',
@@ -126,6 +128,8 @@ const primaryActionLabel = computed(() => ({
     products: '+ Add product',
     'featured-products': '+ Add product',
     'add-product': 'All products',
+    users: 'Create admin',
+    merchants: 'Create merchant',
 }[props.screen] ?? '+ Add product'));
 const showUtilityActions = computed(() => props.screen !== 'sliders');
 

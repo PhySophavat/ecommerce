@@ -12,6 +12,8 @@ class CheckoutTest extends TestCase
 
     public function test_non_json_user_form_validates_required_and_unique_fields(): void
     {
+        $this->signInAsAdmin();
+
         User::query()->create([
             'name' => 'Existing User',
             'email' => 'jamie@example.com',
@@ -34,6 +36,8 @@ class CheckoutTest extends TestCase
 
     public function test_non_json_user_form_redirects_back_after_success(): void
     {
+        $this->signInAsAdmin();
+
         $response = $this->post('/admin/users', [
             'name' => 'Morgan Lee',
             'email' => 'morgan@example.com',

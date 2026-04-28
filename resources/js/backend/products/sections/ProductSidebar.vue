@@ -12,15 +12,7 @@
                     </div>
                 </div>
 
-                <div class="mt-5 relative">
-                    <button type="button" class="flex w-full items-center justify-between rounded-2xl border border-[#e3e7ef] bg-[#F8FAFC] px-4 py-3 text-left text-sm font-semibold text-[#222] transition hover:bg-[#f0f3fa]">
-                        <span>All branches</span>
-                        <svg class="h-4 w-4 text-[#A0A4AE]" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4" />
-                        </svg>
-                    </button>
-                    <!-- Dropdown can be implemented here if needed -->
-                </div>
+                
             </div>
         </div>
 
@@ -93,39 +85,7 @@
             </nav>
         </div>
 
-        <div class="px-5 pb-5">
-            <div class="rounded-[30px] border border-[#e3e7ef] bg-white px-5 py-5 shadow">
-                <div class="flex flex-col gap-2">
-                    <a
-                        class="flex items-center justify-between rounded-xl bg-[#A25F88] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#8d4e74]"
-                        :href="dashboard.meta.links.frontend"
-                    >
-                        <span>Storefront</span>
-                        <span>&rarr;</span>
-                    </a>
-                    <button
-                        type="button"
-                        class="flex w-full items-center justify-between rounded-xl bg-[#A25F88] px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-[#8d4e74]"
-                        @click="emit('quick-action')"
-                    >
-                        <span>{{ quickActionLabel }}</span>
-                        <span>&rarr;</span>
-                    </button>
-                </div>
-                <div class="mt-5 border-t border-[#e3e7ef] pt-4">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#F8FAFC] text-sm font-bold text-[#A25F88]">
-                            AD
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <p class="truncate text-sm font-semibold text-[#222]">Admin workspace</p>
-                            <p class="truncate text-xs text-[#A0A4AE]">{{ currentSectionLabel }}</p>
-                        </div>
-                        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
+        
     </aside>
 </template>
 
@@ -161,17 +121,21 @@ const currentSectionLabel = computed(() => ({
     products: 'Product catalog',
     'featured-products': 'Featured catalog',
     'add-product': 'Product editor',
+    users: 'Admin access control',
+    merchants: 'Merchant directory',
 }[props.screen] ?? 'Admin workspace'));
 const quickActionLabel = computed(() => ({
     sliders: 'Create slide',
     dashboard: 'View catalog',
-    products: 'Add product',
+    products: '',
     'featured-products': 'Add featured',
     'add-product': 'Open editor',
+    users: 'Create admin',
+    merchants: 'Create merchant',
 }[props.screen] ?? 'Open manager'));
 
 function menuIsInteractive(item) {
-    return item.is_enabled || item.slug === 'add-product';
+    return item.is_enabled || item.slug === 'add-product' || item.slug === 'logout';
 }
 
 function isParentMenuHighlighted(item) {

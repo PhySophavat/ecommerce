@@ -14,6 +14,101 @@ use Illuminate\Support\Facades\Schema;
 
 class AdminDashboardData
 {
+    public static function accountsIndex(string $screen = 'users'): array
+    {
+        $screen = in_array($screen, ['users', 'merchants'], true) ? $screen : 'users';
+        $role = $screen === 'merchants' ? 'merchant' : 'admin';
+        $accounts = User::query()
+            ->where('role', $role)
+            ->withCount([
+                'products',
+                'products as pending_products_count' => fn ($query) => $query->where('status', 'pending'),
+                'products as approved_products_count' => fn ($query) => $query->where('status', 'approved'),
+                'approvedProducts as approved_products_total' => fn ($query) => $query->where('status', 'approved'),
+            ])
+            ->orderByDesc('created_at')
+            ->get();
+        $meta = self::metaForScreen($screen);
+        $merchantCount = User::query()->where('role', 'merchant')->count();
+        $adminCount = User::query()->where('role', 'admin')->count();
+        $accountsCount = $accounts->count();
+        $merchantProductsCount = (int) $accounts->sum('products_count');
+        $pendingProductsCount = (int) $accounts->sum('pending_products_count');
+        $approvedProductsCount = $screen === 'merchants'
+            ? (int) $accounts->sum('approved_products_count')
+            : (int) $accounts->sum('approved_products_total');
+
+        return [
+            'screen' => $screen,
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen($screen)),
+            'form' => [
+                'role' => $role,
+                'role_label' => $role === 'merchant' ? 'Merchant' : 'Admin user',
+                'submit_label' => $role === 'merchant' ? 'Create merchant' : 'Create admin user',
+            ],
+            'accounts' => [
+                'role' => $role,
+                'count' => $accountsCount,
+                'summary' => $screen === 'merchants'
+                    ? [
+                        [
+                            'label' => 'Total merchants',
+                            'value' => (string) $accountsCount,
+                            'detail' => 'Seller accounts with dashboard access',
+                        ],
+                        [
+                            'label' => 'Products listed',
+                            'value' => (string) $merchantProductsCount,
+                            'detail' => 'Catalog items created by merchants',
+                        ],
+                        [
+                            'label' => 'Pending review',
+                            'value' => (string) $pendingProductsCount,
+                            'detail' => 'Merchant products waiting for approval',
+                        ],
+                        [
+                            'label' => 'Approved products',
+                            'value' => (string) $approvedProductsCount,
+                            'detail' => 'Merchant products currently approved',
+                        ],
+                    ]
+                    : [
+                        [
+                            'label' => 'Admin users',
+                            'value' => (string) $accountsCount,
+                            'detail' => 'Administrator accounts with backend access',
+                        ],
+                        [
+                            'label' => 'Approved products',
+                            'value' => (string) $approvedProductsCount,
+                            'detail' => 'Products approved by admin users',
+                        ],
+                        [
+                            'label' => 'Merchant accounts',
+                            'value' => (string) $merchantCount,
+                            'detail' => 'Total seller accounts on the platform',
+                        ],
+                        [
+                            'label' => 'Admin coverage',
+                            'value' => (string) $adminCount,
+                            'detail' => 'Current approved admin seats',
+                        ],
+                    ],
+                'items' => $accounts
+                    ->map(fn (User $user): array => self::account($user, $screen))
+                    ->values()
+                    ->all(),
+            ],
+        ];
+    }
+
     public static function productsIndex(string $screen = 'products'): array
     {
         $screen = self::normalizedScreen($screen);
@@ -33,14 +128,11 @@ class AdminDashboardData
         return [
             'screen' => $screen,
             'meta' => [
-                'brand' => 'Spodut',
+                'brand' => 'E-commerce                php artisan db:seed --class=AdminMenuSeeder                php artisan db:seed --class=AdminMenuSeeder                php artisan migrate',
                 'page_title' => $meta['page_title'],
                 'kicker' => $meta['kicker'],
                 'subheadline' => $meta['subheadline'],
-                'links' => [
-                    'frontend' => route('frontend.home'),
-                    'admin_users' => route('admin.products.index'),
-                ],
+                'links' => self::sharedLinks(),
             ],
             'form' => [
                 'categories' => Category::query()
@@ -144,10 +236,7 @@ class AdminDashboardData
                 'page_title' => $meta['page_title'],
                 'kicker' => $meta['kicker'],
                 'subheadline' => $meta['subheadline'],
-                'links' => [
-                    'frontend' => route('frontend.home'),
-                    'admin_users' => route('admin.products.index'),
-                ],
+                'links' => self::sharedLinks(),
             ],
             'form' => [
                 'categories' => Category::query()
@@ -176,7 +265,7 @@ class AdminDashboardData
 
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants'], true) ? $screen : 'products';
     }
 
     /**
@@ -191,8 +280,8 @@ class AdminDashboardData
                 'subheadline' => 'Track sales, customers, orders, and inventory from a focused admin summary.',
             ],
             'add-product' => [
-                'page_title' => '',
-                'kicker' => '',
+                'page_title' => 'Add Product',
+                'kicker' => 'Catalog expansion',
                 'subheadline' => '',
             ],
             'sliders' => [
@@ -204,6 +293,16 @@ class AdminDashboardData
                 'page_title' => 'Featured Products',
                 'kicker' => 'Storefront highlights',
                 'subheadline' => 'Manage the products promoted in the storefront featured collection.',
+            ],
+            'users' => [
+                'page_title' => 'Admin Users',
+                'kicker' => 'Admin access',
+                'subheadline' => 'Manage administrator accounts, review who can access the backend, and keep access tidy.',
+            ],
+            'merchants' => [
+                'page_title' => 'Merchants',
+                'kicker' => 'Seller management',
+                'subheadline' => 'Create merchant accounts, review their product activity, and manage seller access from one place.',
             ],
             default => [
                 'page_title' => 'Products',
@@ -223,6 +322,8 @@ class AdminDashboardData
             'sliders' => ['sliders'],
             'add-product' => ['products', 'add-product'],
             'featured-products' => ['content-management', 'featured-products'],
+            'users' => ['users-admin-management', 'admin-users'],
+            'merchants' => ['users-admin-management', 'merchants'],
             default => ['products', 'all-products'],
         };
     }
@@ -233,11 +334,10 @@ class AdminDashboardData
      */
     private static function menuTree(array $activeSlugs): array
     {
+        $catalogMenu = self::defaultMenuTree($activeSlugs);
+
         if (!Schema::hasTable('admin_menus')) {
-            return self::normalizeMenuTree(collect(AdminMenuCatalog::items())
-                ->map(fn (array $menu): array => self::menuDefinitionItem($menu, $activeSlugs))
-                ->values()
-                ->all(), $activeSlugs);
+            return self::normalizeMenuTree($catalogMenu, $activeSlugs);
         }
 
         $menus = AdminMenu::query()
@@ -247,16 +347,18 @@ class AdminDashboardData
             ->get();
 
         if ($menus->isEmpty()) {
-            return self::normalizeMenuTree(collect(AdminMenuCatalog::items())
-                ->map(fn (array $menu): array => self::menuDefinitionItem($menu, $activeSlugs))
-                ->values()
-                ->all(), $activeSlugs);
+            return self::normalizeMenuTree($catalogMenu, $activeSlugs);
         }
 
-        return self::normalizeMenuTree($menus
+        $databaseMenu = $menus
             ->map(fn (AdminMenu $menu): array => self::menuItem($menu, $activeSlugs))
             ->values()
-            ->all(), $activeSlugs);
+            ->all();
+
+        return self::normalizeMenuTree(
+            self::mergeMenuDefinitions($databaseMenu, $catalogMenu, $activeSlugs),
+            $activeSlugs,
+        );
     }
 
     /**
@@ -365,7 +467,88 @@ class AdminDashboardData
             'path' => $menu->path,
             'is_enabled' => $menu->is_enabled,
             'is_active' => $isActive,
-                    'is_expanded' => $childIsActive,
+            'is_expanded' => $childIsActive,
+            'children' => $children,
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $activeSlugs
+     * @return array<int, array<string, mixed>>
+     */
+    private static function defaultMenuTree(array $activeSlugs): array
+    {
+        return collect(AdminMenuCatalog::items())
+            ->map(fn (array $menu): array => self::menuDefinitionItem($menu, $activeSlugs))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $databaseMenu
+     * @param  array<int, array<string, mixed>>  $catalogMenu
+     * @param  array<int, string>  $activeSlugs
+     * @return array<int, array<string, mixed>>
+     */
+    private static function mergeMenuDefinitions(array $databaseMenu, array $catalogMenu, array $activeSlugs): array
+    {
+        $databaseBySlug = collect($databaseMenu)->keyBy('slug');
+        $merged = [];
+
+        foreach ($catalogMenu as $catalogItem) {
+            $databaseItem = $databaseBySlug->pull($catalogItem['slug']);
+
+            $merged[] = is_array($databaseItem)
+                ? self::mergeMenuItemWithCatalog($databaseItem, $catalogItem, $activeSlugs)
+                : $catalogItem;
+        }
+
+        foreach ($databaseBySlug->values() as $databaseItem) {
+            $merged[] = $databaseItem;
+        }
+
+        return $merged;
+    }
+
+    /**
+     * @param  array<string, mixed>  $databaseItem
+     * @param  array<string, mixed>  $catalogItem
+     * @param  array<int, string>  $activeSlugs
+     * @return array<string, mixed>
+     */
+    private static function mergeMenuItemWithCatalog(array $databaseItem, array $catalogItem, array $activeSlugs): array
+    {
+        $databaseChildren = collect($databaseItem['children'] ?? [])->keyBy('slug');
+        $children = [];
+
+        foreach ($catalogItem['children'] ?? [] as $catalogChild) {
+            $databaseChild = $databaseChildren->pull($catalogChild['slug']);
+
+            $children[] = is_array($databaseChild)
+                ? self::mergeMenuItemWithCatalog($databaseChild, $catalogChild, $activeSlugs)
+                : self::menuDefinitionItem($catalogChild, $activeSlugs);
+        }
+
+        foreach ($databaseChildren->values() as $databaseChild) {
+            $children[] = $databaseChild;
+        }
+
+        if (($catalogItem['slug'] ?? null) === 'dashboard') {
+            $children = [];
+        }
+
+        $slug = (string) ($catalogItem['slug'] ?? $databaseItem['slug']);
+        $childIsActive = collect($children)->contains(fn (array $child): bool => $child['is_active']);
+
+        return [
+            ...$databaseItem,
+            'label' => $catalogItem['label'] ?? $databaseItem['label'],
+            'slug' => $slug,
+            'icon' => $catalogItem['icon'] ?? ($databaseItem['icon'] ?? null),
+            'path' => array_key_exists('path', $catalogItem) ? $catalogItem['path'] : ($databaseItem['path'] ?? null),
+            'is_enabled' => $catalogItem['is_enabled'] ?? ($databaseItem['is_enabled'] ?? false),
+            'is_active' => in_array($slug, $activeSlugs, true) || $childIsActive,
+            'is_expanded' => !empty($children) && ($childIsActive || ($databaseItem['is_expanded'] ?? false)),
             'children' => $children,
         ];
     }
@@ -450,6 +633,39 @@ class AdminDashboardData
             'status' => $slide->is_active ? 'active' : 'draft',
             'sort_order' => (string) $slide->sort_order,
             'updated_at' => $slide->updated_at?->format('M d, Y'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function account(User $user, string $screen): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'initials' => self::initials($user->name ?: $user->email),
+            'email' => $user->email,
+            'role' => $user->role,
+            'products_count' => (int) ($user->products_count ?? 0),
+            'pending_products_count' => (int) ($user->pending_products_count ?? 0),
+            'approved_products_count' => $screen === 'merchants'
+                ? (int) ($user->approved_products_count ?? 0)
+                : (int) ($user->approved_products_total ?? 0),
+            'joined_at' => $user->created_at?->format('M d, Y') ?? 'Unknown',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private static function sharedLinks(): array
+    {
+        return [
+            'frontend' => route('frontend.home'),
+            'admin_users' => route('admin.users.index'),
+            'admin_merchants' => route('admin.merchants.index'),
+            'logout' => route('auth.logout'),
         ];
     }
 

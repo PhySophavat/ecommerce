@@ -4,7 +4,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#6B7280]">Media</p>
                 <h3 class="mt-2 text-xl font-semibold text-[#111827]">Product images</h3>
-                <p class="mt-2 text-sm text-[#6B7280]">Upload one or more product images and preview them before saving.</p>
+                <!-- <p class="mt-2 text-sm text-[#6B7280]">Upload one or more product images and preview them before saving.</p> -->
             </div>
             <button
                 type="button"

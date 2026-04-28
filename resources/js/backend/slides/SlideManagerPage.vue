@@ -115,12 +115,32 @@ async function handleSlideDelete(slide) {
     await deleteSlide(slide);
 }
 
+async function submitLogout() {
+    try {
+        const logoutUrl = dashboard.value?.meta?.links?.logout ?? '/auth/logout';
+
+        await window.axios.post(logoutUrl);
+        window.location.assign('/login');
+    } catch (error) {
+        notice.value = {
+            type: 'error',
+            text: 'Unable to sign out right now.',
+        };
+    }
+}
+
 function handleSlideEdit(slide) {
     editSlide(slide);
     scrollToSlideForm(false);
 }
 
-function handleMenuSelection(item) {
+async function handleMenuSelection(item) {
+    if (item.slug === 'logout') {
+        await submitLogout();
+
+        return;
+    }
+
     if (!(item.is_enabled || item.slug === 'add-product') || !item.path) {
         return;
     }

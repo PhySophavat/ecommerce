@@ -1,6 +1,7 @@
 import './bootstrap';
 import { createApp } from 'vue';
 
+import UserManagementApp from './backend/UserManagementApp.vue';
 import ProductManagerPage from './backend/products/ProductManagerPage.vue';
 import SlideManagerPage from './backend/slides/SlideManagerPage.vue';
 import StorefrontApp from './frontend/StorefrontApp.vue';
@@ -8,15 +9,22 @@ import StorefrontApp from './frontend/StorefrontApp.vue';
 const appMap = {
     'backend-products': ProductManagerPage,
     'backend-slides': SlideManagerPage,
+    'backend-users': UserManagementApp,
     frontend: StorefrontApp,
 };
 
-const rootComponent = appMap[window.__APP_CONTEXT__?.app] ?? UserDirectoryApp;
+const appName = window.__APP_CONTEXT__?.app ?? 'frontend';
 const mountTarget = document.getElementById('app');
 
 try {
     if (!mountTarget) {
         throw new Error('Missing #app mount target.');
+    }
+
+    const rootComponent = appMap[appName];
+
+    if (!rootComponent) {
+        throw new Error(`Unknown app context: ${appName}`);
     }
 
     createApp(rootComponent).mount(mountTarget);

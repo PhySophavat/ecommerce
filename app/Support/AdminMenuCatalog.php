@@ -104,10 +104,11 @@ class AdminMenuCatalog
                 'label' => 'Users / Admin Management',
                 'slug' => 'users-admin-management',
                 'icon' => 'users',
-                'path' => '/admin/products',
+                'path' => '/admin/users',
                 'is_enabled' => true,
                 'children' => [
-                    ['label' => 'Admin users', 'slug' => 'admin-users', 'path' => '/admin/products', 'is_enabled' => true],
+                    ['label' => 'Admin users', 'slug' => 'admin-users', 'path' => '/admin/users', 'is_enabled' => true],
+                    ['label' => 'Merchants', 'slug' => 'merchants', 'path' => '/admin/merchants', 'is_enabled' => true],
                     ['label' => 'Roles and permissions', 'slug' => 'roles-and-permissions', 'path' => null, 'is_enabled' => false],
                 ],
             ],

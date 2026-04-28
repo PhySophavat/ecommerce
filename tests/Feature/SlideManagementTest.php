@@ -20,13 +20,14 @@ class SlideManagementTest extends TestCase
         $this->assertTrue(Route::has('admin.sliders.index'));
         $this->assertSame(url('/admin/sliders'), route('admin.sliders.index'));
 
-        $this->get('/admin/sliders')->assertOk();
+        $this->get('/admin/sliders')->assertRedirect('/login');
     }
 
     public function test_admin_can_create_a_slide_with_image(): void
     {
         Storage::fake('public');
         $this->seed(StoreDemoSeeder::class);
+        $this->signInAsAdmin();
 
         $category = Category::query()->where('slug', 'beauty')->firstOrFail();
 
@@ -64,6 +65,7 @@ class SlideManagementTest extends TestCase
     public function test_slide_dashboard_returns_next_sort_order_and_promoted_slides_menu_item(): void
     {
         $this->seed();
+        $this->signInAsAdmin();
 
         $this->getJson('/api/admin/slides/dashboard')
             ->assertOk()
@@ -79,6 +81,7 @@ class SlideManagementTest extends TestCase
     {
         Storage::fake('public');
         $this->seed(StoreDemoSeeder::class);
+        $this->signInAsAdmin();
 
         $category = Category::query()->where('slug', 'beauty')->firstOrFail();
         $slide = Slide::query()->create([

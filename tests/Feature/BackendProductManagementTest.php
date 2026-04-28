@@ -25,8 +25,10 @@ class BackendProductManagementTest extends TestCase
         $this->assertTrue(Route::has('admin.products.index'));
         $this->assertTrue(Route::has('admin.products.create'));
         $this->assertTrue(Route::has('admin.products.featured'));
+        $this->assertTrue(Route::has('admin.users.index'));
         $this->assertTrue(Route::has('admin.users.create'));
         $this->assertTrue(Route::has('admin.users.store'));
+        $this->assertTrue(Route::has('admin.merchants.index'));
         $this->assertTrue(Route::has('api.admin.products.index'));
         $this->assertTrue(Route::has('api.admin.products.store'));
         $this->assertSame(url('/frontend'), route('frontend.home'));
@@ -34,22 +36,69 @@ class BackendProductManagementTest extends TestCase
         $this->assertSame(url('/admin/products'), route('admin.products.index'));
         $this->assertSame(url('/admin/products/create'), route('admin.products.create'));
         $this->assertSame(url('/admin/products/featured'), route('admin.products.featured'));
+        $this->assertSame(url('/admin/users'), route('admin.users.index'));
         $this->assertSame(url('/admin/users/create'), route('admin.users.create'));
+        $this->assertSame(url('/admin/merchants'), route('admin.merchants.index'));
     }
 
     public function test_legacy_backend_routes_redirect_to_product_dashboard(): void
     {
         $this->get('/backend')->assertRedirect('/admin/products');
         $this->get('/backend/products')->assertRedirect('/admin/products');
-        $this->get('/admin/users/create')->assertRedirect('/admin/products');
-        $this->get('/admin/dashboard')->assertOk();
-        $this->get('/admin/products/create')->assertOk();
+        $this->get('/admin/users')->assertRedirect('/login');
+        $this->get('/admin/users/create')->assertRedirect('/login');
+        $this->get('/admin/merchants')->assertRedirect('/login');
+        $this->get('/admin/dashboard')->assertRedirect('/login');
+        $this->get('/admin/products/create')->assertRedirect('/login');
         $this->assertSame(url('/admin/products'), route('admin.products.index'));
+    }
+
+    public function test_admin_users_directory_returns_accounts_payload(): void
+    {
+        $this->signInAsAdmin();
+        User::factory()->create([
+            'name' => 'Taylor Admin',
+            'email' => 'taylor@example.com',
+            'role' => 'admin',
+        ]);
+
+        $response = $this->getJson('/admin/users');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('screen', 'users')
+            ->assertJsonPath('meta.page_title', 'Admin Users')
+            ->assertJsonPath('accounts.role', 'admin')
+            ->assertJsonPath('accounts.count', 2)
+            ->assertJsonPath('menu.8.children.0.slug', 'admin-users')
+            ->assertJsonPath('menu.8.children.1.slug', 'merchants');
+    }
+
+    public function test_admin_merchants_directory_returns_accounts_payload(): void
+    {
+        $this->signInAsAdmin();
+        User::factory()->create([
+            'name' => 'Northstar Seller',
+            'email' => 'seller@example.com',
+            'role' => 'merchant',
+        ]);
+
+        $response = $this->getJson('/admin/merchants');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('screen', 'merchants')
+            ->assertJsonPath('meta.page_title', 'Merchants')
+            ->assertJsonPath('accounts.role', 'merchant')
+            ->assertJsonPath('accounts.count', 1)
+            ->assertJsonPath('menu.8.children.1.is_active', true)
+            ->assertJsonPath('accounts.items.0.email', 'seller@example.com');
     }
 
     public function test_admin_product_dashboard_api_returns_menu_and_products(): void
     {
         $this->seed();
+        $this->signInAsAdmin();
 
         $response = $this->getJson('/api/admin/products');
 
@@ -73,6 +122,7 @@ class BackendProductManagementTest extends TestCase
     public function test_admin_product_dashboard_api_can_return_dashboard_view_payload(): void
     {
         $this->seed();
+        $this->signInAsAdmin();
 
         $response = $this->getJson('/api/admin/products?screen=dashboard');
 
@@ -89,6 +139,7 @@ class BackendProductManagementTest extends TestCase
     public function test_admin_product_dashboard_api_can_return_add_product_view_payload(): void
     {
         $this->seed();
+        $this->signInAsAdmin();
 
         $response = $this->getJson('/api/admin/products?screen=add-product');
 
@@ -104,6 +155,7 @@ class BackendProductManagementTest extends TestCase
     public function test_admin_product_dashboard_api_can_return_featured_products_view_payload(): void
     {
         $this->seed();
+        $this->signInAsAdmin();
 
         $response = $this->getJson('/api/admin/products?screen=featured-products');
 
@@ -117,6 +169,8 @@ class BackendProductManagementTest extends TestCase
 
     public function test_admin_product_dashboard_api_falls_back_to_default_menu_when_no_menu_rows_exist(): void
     {
+        $this->signInAsAdmin();
+
         $response = $this->getJson('/api/admin/products');
 
         $response
@@ -130,6 +184,7 @@ class BackendProductManagementTest extends TestCase
     public function test_admin_product_dashboard_api_falls_back_to_default_menu_when_menu_table_is_missing(): void
     {
         Schema::dropIfExists('admin_menus');
+        $this->signInAsAdmin();
 
         $response = $this->getJson('/api/admin/products');
 
@@ -145,6 +200,7 @@ class BackendProductManagementTest extends TestCase
     {
         Storage::fake('public');
         $this->seed(StoreDemoSeeder::class);
+        $this->signInAsAdmin();
 
         $category = Category::query()->firstOrFail();
 
@@ -223,6 +279,7 @@ class BackendProductManagementTest extends TestCase
     {
         Storage::fake('public');
         $this->seed(StoreDemoSeeder::class);
+        $this->signInAsAdmin();
 
         $category = Category::query()->where('slug', 'fashion')->firstOrFail();
 
@@ -262,6 +319,8 @@ class BackendProductManagementTest extends TestCase
 
     public function test_backend_vue_request_creates_a_user(): void
     {
+        $this->signInAsAdmin();
+
         $response = $this->postJson('/admin/users', [
             'name' => 'Jamie Carter',
             'email' => 'jamie@example.com',
@@ -282,5 +341,27 @@ class BackendProductManagementTest extends TestCase
         $user = User::query()->where('email', 'jamie@example.com')->firstOrFail();
 
         $this->assertNotSame('password123', $user->password);
+    }
+
+    public function test_backend_vue_request_can_create_a_merchant_account(): void
+    {
+        $this->signInAsAdmin();
+
+        $response = $this->postJson('/admin/users', [
+            'name' => 'Merchant One',
+            'email' => 'merchant@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'role' => 'merchant',
+        ]);
+
+        $response
+            ->assertCreated()
+            ->assertJsonPath('user.role', 'merchant');
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'merchant@example.com',
+            'role' => 'merchant',
+        ]);
     }
 }

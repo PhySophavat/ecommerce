@@ -3,8 +3,8 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#6B7280]">Variants</p>
-                <h3 class="mt-2 text-xl font-semibold text-[#111827]">Category options</h3>
-                <p class="mt-2 text-sm text-[#6B7280]">Choose the variant details that match the selected category.</p>
+                <!-- <h3 class="mt-2 text-xl font-semibold text-[#111827]">Category options</h3> -->
+                <!-- <p class="mt-2 text-sm text-[#6B7280]">Choose the variant details that match the selected category.</p> -->
             </div>
             <span
                 v-if="selectedCategoryName"

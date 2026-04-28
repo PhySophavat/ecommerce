@@ -154,6 +154,20 @@ async function handleProductDelete(product) {
     await deleteProduct(product);
 }
 
+async function submitLogout() {
+    try {
+        const logoutUrl = dashboard.value?.meta?.links?.logout ?? '/auth/logout';
+
+        await window.axios.post(logoutUrl);
+        window.location.assign('/login');
+    } catch (error) {
+        notice.value = {
+            type: 'error',
+            text: 'Unable to sign out right now.',
+        };
+    }
+}
+
 async function handleProductSubmit() {
     const created = await submitProduct();
 
@@ -166,7 +180,13 @@ async function handleProductSubmit() {
     scrollToAddProduct(false);
 }
 
-function handleMenuSelection(item) {
+async function handleMenuSelection(item) {
+    if (item.slug === 'logout') {
+        await submitLogout();
+
+        return;
+    }
+
     if (item.slug === 'add-product') {
         scrollToAddProduct();
 

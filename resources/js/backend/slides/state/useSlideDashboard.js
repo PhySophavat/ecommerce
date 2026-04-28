@@ -368,6 +368,7 @@ function initialDashboard() {
             links: {
                 frontend: '/frontend',
                 admin_users: '/admin/products',
+                logout: '/auth/logout',
             },
         },
         form: {
