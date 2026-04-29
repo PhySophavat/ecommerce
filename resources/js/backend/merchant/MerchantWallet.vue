@@ -54,9 +54,9 @@
                 <section class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                     <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#A25F88]">Quick actions</p>
                     <div class="mt-6 grid gap-3">
-                        <a href="/merchant/deposits" class="rounded-2xl bg-[#A25F88] px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90">
+                        <button type="button" class="rounded-2xl bg-[#A25F88] px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90" @click="scrollToDeposit">
                             Create deposit request
-                        </a>
+                        </button>
                         <a href="/merchant/withdrawals" class="rounded-2xl bg-slate-950 px-5 py-4 text-sm font-semibold text-white transition hover:bg-slate-800">
                             Request withdrawal
                         </a>
@@ -75,16 +75,37 @@
                 </section>
             </div>
         </section>
+
+        <section id="wallet-deposit" ref="depositSection">
+            <MerchantDeposit
+                :merchant="merchant"
+                :providers="providers"
+                :deposits="deposits"
+                :is-submitting="isSubmitting"
+                @submit="$emit('submit-deposit', $event)"
+                @copied="$emit('copied-khqr')"
+                @downloaded="$emit('downloaded-khqr')"
+            />
+        </section>
     </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import MerchantDeposit from './MerchantDeposit.vue';
 
 const props = defineProps({
     wallet: { type: Object, required: true },
     recentTransactions: { type: Array, default: () => [] },
+    merchant: { type: Object, required: true },
+    providers: { type: Array, default: () => [] },
+    deposits: { type: Array, default: () => [] },
+    isSubmitting: { type: Boolean, default: false },
 });
+
+defineEmits(['submit-deposit', 'copied-khqr', 'downloaded-khqr']);
+
+const depositSection = ref(null);
 
 const cards = computed(() => [
     { label: 'Available', value: props.wallet.available_balance, tone: 'text-slate-950' },
@@ -102,5 +123,12 @@ function currency(value) {
 function formatDate(value) {
     if (!value) return '-';
     return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
+}
+
+function scrollToDeposit() {
+    depositSection.value?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+    });
 }
 </script>

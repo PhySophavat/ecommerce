@@ -14,7 +14,7 @@
 
         {{-- Heading --}}
         <h2 style="margin-top:1.25rem;font-size:22px;font-weight:600;color:#111827;letter-spacing:-0.3px;">OTP Verification</h2>
-        <p style="margin-top:4px;font-size:13.5px;color:#6B7280;">Enter the 6-digit code to continue.</p>
+        <p style="margin-top:4px;font-size:13.5px;color:#6B7280;">Enter the 6-digit code to continue. The current fixed admin OTP is <strong>123456</strong>.</p>
 
         {{-- OTP Form --}}
         <form method="POST" action="{{ route('auth.otp.verify') }}" style="margin-top:1.5rem;display:flex;flex-direction:column;gap:14px;">

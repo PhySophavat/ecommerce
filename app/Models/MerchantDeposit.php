@@ -12,6 +12,10 @@ class MerchantDeposit extends Model
 
     protected $fillable = [
         'merchant_id',
+        'bank_name',
+        'account_name',
+        'account_number',
+        'phone_number',
         'amount',
         'payment_method',
         'khqr_code',

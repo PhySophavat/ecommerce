@@ -47,7 +47,8 @@
                                         <tr>
                                             <th class="px-5 py-4">Merchant</th>
                                             <th class="px-4 py-4">Amount</th>
-                                            <th class="px-4 py-4">Method</th>
+                                            <th class="px-4 py-4">Bank</th>
+                                            <th class="px-4 py-4">Sender</th>
                                             <th class="px-4 py-4">Proof</th>
                                             <th class="px-4 py-4">Status</th>
                                             <th class="px-5 py-4 text-right">Actions</th>
@@ -60,7 +61,14 @@
                                                 <p class="text-slate-500">{{ item.merchant?.owner_name }} • {{ item.merchant?.email }}</p>
                                             </td>
                                             <td class="px-4 py-4 font-bold text-slate-950">{{ currency(item.amount) }}</td>
-                                            <td class="px-4 py-4 capitalize text-slate-600">{{ item.payment_method.replace('_', ' ') }}</td>
+                                            <td class="px-4 py-4 text-slate-600">
+                                                <p class="font-semibold text-slate-900">{{ item.bank_name }}</p>
+                                                <p class="line-clamp-2 break-all text-xs">{{ item.khqr_code }}</p>
+                                            </td>
+                                            <td class="px-4 py-4 text-slate-600">
+                                                <p>{{ item.account_name }}</p>
+                                                <p>{{ item.account_number }} â€¢ {{ item.phone_number }}</p>
+                                            </td>
                                             <td class="px-4 py-4 text-slate-600">
                                                 <a v-if="item.payment_proof_url" :href="item.payment_proof_url" target="_blank" class="font-semibold text-[#A25F88] hover:underline">View proof</a>
                                                 <span v-else>-</span>

@@ -18,14 +18,15 @@ class DepositController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $merchant = $this->merchant($request);
+        $merchant = $this->merchant($request)->load('user');
         $deposits = $merchant->deposits()->latest()->get();
 
         return response()->json([
-            'khqr' => [
-                'code' => (string) config('merchant_wallet.khqr_code'),
-                'image_url' => config('merchant_wallet.khqr_image_url'),
+            'merchant' => [
+                'shop_name' => $merchant->shop_name,
+                'owner_name' => $merchant->user?->name,
             ],
+            'providers' => $this->depositService->providers(),
             'deposits' => $deposits->map(fn (MerchantDeposit $deposit): array => $this->payload($deposit))->all(),
         ]);
     }
@@ -35,7 +36,10 @@ class DepositController extends Controller
         $merchant = $this->merchant($request);
         $validated = $request->validate([
             'amount' => ['required', 'numeric', 'gt:0'],
-            'payment_method' => ['required', Rule::in(['khqr', 'bank_transfer'])],
+            'bank_name' => ['required', Rule::in(array_column($this->depositService->providers(), 'bank_name'))],
+            'account_name' => ['required', 'string', 'max:255'],
+            'account_number' => ['required', 'string', 'max:255'],
+            'phone_number' => ['required', 'string', 'max:50'],
             'payment_proof' => ['required', 'image', 'max:4096'],
             'note' => ['nullable', 'string'],
         ]);
@@ -43,7 +47,10 @@ class DepositController extends Controller
         $deposit = $this->depositService->create(
             $merchant,
             round((float) $validated['amount'], 2),
-            $validated['payment_method'],
+            $validated['bank_name'],
+            $validated['account_name'],
+            $validated['account_number'],
+            $validated['phone_number'],
             $request->file('payment_proof'),
             $validated['note'] ?? null,
         );
@@ -63,6 +70,10 @@ class DepositController extends Controller
     {
         return [
             'id' => $deposit->id,
+            'bank_name' => $deposit->bank_name,
+            'account_name' => $deposit->account_name,
+            'account_number' => $deposit->account_number,
+            'phone_number' => $deposit->phone_number,
             'amount' => number_format((float) $deposit->amount, 2, '.', ''),
             'payment_method' => $deposit->payment_method,
             'khqr_code' => $deposit->khqr_code,

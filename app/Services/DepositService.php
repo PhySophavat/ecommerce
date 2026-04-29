@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Merchant;
 use App\Models\MerchantDeposit;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
@@ -15,7 +16,16 @@ class DepositService
     {
     }
 
-    public function create(Merchant $merchant, float $amount, string $paymentMethod, ?UploadedFile $paymentProof = null, ?string $note = null): MerchantDeposit
+    public function create(
+        Merchant $merchant,
+        float $amount,
+        string $bankName,
+        string $accountName,
+        string $accountNumber,
+        string $phoneNumber,
+        ?UploadedFile $paymentProof = null,
+        ?string $note = null,
+    ): MerchantDeposit
     {
         if ($amount <= 0) {
             throw ValidationException::withMessages([
@@ -23,13 +33,18 @@ class DepositService
             ]);
         }
 
+        $provider = $this->provider($bankName);
         $proofPath = $paymentProof?->store('merchant/deposits', 'public');
 
         return MerchantDeposit::query()->create([
             'merchant_id' => $merchant->getKey(),
+            'bank_name' => $provider['bank_name'],
+            'account_name' => $accountName,
+            'account_number' => $accountNumber,
+            'phone_number' => $phoneNumber,
             'amount' => round($amount, 2),
-            'payment_method' => $paymentMethod,
-            'khqr_code' => $paymentMethod === 'khqr' ? config('merchant_wallet.khqr_code') : null,
+            'payment_method' => 'khqr',
+            'khqr_code' => $this->buildKhqrCode($merchant, $provider, round($amount, 2)),
             'payment_proof' => $proofPath,
             'status' => 'pending',
             'note' => $this->nullableString($note),
@@ -69,7 +84,7 @@ class DepositService
                 'credit',
                 MerchantDeposit::class,
                 $deposit->getKey(),
-                sprintf('Deposit approved via %s.', strtoupper($deposit->payment_method)),
+                sprintf('Deposit approved via %s.', strtoupper((string) ($deposit->bank_name ?: $deposit->payment_method))),
             );
 
             return $deposit->fresh(['merchant.user']);
@@ -129,5 +144,46 @@ class DepositService
         }
 
         return trim($existing).PHP_EOL.PHP_EOL.$incoming;
+    }
+
+    /**
+     * @return array{bank_name:string,merchant_name:string,account_name:string,account_number:string,phone_number:string,khqr_prefix:string}
+     */
+    public function provider(string $bankName): array
+    {
+        $providers = config('merchant_wallet.providers', []);
+
+        if (! array_key_exists($bankName, $providers)) {
+            throw ValidationException::withMessages([
+                'bank_name' => 'The selected bank is invalid.',
+            ]);
+        }
+
+        return $providers[$bankName];
+    }
+
+    /**
+     * @return array<int, array{bank_name:string,merchant_name:string,account_name:string,account_number:string,phone_number:string,khqr_prefix:string}>
+     */
+    public function providers(): array
+    {
+        return array_values(config('merchant_wallet.providers', []));
+    }
+
+    /**
+     * @param  array{bank_name:string,merchant_name:string,account_name:string,account_number:string,phone_number:string,khqr_prefix:string}  $provider
+     */
+    public function buildKhqrCode(Merchant $merchant, array $provider, float $amount): string
+    {
+        $merchantName = $merchant->shop_name ?: $merchant->user?->name ?: 'Merchant';
+
+        return implode('|', [
+            Arr::get($provider, 'khqr_prefix', 'KHQR'),
+            'BANK:'.Arr::get($provider, 'bank_name', 'KHQR'),
+            'MERCHANT:'.$merchantName,
+            'ACCOUNT:'.Arr::get($provider, 'account_number', ''),
+            'AMOUNT:'.number_format($amount, 2, '.', ''),
+            'COUNTRY:KH',
+        ]);
     }
 }

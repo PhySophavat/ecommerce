@@ -1,5 +1,5 @@
 <template>
-    <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
+    <div class="admin-root min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
         <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
             <AdminSidebar
                 :dashboard="dashboard"
@@ -13,6 +13,7 @@
             <div class="flex min-w-0 flex-1 flex-col">
                 <AdminHeader
                     :dashboard="dashboard"
+                    :is-menu-open="isMenuOpen"
                     :screen="screen"
                     @primary-action="scrollToSlideForm"
                     @refresh="loadDashboard"
@@ -21,18 +22,29 @@
                 />
 
                 <main class="flex-1 p-4 sm:p-6 lg:p-7">
-                    <section
-                        v-if="notice"
-                        class="admin-frosted mb-6 rounded-[26px] px-5 py-4 text-sm"
-                        :class="notice.type === 'error' ? 'border-rose-200 text-rose-700' : 'border-emerald-200 text-emerald-700'"
-                    >
-                        {{ notice.text }}
-                    </section>
 
-                    <div v-if="isLoading" class="admin-card rounded-[30px] px-6 py-14 text-center text-sm text-slate-500">
-                        Loading slider manager...
+                    <!-- Notice banner -->
+                    <transition name="fade">
+                        <section
+                            v-if="notice"
+                            class="notice mb-6 rounded-2xl px-5 py-3.5 text-sm font-medium flex items-center gap-2"
+                            :class="notice.type === 'error' ? 'notice--error' : 'notice--success'"
+                        >
+                            <span class="notice-dot"></span>
+                            {{ notice.text }}
+                        </section>
+                    </transition>
+
+                    <!-- Loading -->
+                    <div
+                        v-if="isLoading"
+                        class="loading-card rounded-[30px] px-6 py-16 text-center text-sm text-slate-400"
+                    >
+                        <div class="loading-spinner mx-auto mb-3"></div>
+                        Loading slider manager…
                     </div>
 
+                    <!-- Content -->
                     <section v-else class="w-full">
                         <SlidesManager
                             :dashboard="dashboard"
@@ -49,6 +61,7 @@
                             @submit="handleSlideSubmit"
                         />
                     </section>
+
                 </main>
             </div>
         </div>
@@ -102,15 +115,10 @@ async function handleSlideSubmit() {
 }
 
 async function handleSlideDelete(slide) {
-    if (!slide?.id) {
-        return;
-    }
+    if (!slide?.id) return;
 
-    const confirmed = window.confirm(`Delete ${slide.title}? This action cannot be undone.`);
-
-    if (!confirmed) {
-        return;
-    }
+    const confirmed = window.confirm(`Delete "${slide.title}"? This cannot be undone.`);
+    if (!confirmed) return;
 
     await deleteSlide(slide);
 }
@@ -118,14 +126,10 @@ async function handleSlideDelete(slide) {
 async function submitLogout() {
     try {
         const logoutUrl = dashboard.value?.meta?.links?.logout ?? '/auth/logout';
-
         await window.axios.post(logoutUrl);
         window.location.assign('/login');
-    } catch (error) {
-        notice.value = {
-            type: 'error',
-            text: 'Unable to sign out right now.',
-        };
+    } catch {
+        notice.value = { type: 'error', text: 'Unable to sign out right now.' };
     }
 }
 
@@ -137,19 +141,15 @@ function handleSlideEdit(slide) {
 async function handleMenuSelection(item) {
     if (item.slug === 'logout') {
         await submitLogout();
-
         return;
     }
 
-    if (!(item.is_enabled || item.slug === 'add-product') || !item.path) {
-        return;
-    }
+    if (!(item.is_enabled || item.slug === 'add-product') || !item.path) return;
 
     const url = new URL(item.path, window.location.origin);
 
     if (url.pathname === window.location.pathname && url.hash) {
         scrollToSection(url.hash);
-
         return;
     }
 
@@ -162,24 +162,86 @@ function scrollToSlideForm(shouldFocus = true) {
 
 function scrollToSection(target, shouldFocus = false) {
     const element = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!element) return;
 
-    if (!element) {
-        return;
-    }
-
-    element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-    });
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     if (element.id) {
-        window.history.replaceState({}, '', `${window.location.pathname}${window.location.search}#${element.id}`);
+        window.history.replaceState(
+            {},
+            '',
+            `${window.location.pathname}${window.location.search}#${element.id}`
+        );
     }
 
     if (shouldFocus) {
-        queueMicrotask(() => {
-            document.getElementById('slide-title')?.focus();
-        });
+        queueMicrotask(() => document.getElementById('slide-title')?.focus());
     }
 }
 </script>
+
+<style scoped>
+/* Page background */
+.admin-root {
+    background: #faf7f9;
+}
+
+/* Outer panel */
+.admin-panel {
+    background: #ffffff;
+    box-shadow: 0 8px 40px 0 rgba(162, 95, 136, 0.08);
+}
+
+/* Notice */
+.notice {
+    border: 1px solid transparent;
+}
+.notice--success {
+    background: #f0faf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+.notice--error {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+}
+.notice-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    flex-shrink: 0;
+}
+.notice--success .notice-dot { background: #22c55e; }
+.notice--error   .notice-dot { background: #f43f5e; }
+
+/* Loading card */
+.loading-card {
+    background: #ffffff;
+    border: 1px solid #f0e6ed;
+    box-shadow: 0 1px 4px 0 rgba(162, 95, 136, 0.06);
+}
+
+/* Spinner */
+.loading-spinner {
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid #f0e6ed;
+    border-top-color: #A25F88;
+    border-radius: 9999px;
+    animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Fade transition for notice */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.25s, transform 0.25s;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+    transform: translateY(-6px);
+}
+</style>

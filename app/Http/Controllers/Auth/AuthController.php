@@ -21,10 +21,6 @@ class AuthController extends Controller
      */
     public function showLoginForm(Request $request): View|RedirectResponse
     {
-        if (Auth::check()) {
-            return $this->redirectToDashboard($request);
-        }
-
         return view('auth.login', $this->authViewData('Auth | Login'));
     }
 
@@ -33,6 +29,12 @@ class AuthController extends Controller
      */
     public function login(Request $request): RedirectResponse
     {
+        if (Auth::check()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         $credentials = $request->validate([
             'login' => 'required|string',
             'password' => 'required',

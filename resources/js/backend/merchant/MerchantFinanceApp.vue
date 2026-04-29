@@ -60,15 +60,24 @@
                         v-else-if="screen === 'wallet'"
                         :wallet="wallet"
                         :recent-transactions="recentTransactions"
+                        :merchant="merchantProfile"
+                        :providers="depositProviders"
+                        :deposits="deposits"
+                        :is-submitting="isSubmitting"
+                        @submit-deposit="submitDeposit"
+                        @copied-khqr="showSuccess('KHQR code copied to clipboard.')"
+                        @downloaded-khqr="showSuccess('KHQR image downloaded.')"
                     />
 
                     <MerchantDeposit
                         v-else-if="screen === 'deposit'"
-                        :khqr="khqr"
+                        :merchant="merchantProfile"
+                        :providers="depositProviders"
                         :deposits="deposits"
                         :is-submitting="isSubmitting"
                         @submit="submitDeposit"
                         @copied="showSuccess('KHQR code copied to clipboard.')"
+                        @downloaded="showSuccess('KHQR image downloaded.')"
                     />
 
                     <MerchantBankAccounts
@@ -128,7 +137,8 @@ const notice = ref(null);
 const accounts = ref([]);
 const bankOptions = ref([]);
 const deposits = ref([]);
-const khqr = ref({ code: '', image_url: null });
+const depositProviders = ref([]);
+const merchantProfile = ref({ shop_name: '', owner_name: '' });
 const recentTransactions = ref([]);
 const transactions = ref([]);
 const transactionFilters = ref([]);
@@ -182,7 +192,8 @@ async function loadAccounts() {
 
 async function loadDeposits() {
     const response = await window.axios.get('/api/merchant/deposits');
-    khqr.value = response.data.khqr ?? khqr.value;
+    merchantProfile.value = response.data.merchant ?? merchantProfile.value;
+    depositProviders.value = response.data.providers ?? depositProviders.value;
     deposits.value = response.data.deposits ?? [];
 }
 

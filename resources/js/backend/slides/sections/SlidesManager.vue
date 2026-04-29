@@ -93,27 +93,21 @@
                 </div>
 
                 <div class="space-y-4">
-                    <div class="admin-muted-panel rounded-[24px] p-4">
-                        <div class="flex items-center justify-between gap-4">
-                            <div>
-                                <p class="chatgpt-label text-sm text-slate-700">Status</p>
-                                <p class="mt-1 text-sm text-slate-500">{{ statusLabel }}</p>
-                            </div>
-                            <button
-                                type="button"
-                                role="switch"
-                                :aria-checked="String(form.is_active)"
-                                class="relative inline-flex h-8 w-14 items-center rounded-full border transition"
-                                :class="form.is_active ? 'border-emerald-300 bg-emerald-500/20' : 'border-slate-300 bg-white'"
-                                @click="form.is_active = !form.is_active"
-                            >
-                                <span class="sr-only">Toggle slide status</span>
-                                <span
-                                    class="inline-block h-6 w-6 rounded-full bg-white shadow-sm transition"
-                                    :class="form.is_active ? 'translate-x-7' : 'translate-x-1'"
-                                ></span>
-                            </button>
-                        </div>
+                    <div class="flex justify-end">
+                        <button
+                            type="button"
+                            role="switch"
+                            :aria-checked="String(form.is_active)"
+                            class="relative inline-flex h-8 w-14 items-center rounded-full border transition"
+                            :class="form.is_active ? 'border-emerald-300 bg-emerald-500/20' : 'border-slate-300 bg-white'"
+                            @click="form.is_active = !form.is_active"
+                        >
+                            <span class="sr-only">Toggle slide status</span>
+                            <span
+                                class="inline-block h-6 w-6 rounded-full bg-white shadow-sm transition"
+                                :class="form.is_active ? 'translate-x-7' : 'translate-x-1'"
+                            ></span>
+                        </button>
                     </div>
 
                     <div>
@@ -327,7 +321,6 @@ const submitLabel = computed(() => {
 
     return props.mode === 'edit' ? 'Save changes' : 'Save slide';
 });
-const statusLabel = computed(() => (props.form.is_active ? 'Active on frontend' : 'Saved as draft'));
 const hasImage = computed(() => Boolean(props.form.image_preview_url || props.form.existing_image_url));
 const imageNameLabel = computed(() => (
     props.form.image?.name

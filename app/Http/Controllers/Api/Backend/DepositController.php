@@ -82,6 +82,10 @@ class DepositController extends Controller
 
         return [
             'id' => $deposit->id,
+            'bank_name' => $deposit->bank_name,
+            'account_name' => $deposit->account_name,
+            'account_number' => $deposit->account_number,
+            'phone_number' => $deposit->phone_number,
             'amount' => number_format((float) $deposit->amount, 2, '.', ''),
             'payment_method' => $deposit->payment_method,
             'khqr_code' => $deposit->khqr_code,

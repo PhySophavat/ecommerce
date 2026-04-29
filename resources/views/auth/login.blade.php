@@ -16,27 +16,28 @@
 
         {{-- Heading --}}
         <h2 style="margin-top:1.25rem;font-size:22px;font-weight:600;color:#111827;letter-spacing:-0.3px;">Sign in</h2>
-        <p style="margin-top:4px;font-size:13.5px;color:#6B7280;">Admin dashboard</p>
+        <p style="margin-top:4px;font-size:13.5px;color:#6B7280;">Sign in to continue</p>
 
         {{-- Form --}}
-        <form method="POST" action="{{ route('admin.login.submit') }}" style="margin-top:1.5rem;display:flex;flex-direction:column;gap:14px;">
+        <form method="POST" action="{{ route('auth.login.submit') }}" style="margin-top:1.5rem;display:flex;flex-direction:column;gap:14px;">
             @csrf
 
             {{-- Username --}}
             <div>
-                <label for="login" style="display:block;font-size:13px;font-weight:500;color:#111827;margin-bottom:6px;">Username</label>
+                <label for="login" style="display:block;font-size:13px;font-weight:500;color:#111827;margin-bottom:6px;">Email or username</label>
                 <input
                     id="login"
                     name="login"
                     type="text"
                     value="{{ old('login') }}"
                     autocomplete="username"
-                    placeholder="admin"
+                    placeholder="admin or admin@example.com"
                     required
                     style="width:100%;background:#F8FAFC;border:1px solid #E5E7EB;border-radius:10px;padding:10px 14px;font-size:14px;color:#111827;outline:none;font-family:inherit;transition:border-color 0.15s,box-shadow 0.15s;"
                     onfocus="this.style.borderColor='#A25F88';this.style.boxShadow='0 0 0 3px rgba(162,95,136,0.12)';this.style.background='#fff';"
                     onblur="this.style.borderColor='#E5E7EB';this.style.boxShadow='none';this.style.background='#F8FAFC';"
                 >
+                <p style="margin-top:6px;font-size:12px;color:#6B7280;">Admin accounts continue to OTP verification after password sign-in.</p>
                 @error('login')
                     <p style="margin-top:6px;font-size:12px;color:#EF4444;">{{ $message }}</p>
                 @enderror
@@ -70,7 +71,7 @@
                 onmousedown="this.style.transform='scale(0.99)';"
                 onmouseup="this.style.transform='translateY(-1px)';"
             >
-                Continue to OTP
+                Continue
             </button>
         </form>
 

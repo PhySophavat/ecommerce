@@ -156,7 +156,10 @@ class MerchantWithdrawalSystemTest extends TestCase
 
         $depositId = $this->post('/api/merchant/deposits', [
             'amount' => 75,
-            'payment_method' => 'khqr',
+            'bank_name' => 'ABA',
+            'account_name' => 'Merchant User',
+            'account_number' => '123456789',
+            'phone_number' => '0881234567',
             'payment_proof' => UploadedFile::fake()->image('proof.png'),
             'note' => 'Top up',
         ], [
@@ -177,6 +180,33 @@ class MerchantWithdrawalSystemTest extends TestCase
         $this->assertSame('125.00', $merchant->available_balance);
         $this->assertSame('75.00', $merchant->total_deposited);
         $this->assertSame('approved', MerchantDeposit::query()->findOrFail($depositId)->status);
+    }
+
+    public function test_merchant_deposit_requires_bank_sender_fields_and_returns_provider_metadata(): void
+    {
+        Storage::fake('public');
+
+        [$merchantUser] = $this->approvedMerchant();
+
+        $this->actingAs($merchantUser);
+
+        $this->getJson('/api/merchant/deposits')
+            ->assertOk()
+            ->assertJsonPath('merchant.shop_name', 'Payout Shop')
+            ->assertJsonPath('providers.0.bank_name', 'ABA');
+
+        $this->post('/api/merchant/deposits', [
+            'amount' => 20,
+            'bank_name' => 'ABA',
+        ], [
+            'Accept' => 'application/json',
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors([
+                'account_name',
+                'account_number',
+                'phone_number',
+                'payment_proof',
+            ]);
     }
 
     /**
