@@ -1,10 +1,19 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Backend\Product\ProductController;
 use App\Http\Controllers\Backend\Product\ProductApprovalController;
 use App\Http\Controllers\Backend\Slide\SlideController;
 use App\Http\Controllers\Backend\User\UserController;
+use App\Http\Controllers\Backend\Merchant\MerchantController;
 use Illuminate\Support\Facades\Route;
+
+// Public admin login page (before authentication)
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::get('/', function () {
+    return redirect()->route('admin.login');
+})->name('home');
 
 // Admin routes - requires admin role
 Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
@@ -33,5 +42,11 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 
     // Merchants management
-    Route::get('/merchants', [UserController::class, 'merchants'])->name('merchants.index');
+    Route::get('/merchants', [MerchantController::class, 'index'])->name('merchants.index');
+    Route::get('/merchants/pending', [MerchantController::class, 'pending'])->name('merchants.pending');
+    Route::get('/merchants/{merchant}', [MerchantController::class, 'show'])->name('merchants.show');
+    Route::post('/merchants/{merchant}/approve', [MerchantController::class, 'approve'])->name('merchants.approve');
+    Route::post('/merchants/{merchant}/reject', [MerchantController::class, 'reject'])->name('merchants.reject');
+    Route::post('/merchants/{merchant}/suspend', [MerchantController::class, 'suspend'])->name('merchants.suspend');
+    Route::post('/merchants/{merchant}/reactivate', [MerchantController::class, 'reactivate'])->name('merchants.reactivate');
 });

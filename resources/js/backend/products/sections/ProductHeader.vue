@@ -105,6 +105,8 @@ const heroEyebrow = computed(() => ({
     'add-product': '',
     users: 'Access control',
     merchants: 'Seller management',
+    'pending-merchants': 'Approval queue',
+    'merchant-details': 'Merchant review',
 }[props.screen] ?? 'Admin workspace'));
 const heroTitle = computed(() => ({
     dashboard: `Welcome back, ${props.dashboard.meta.brand}.`,
@@ -113,6 +115,8 @@ const heroTitle = computed(() => ({
     'featured-products': 'Curate products that lead the storefront.',
     users: 'Manage backend access for admin users.',
     merchants: 'Review and create merchant accounts.',
+    'pending-merchants': 'Review pending merchant applications.',
+    'merchant-details': 'Inspect merchant details before approval.',
 }[props.screen] ?? props.dashboard.meta.page_title));
 const heroSubtitle = computed(() => props.dashboard.meta.subheadline || ({
     dashboard: 'Track the latest product changes, featured placements, and inventory signals from one admin surface.',
@@ -121,6 +125,8 @@ const heroSubtitle = computed(() => props.dashboard.meta.subheadline || ({
     'featured-products': 'Focus on products with the strongest storefront visibility and update them without scanning the full catalog.',
     users: 'Keep administrator access tidy, create backend users, and review who is currently active in the dashboard.',
     merchants: 'Create seller accounts, check merchant product activity, and keep storefront operators organized.',
+    'pending-merchants': 'Approve or reject merchants who are waiting for access to the selling dashboard.',
+    'merchant-details': 'Review merchant business, owner, and location information before taking action.',
 }[props.screen] ?? ''));
 const primaryActionLabel = computed(() => ({
     dashboard: 'Open products',
@@ -130,6 +136,8 @@ const primaryActionLabel = computed(() => ({
     'add-product': 'All products',
     users: 'Create admin',
     merchants: 'Create merchant',
+    'pending-merchants': 'All merchants',
+    'merchant-details': 'Back to merchants',
 }[props.screen] ?? '+ Add product'));
 const showUtilityActions = computed(() => props.screen !== 'sliders');
 

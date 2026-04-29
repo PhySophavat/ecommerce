@@ -19,7 +19,7 @@
         <p style="margin-top:4px;font-size:13.5px;color:#6B7280;">Admin dashboard</p>
 
         {{-- Form --}}
-        <form method="POST" action="{{ route('auth.login.submit') }}" style="margin-top:1.5rem;display:flex;flex-direction:column;gap:14px;">
+        <form method="POST" action="{{ route('admin.login.submit') }}" style="margin-top:1.5rem;display:flex;flex-direction:column;gap:14px;">
             @csrf
 
             {{-- Username --}}
@@ -77,7 +77,7 @@
         {{-- Footer --}}
         <p style="margin-top:1.25rem;text-align:center;font-size:13px;color:#6B7280;">
             Don't have an account?
-            <a href="{{ route('auth.register') }}" style="color:#A25F88;font-weight:500;text-decoration:none;"
+            <a href="{{ route('register') }}" style="color:#A25F88;font-weight:500;text-decoration:none;"
                onmouseover="this.style.color='#8B4E73';"
                onmouseout="this.style.color='#A25F88';">
                 Register

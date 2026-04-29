@@ -3,8 +3,14 @@
 use App\Http\Controllers\Api\Backend\Product\ProductController;
 use App\Http\Controllers\Api\Backend\Slide\SlideController;
 use App\Http\Controllers\Api\Backend\Slide\SlideDashboardController;
+use App\Http\Controllers\Api\Backend\AuthController;
 use Illuminate\Support\Facades\Route;
 
+// Public API routes for authentication
+Route::post('/login', [AuthController::class, 'login'])->name('login');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Protected API routes
 Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');

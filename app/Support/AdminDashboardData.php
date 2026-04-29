@@ -128,7 +128,7 @@ class AdminDashboardData
         return [
             'screen' => $screen,
             'meta' => [
-                'brand' => 'E-commerce                php artisan db:seed --class=AdminMenuSeeder                php artisan db:seed --class=AdminMenuSeeder                php artisan migrate',
+                'brand' => 'Spodut',
                 'page_title' => $meta['page_title'],
                 'kicker' => $meta['kicker'],
                 'subheadline' => $meta['subheadline'],
@@ -397,7 +397,7 @@ class AdminDashboardData
                     ...$item,
                     'children' => $children,
                     'is_active' => in_array($item['slug'], $activeSlugs, true) || $childIsActive,
-                    'is_expanded' => !empty($children) && ($childIsActive || ($item['is_expanded'] ?? false)),
+                    'is_expanded' => !empty($children) && ($childIsActive || ($item['is_expanded'] ?? false) || self::shouldAlwaysExpandMenu($item['slug'] ?? null)),
                 ];
             })
             ->filter()
@@ -467,7 +467,7 @@ class AdminDashboardData
             'path' => $menu->path,
             'is_enabled' => $menu->is_enabled,
             'is_active' => $isActive,
-            'is_expanded' => $childIsActive,
+            'is_expanded' => $childIsActive || self::shouldAlwaysExpandMenu($menu->slug),
             'children' => $children,
         ];
     }
@@ -548,7 +548,7 @@ class AdminDashboardData
             'path' => array_key_exists('path', $catalogItem) ? $catalogItem['path'] : ($databaseItem['path'] ?? null),
             'is_enabled' => $catalogItem['is_enabled'] ?? ($databaseItem['is_enabled'] ?? false),
             'is_active' => in_array($slug, $activeSlugs, true) || $childIsActive,
-            'is_expanded' => !empty($children) && ($childIsActive || ($databaseItem['is_expanded'] ?? false)),
+            'is_expanded' => !empty($children) && ($childIsActive || ($databaseItem['is_expanded'] ?? false) || self::shouldAlwaysExpandMenu($slug)),
             'children' => $children,
         ];
     }
@@ -580,9 +580,14 @@ class AdminDashboardData
             'path' => $menu['path'],
             'is_enabled' => $menu['is_enabled'],
             'is_active' => $isActive,
-            'is_expanded' => $childIsActive,
+            'is_expanded' => $childIsActive || self::shouldAlwaysExpandMenu($menu['slug']),
             'children' => $children,
         ];
+    }
+
+    private static function shouldAlwaysExpandMenu(?string $slug): bool
+    {
+        return $slug === 'users-admin-management';
     }
 
     /**

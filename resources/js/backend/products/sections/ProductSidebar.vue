@@ -3,9 +3,11 @@
         <div class="px-5 pt-5">
             <div class="rounded-[30px] border border-[#e3e7ef] bg-white px-5 py-5 shadow-md">
                 <div class="flex items-center gap-3">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F8FAFC] text-base font-extrabold text-[#A25F88] shadow">
-                        {{ brandInitials }}
-                    </div>
+                    <img
+                        :src="logoUrl"
+                        alt="Store logo"
+                        class="h-12 w-12 rounded-2xl bg-[#F8FAFC] p-1 shadow"
+                    >
                     <div class="min-w-0">
                         <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#A0A4AE]">Admin</p>
                         <h1 class="truncate text-xl font-bold tracking-[-0.04em] text-[#222]">{{ dashboard.meta.brand }}</h1>
@@ -109,12 +111,7 @@ const props = defineProps({
     },
 });
 
-const brandInitials = computed(() => String(props.dashboard.meta.brand ?? 'AS')
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((segment) => segment[0]?.toUpperCase() ?? '')
-    .join('') || 'AS');
+const logoUrl = '/logo.jpg';
 const currentSectionLabel = computed(() => ({
     sliders: 'Slides manager',
     dashboard: 'Overview dashboard',

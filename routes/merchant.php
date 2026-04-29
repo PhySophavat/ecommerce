@@ -1,10 +1,24 @@
 <?php
 
 use App\Http\Controllers\Merchant\Product\ProductController as MerchantProductController;
+use App\Http\Controllers\Merchant\RegistrationController;
 use Illuminate\Support\Facades\Route;
 
-// Merchant routes - requires merchant role
+// Public merchant registration routes (before login)
+Route::get('/register', [RegistrationController::class, 'step1'])->name('register');
+Route::get('/register/step1', [RegistrationController::class, 'step1'])->name('register.step1');
+Route::post('/register/step1', [RegistrationController::class, 'storeStep1'])->name('register.step1.store');
+Route::get('/register/step2', [RegistrationController::class, 'step2'])->name('register.step2');
+Route::post('/register/step2', [RegistrationController::class, 'storeStep2'])->name('register.step2.store');
+Route::get('/register/step3', [RegistrationController::class, 'step3'])->name('register.step3');
+Route::post('/register/step3', [RegistrationController::class, 'storeStep3'])->name('register.step3.store');
+
 Route::middleware(['auth', 'role:merchant'])->group(function () {
+    Route::get('/status', [RegistrationController::class, 'status'])->name('status');
+});
+
+// Merchant routes - approved merchants only
+Route::middleware(['auth', 'role:merchant', 'merchant.approved'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [MerchantProductController::class, 'dashboard'])->name('dashboard');
 

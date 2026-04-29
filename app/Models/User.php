@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -22,6 +23,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
+        'profile_image',
         'password',
         'role',
     ];
@@ -87,5 +90,21 @@ class User extends Authenticatable
     public function approvedProducts(): HasMany
     {
         return $this->hasMany(Product::class, 'approved_by');
+    }
+
+    /**
+     * Get the merchant profile for this user
+     */
+    public function merchant(): HasOne
+    {
+        return $this->hasOne(Merchant::class);
+    }
+
+    /**
+     * Get the merchant location for this user
+     */
+    public function merchantLocation(): HasOne
+    {
+        return $this->hasOneThrough(MerchantLocation::class, Merchant::class);
     }
 }

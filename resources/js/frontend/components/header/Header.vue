@@ -3,7 +3,12 @@
         <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between">
                 <!-- Brand Logo -->
-                <a href="/frontend" class="flex items-center gap-2">
+                <a href="/frontend" class="flex items-center gap-3">
+                    <img
+                        :src="logoUrl"
+                        alt="Store logo"
+                        class="h-10 w-10 rounded-2xl bg-[#F8FAFC] p-1 shadow-sm"
+                    >
                     <span class="text-2xl font-bold text-[#111827]">{{ meta?.brand || 'Store' }}</span>
                 </a>
                 <!-- Category Navigation -->
@@ -51,6 +56,8 @@
 </template>
 
 <script setup>
+const logoUrl = '/logo.jpg';
+
 const props = defineProps({
     meta: Object,
     categories: Array,

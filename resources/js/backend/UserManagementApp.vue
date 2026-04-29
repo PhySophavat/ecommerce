@@ -169,70 +169,73 @@
                                     No {{ screen === 'merchants' ? 'merchant' : 'admin' }} accounts found yet.
                                 </div>
 
-                                <div v-else class="mt-6 space-y-4">
-                                    <article
-                                        v-for="account in accountRows"
-                                        :key="`account-${account.id}`"
-                                        class="rounded-[28px] border border-[#e3e9f7] bg-[#fbfcff] px-5 py-5"
-                                    >
-                                        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                                            <div class="flex min-w-0 items-start gap-4">
-                                                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#F3E8F1] text-sm font-extrabold text-[#A25F88]">
-                                                    {{ account.initials }}
-                                                </div>
-
-                                                <div class="min-w-0">
-                                                    <div class="flex flex-wrap items-center gap-2">
-                                                        <h4 class="truncate text-lg font-bold tracking-[-0.03em] text-slate-950">
-                                                            {{ account.name }}
-                                                        </h4>
-                                                        <span
-                                                            class="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
-                                                            :class="screen === 'merchants' ? 'bg-amber-100 text-amber-700' : 'bg-[#F3E8F1] text-[#A25F88]'"
-                                                        >
-                                                            {{ account.role }}
-                                                        </span>
-                                                        <span
-                                                            v-if="isCurrentUser(account)"
-                                                            class="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700"
-                                                        >
-                                                            You
-                                                        </span>
+                                <div v-else class="mt-6 overflow-x-auto rounded-[28px] border border-[#e3e9f7] bg-[#fbfcff]">
+                                    <table class="w-full min-w-[860px] text-sm">
+                                        <thead class="text-left text-[11px] uppercase tracking-[0.18em] text-slate-400">
+                                            <tr class="border-b border-[#e6ebf8]">
+                                                <th class="px-5 py-4">Account</th>
+                                                <th class="px-4 py-4">Role</th>
+                                                <th class="px-4 py-4">{{ screen === 'merchants' ? 'Products' : 'Approved' }}</th>
+                                                <th class="px-4 py-4">{{ screen === 'merchants' ? 'Pending' : 'Email' }}</th>
+                                                <th class="px-4 py-4">{{ screen === 'merchants' ? 'Approved' : 'Joined' }}</th>
+                                                <th class="px-5 py-4 text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr
+                                                v-for="account in accountRows"
+                                                :key="`account-${account.id}`"
+                                                class="border-b border-[#eef2fb] last:border-b-0"
+                                            >
+                                                <td class="px-5 py-4">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#F3E8F1] text-sm font-extrabold text-[#A25F88]">
+                                                            {{ account.initials }}
+                                                        </div>
+                                                        <div class="min-w-0">
+                                                            <div class="flex flex-wrap items-center gap-2">
+                                                                <p class="truncate font-bold text-slate-950">{{ account.name }}</p>
+                                                                <span
+                                                                    v-if="isCurrentUser(account)"
+                                                                    class="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700"
+                                                                >
+                                                                    You
+                                                                </span>
+                                                            </div>
+                                                            <p class="truncate text-sm text-slate-500">{{ account.email }}</p>
+                                                        </div>
                                                     </div>
-                                                    <p class="mt-1 truncate text-sm text-slate-500">{{ account.email }}</p>
-                                                    <p class="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-                                                        Joined {{ account.joined_at }}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div class="grid gap-3 sm:grid-cols-3 xl:min-w-[420px]">
-                                                <div
-                                                    v-for="metric in accountMetrics(account)"
-                                                    :key="`${account.id}-${metric.label}`"
-                                                    class="rounded-[22px] border border-[#e6ebf8] bg-white px-4 py-3"
-                                                >
-                                                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                                                        {{ metric.label }}
-                                                    </p>
-                                                    <p class="mt-2 text-xl font-bold tracking-[-0.03em] text-slate-950">
-                                                        {{ metric.value }}
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <div class="flex items-center gap-3">
-                                                <button
-                                                    type="button"
-                                                    class="rounded-2xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                                    :disabled="deletingUserId === account.id || isCurrentUser(account)"
-                                                    @click="deleteAccount(account)"
-                                                >
-                                                    {{ deletingUserId === account.id ? 'Deleting...' : 'Delete' }}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </article>
+                                                </td>
+                                                <td class="px-4 py-4">
+                                                    <span
+                                                        class="rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em]"
+                                                        :class="roleBadgeClass(account.role)"
+                                                    >
+                                                        {{ account.role }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-4 font-semibold text-slate-900">
+                                                    {{ screen === 'merchants' ? account.products_count : account.approved_products_count }}
+                                                </td>
+                                                <td class="px-4 py-4 text-slate-600">
+                                                    {{ screen === 'merchants' ? account.pending_products_count : '@' + String(account.email ?? '').split('@')[0] }}
+                                                </td>
+                                                <td class="px-4 py-4 text-slate-600">
+                                                    {{ screen === 'merchants' ? account.approved_products_count : account.joined_at }}
+                                                </td>
+                                                <td class="px-5 py-4 text-right">
+                                                    <button
+                                                        type="button"
+                                                        class="rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        :disabled="deletingUserId === account.id || isCurrentUser(account)"
+                                                        @click="deleteAccount(account)"
+                                                    >
+                                                        {{ deletingUserId === account.id ? 'Deleting...' : 'Delete' }}
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </section>
                         </div>
@@ -458,42 +461,14 @@ function scrollToForm() {
     });
 }
 
-function accountMetrics(account) {
-    if (screen === 'merchants') {
-        return [
-            {
-                label: 'Products',
-                value: account.products_count,
-            },
-            {
-                label: 'Pending',
-                value: account.pending_products_count,
-            },
-            {
-                label: 'Approved',
-                value: account.approved_products_count,
-            },
-        ];
-    }
-
-    return [
-        {
-            label: 'Approved products',
-            value: account.approved_products_count,
-        },
-        {
-            label: 'Email',
-            value: '@' + String(account.email ?? '').split('@')[0],
-        },
-        {
-            label: 'Joined',
-            value: account.joined_at,
-        },
-    ];
-}
-
 function isCurrentUser(account) {
     return currentUserId !== null && Number(account?.id) === currentUserId;
+}
+
+function roleBadgeClass(role) {
+    return role === 'merchant'
+        ? 'bg-amber-100 text-amber-700'
+        : 'bg-[#F3E8F1] text-[#A25F88]';
 }
 
 function fieldClass(field) {

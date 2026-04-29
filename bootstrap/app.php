@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\EnsureAdminOtpVerified;
+use App\Http\Middleware\EnsureMerchantApproved;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'admin.otp' => EnsureAdminOtpVerified::class,
+            'merchant.approved' => EnsureMerchantApproved::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

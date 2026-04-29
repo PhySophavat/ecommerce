@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Northstar Goods') }}</title>
+        <link rel="icon" type="image/jpeg" href="/logo.jpg">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=fraunces:600,700|space-grotesk:400,500,700" rel="stylesheet" />

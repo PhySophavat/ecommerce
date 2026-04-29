@@ -4,10 +4,15 @@
             <section class="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <button
                     type="button"
-                    class="text-left text-[1.85rem] font-semibold uppercase tracking-[0.2em] text-slate-950"
+                    class="flex items-center gap-3 text-left text-[1.85rem] font-semibold uppercase tracking-[0.2em] text-slate-950"
                     @click="selectCategory('all')"
                 >
-                    {{ logoLabel }}
+                    <img
+                        :src="logoUrl"
+                        alt="Store logo"
+                        class="h-12 w-12 rounded-2xl bg-white p-1 shadow-sm"
+                    >
+                    <span>{{ logoLabel }}</span>
                 </button>
 
                 <div class="flex flex-wrap items-center gap-2">
@@ -103,6 +108,7 @@ const activeCategorySlug = ref('all');
 const activeSlideIndex = ref(0);
 
 let autoplayTimer = null;
+const logoUrl = '/logo.jpg';
 
 const categories = computed(() => storefront.value.categories ?? []);
 const slides = computed(() => (

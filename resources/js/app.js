@@ -2,6 +2,8 @@ import './bootstrap';
 import { createApp } from 'vue';
 
 import UserManagementApp from './backend/UserManagementApp.vue';
+import MerchantRegistrationApp from './backend/merchant/MerchantRegistrationApp.vue';
+import MerchantManagerPage from './backend/merchant/MerchantManagerPage.vue';
 import ProductManagerPage from './backend/products/ProductManagerPage.vue';
 import SlideManagerPage from './backend/slides/SlideManagerPage.vue';
 import StorefrontApp from './frontend/StorefrontApp.vue';
@@ -9,6 +11,8 @@ import StorefrontApp from './frontend/StorefrontApp.vue';
 const appMap = {
     'backend-products': ProductManagerPage,
     'backend-slides': SlideManagerPage,
+    'backend-merchants': MerchantManagerPage,
+    'backend-merchant-register': MerchantRegistrationApp,
     'backend-users': UserManagementApp,
     frontend: StorefrontApp,
 };

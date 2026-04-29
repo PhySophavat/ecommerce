@@ -170,7 +170,9 @@ class AuthController extends Controller
             'admin' => $this->hasVerifiedAdminOtp($request)
                 ? redirect()->route('admin.dashboard')
                 : redirect()->route('auth.otp.form'),
-            'merchant' => redirect('/merchant/products'),
+            'merchant' => $user->merchant?->isApproved()
+                ? redirect('/merchant/products')
+                : redirect()->route('merchant.status'),
             'customer' => redirect('/'),
             default => redirect('/'),
         };
