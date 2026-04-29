@@ -13,6 +13,7 @@ Route::name('frontend.')->group(base_path('routes/frontend.php'));
 Route::prefix('admin')->name('admin.')->group(base_path('routes/backend.php'));
 Route::prefix('api/frontend')->name('api.frontend.')->group(base_path('routes/api_frontend.php'));
 Route::prefix('api/admin')->name('api.admin.')->group(base_path('routes/api_backend.php'));
+Route::prefix('api/merchant')->name('api.merchant.')->group(base_path('routes/api_merchant.php'));
 
 // Authentication routes
 Route::prefix('auth')->name('auth.')->group(base_path('routes/auth.php'));

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Merchant\Product\ProductController as MerchantProductController;
 use App\Http\Controllers\Merchant\RegistrationController;
+use App\Http\Controllers\Merchant\Finance\WithdrawalPageController;
 use Illuminate\Support\Facades\Route;
 
 // Public merchant registration routes (before login)
@@ -35,4 +36,11 @@ Route::middleware(['auth', 'role:merchant', 'merchant.approved'])->group(functio
     Route::get('/products/pending', [MerchantProductController::class, 'pending'])->name('products.pending');
     Route::get('/products/rejected', [MerchantProductController::class, 'rejected'])->name('products.rejected');
     Route::get('/products/approved', [MerchantProductController::class, 'approved'])->name('products.approved');
+
+    Route::get('/wallet', [WithdrawalPageController::class, 'wallet'])->name('wallet');
+    Route::get('/deposits', [WithdrawalPageController::class, 'deposit'])->name('deposits');
+    Route::get('/bank-accounts', [WithdrawalPageController::class, 'bankAccounts'])->name('bank-accounts');
+    Route::get('/withdrawals', [WithdrawalPageController::class, 'withdraw'])->name('withdrawals');
+    Route::get('/withdrawals/history', [WithdrawalPageController::class, 'history'])->name('withdrawals.history');
+    Route::get('/wallet/transactions', [WithdrawalPageController::class, 'history'])->name('wallet.transactions');
 });

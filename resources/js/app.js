@@ -4,6 +4,11 @@ import { createApp } from 'vue';
 import UserManagementApp from './backend/UserManagementApp.vue';
 import MerchantRegistrationApp from './backend/merchant/MerchantRegistrationApp.vue';
 import MerchantManagerPage from './backend/merchant/MerchantManagerPage.vue';
+import AdminDeposits from './backend/deposits/AdminDeposits.vue';
+import AdminWallet from './backend/wallet/AdminWallet.vue';
+import AdminWithdrawals from './backend/withdrawals/AdminWithdrawals.vue';
+import MerchantFinanceApp from './backend/merchant/MerchantFinanceApp.vue';
+import PlatformFeeSettingsPage from './backend/settings/PlatformFeeSettings.vue';
 import ProductManagerPage from './backend/products/ProductManagerPage.vue';
 import SlideManagerPage from './backend/slides/SlideManagerPage.vue';
 import StorefrontApp from './frontend/StorefrontApp.vue';
@@ -12,8 +17,13 @@ const appMap = {
     'backend-products': ProductManagerPage,
     'backend-slides': SlideManagerPage,
     'backend-merchants': MerchantManagerPage,
+    'backend-deposits': AdminDeposits,
+    'backend-wallet': AdminWallet,
+    'backend-withdrawals': AdminWithdrawals,
     'backend-merchant-register': MerchantRegistrationApp,
+    'backend-platform-fee-settings': PlatformFeeSettingsPage,
     'backend-users': UserManagementApp,
+    'merchant-withdrawals': MerchantFinanceApp,
     frontend: StorefrontApp,
 };
 

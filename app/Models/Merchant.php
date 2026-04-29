@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Merchant extends Model
 {
@@ -24,12 +25,24 @@ class Merchant extends Model
         'rejection_reason',
         'approved_by',
         'approved_at',
+        'balance_total',
+        'available_balance',
+        'pending_balance',
+        'total_withdrawn',
+        'total_deposited',
+        'total_platform_fee_paid',
     ];
 
     protected function casts(): array
     {
         return [
             'approved_at' => 'datetime',
+            'balance_total' => 'decimal:2',
+            'available_balance' => 'decimal:2',
+            'pending_balance' => 'decimal:2',
+            'total_withdrawn' => 'decimal:2',
+            'total_deposited' => 'decimal:2',
+            'total_platform_fee_paid' => 'decimal:2',
         ];
     }
 
@@ -55,6 +68,31 @@ class Merchant extends Model
     public function approver(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(MerchantTransaction::class);
+    }
+
+    public function bankAccounts(): HasMany
+    {
+        return $this->hasMany(MerchantBankAccount::class);
+    }
+
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+
+    public function deposits(): HasMany
+    {
+        return $this->hasMany(MerchantDeposit::class);
+    }
+
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class)->latest();
     }
 
     /**

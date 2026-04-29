@@ -3,9 +3,11 @@
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Backend\Product\ProductController;
 use App\Http\Controllers\Backend\Product\ProductApprovalController;
+use App\Http\Controllers\Backend\Settings\PlatformFeeSettingsPageController;
 use App\Http\Controllers\Backend\Slide\SlideController;
 use App\Http\Controllers\Backend\User\UserController;
 use App\Http\Controllers\Backend\Merchant\MerchantController;
+use App\Http\Controllers\Backend\WithdrawalPageController;
 use Illuminate\Support\Facades\Route;
 
 // Public admin login page (before authentication)
@@ -49,4 +51,9 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::post('/merchants/{merchant}/reject', [MerchantController::class, 'reject'])->name('merchants.reject');
     Route::post('/merchants/{merchant}/suspend', [MerchantController::class, 'suspend'])->name('merchants.suspend');
     Route::post('/merchants/{merchant}/reactivate', [MerchantController::class, 'reactivate'])->name('merchants.reactivate');
+
+    Route::get('/settings/platform-fee', PlatformFeeSettingsPageController::class)->name('settings.platform-fee');
+    Route::get('/wallet', [WithdrawalPageController::class, 'wallet'])->name('wallet.index');
+    Route::get('/withdrawals', [WithdrawalPageController::class, 'withdrawals'])->name('withdrawals.index');
+    Route::get('/deposits', [WithdrawalPageController::class, 'deposits'])->name('deposits.index');
 });

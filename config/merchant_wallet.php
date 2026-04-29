@@ -1,0 +1,7 @@
+<?php
+
+return [
+    'khqr_code' => env('MERCHANT_WALLET_KHQR_CODE', '00020101021129370016A0000006770101110113006688990015204581253031165406100.005802KH5910Ecommerce6009Phnom Penh6304ABCD'),
+    'khqr_image_url' => env('MERCHANT_WALLET_KHQR_IMAGE_URL'),
+    'recent_transactions_limit' => (int) env('MERCHANT_WALLET_RECENT_LIMIT', 8),
+];

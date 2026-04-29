@@ -1,7 +1,7 @@
 <template>
     <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
         <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
-            <ProductSidebar
+            <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
                 :screen="screen"
@@ -11,7 +11,7 @@
             />
 
             <div class="flex min-w-0 flex-1 flex-col">
-                <ProductHeader
+                <AdminHeader
                     :dashboard="dashboard"
                     :is-menu-open="isMenuOpen"
                     :screen="screen"
@@ -249,8 +249,8 @@
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 
-import ProductHeader from './products/sections/ProductHeader.vue';
-import ProductSidebar from './products/sections/ProductSidebar.vue';
+import AdminHeader from './layout/AdminHeader.vue';
+import AdminSidebar from './layout/AdminSidebar.vue';
 
 const screen = normalizeScreen(window.__APP_CONTEXT__?.screen);
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? (screen === 'merchants' ? '/admin/merchants' : '/admin/users');

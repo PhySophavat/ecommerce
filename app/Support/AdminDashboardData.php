@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\AdminMenu;
 use App\Models\Category;
 use App\Models\Order;
+use App\Models\PlatformFeeSetting;
 use App\Models\Product;
 use App\Models\Slide;
 use App\Models\User;
@@ -263,9 +264,85 @@ class AdminDashboardData
         ];
     }
 
+    public static function platformFeeSettings(): array
+    {
+        $setting = PlatformFeeSetting::current();
+        $meta = self::metaForScreen('platform-fee-settings');
+
+        return [
+            'screen' => 'platform-fee-settings',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('platform-fee-settings')),
+            'setting' => [
+                'is_enabled' => (bool) $setting->is_enabled,
+                'fee_type' => $setting->fee_type,
+                'fee_value' => number_format((float) $setting->fee_value, 2, '.', ''),
+                'apply_stage' => $setting->apply_stage,
+                'deduct_from' => $setting->deduct_from,
+            ],
+        ];
+    }
+
+    public static function withdrawalsPage(): array
+    {
+        $meta = self::metaForScreen('withdrawals');
+
+        return [
+            'screen' => 'withdrawals',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('withdrawals')),
+        ];
+    }
+
+    public static function depositsPage(): array
+    {
+        $meta = self::metaForScreen('deposits');
+
+        return [
+            'screen' => 'deposits',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('deposits')),
+        ];
+    }
+
+    public static function walletPage(): array
+    {
+        $meta = self::metaForScreen('wallet');
+
+        return [
+            'screen' => 'wallet',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('wallet')),
+        ];
+    }
+
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet'], true) ? $screen : 'products';
     }
 
     /**
@@ -299,6 +376,26 @@ class AdminDashboardData
                 'kicker' => 'Admin access',
                 'subheadline' => 'Manage administrator accounts, review who can access the backend, and keep access tidy.',
             ],
+            'platform-fee-settings' => [
+                'page_title' => 'Platform Fee Settings',
+                'kicker' => 'Commission control',
+                'subheadline' => 'Configure how the platform deducts commission from merchant balances after each qualifying order stage.',
+            ],
+            'wallet' => [
+                'page_title' => 'Wallet',
+                'kicker' => 'Finance overview',
+                'subheadline' => 'Review merchant deposit and withdrawal activity from a single admin wallet overview.',
+            ],
+            'withdrawals' => [
+                'page_title' => 'Withdrawals',
+                'kicker' => 'Merchant payouts',
+                'subheadline' => 'Review withdrawal requests, approve valid payouts, and mark completed transfers as paid.',
+            ],
+            'deposits' => [
+                'page_title' => 'Deposits',
+                'kicker' => 'Wallet top-ups',
+                'subheadline' => 'Review merchant deposit proofs and approve manual KHQR top-ups into merchant wallets.',
+            ],
             'merchants' => [
                 'page_title' => 'Merchants',
                 'kicker' => 'Seller management',
@@ -324,6 +421,10 @@ class AdminDashboardData
             'featured-products' => ['content-management', 'featured-products'],
             'users' => ['users-admin-management', 'admin-users'],
             'merchants' => ['users-admin-management', 'merchants'],
+            'wallet' => ['wallet'],
+            'platform-fee-settings' => ['settings', 'platform-fee-settings'],
+            'deposits' => ['payments', 'deposits'],
+            'withdrawals' => ['payments', 'withdrawals'],
             default => ['products', 'all-products'],
         };
     }
@@ -587,7 +688,7 @@ class AdminDashboardData
 
     private static function shouldAlwaysExpandMenu(?string $slug): bool
     {
-        return $slug === 'users-admin-management';
+        return in_array($slug, ['users-admin-management', 'payments'], true);
     }
 
     /**
@@ -670,6 +771,9 @@ class AdminDashboardData
             'frontend' => route('frontend.home'),
             'admin_users' => route('admin.users.index'),
             'admin_merchants' => route('admin.merchants.index'),
+            'admin_wallet' => route('admin.wallet.index'),
+            'admin_deposits' => route('admin.deposits.index'),
+            'admin_withdrawals' => route('admin.withdrawals.index'),
             'logout' => route('auth.logout'),
         ];
     }

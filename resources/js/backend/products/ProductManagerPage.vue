@@ -1,7 +1,7 @@
 <template>
     <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
         <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
-            <ProductSidebar
+            <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
                 :screen="screen"
@@ -12,7 +12,7 @@
             />
 
             <div class="flex min-w-0 flex-1 flex-col">
-                <ProductHeader
+                <AdminHeader
                     :dashboard="dashboard"
                     :is-menu-open="isMenuOpen"
                     :screen="screen"
@@ -86,10 +86,10 @@
 import { nextTick, onMounted, ref } from 'vue';
 
 import AddProductForm from './add-product/AddProductForm.vue';
+import AdminHeader from '../layout/AdminHeader.vue';
+import AdminSidebar from '../layout/AdminSidebar.vue';
 import DashboardOverview from './sections/DashboardOverview.vue';
 import MenuHighlights from './sections/MenuHighlights.vue';
-import ProductHeader from './sections/ProductHeader.vue';
-import ProductSidebar from './sections/ProductSidebar.vue';
 import ProductsTable from './sections/ProductsTable.vue';
 import SummaryCardsGrid from './sections/SummaryCardsGrid.vue';
 import { useProductDashboard } from './state/useProductDashboard.js';

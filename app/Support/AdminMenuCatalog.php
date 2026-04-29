@@ -63,6 +63,14 @@ class AdminMenuCatalog
                 ],
             ],
             [
+                'label' => 'Wallet',
+                'slug' => 'wallet',
+                'icon' => 'wallet',
+                'path' => '/admin/wallet',
+                'is_enabled' => true,
+                'children' => [],
+            ],
+            [
                 'label' => 'Payments',
                 'slug' => 'payments',
                 'icon' => 'payments',
@@ -71,7 +79,9 @@ class AdminMenuCatalog
                 'children' => [
                     ['label' => 'Payment records', 'slug' => 'payment-records', 'path' => null, 'is_enabled' => false],
                     ['label' => 'Payment methods', 'slug' => 'payment-methods', 'path' => null, 'is_enabled' => false],
+                    ['label' => 'Deposits', 'slug' => 'deposits', 'path' => '/admin/deposits', 'is_enabled' => true],
                     ['label' => 'Transaction history', 'slug' => 'transaction-history', 'path' => null, 'is_enabled' => false],
+                    ['label' => 'Withdrawals', 'slug' => 'withdrawals', 'path' => '/admin/withdrawals', 'is_enabled' => true],
                 ],
             ],
             [
@@ -136,7 +146,7 @@ class AdminMenuCatalog
                     ['label' => 'Store settings', 'slug' => 'store-settings', 'path' => null, 'is_enabled' => false],
                     ['label' => 'Shipping settings', 'slug' => 'shipping-settings', 'path' => null, 'is_enabled' => false],
                     ['label' => 'Payment settings', 'slug' => 'payment-settings', 'path' => null, 'is_enabled' => false],
-                    ['label' => 'Tax settings', 'slug' => 'tax-settings', 'path' => null, 'is_enabled' => false],
+                    ['label' => 'Platform Fee Settings', 'slug' => 'platform-fee-settings', 'path' => '/admin/settings/platform-fee', 'is_enabled' => true],
                     ['label' => 'Email settings', 'slug' => 'email-settings', 'path' => null, 'is_enabled' => false],
                 ],
             ],

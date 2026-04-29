@@ -1,7 +1,7 @@
 <template>
     <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
         <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
-            <ProductSidebar
+            <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
                 :screen="menuScreen"
@@ -10,7 +10,7 @@
             />
 
             <div class="flex min-w-0 flex-1 flex-col">
-                <ProductHeader
+                <AdminHeader
                     :dashboard="dashboard"
                     :is-menu-open="isMenuOpen"
                     :screen="screen"
@@ -133,24 +133,24 @@
 
                             <div v-else class="mt-6 space-y-4">
                                 <article
-                                    v-for="merchant in merchants"
-                                    :key="merchant.id"
+                                    v-for="merchantItem in merchants"
+                                    :key="merchantItem.id"
                                     class="rounded-[28px] border border-[#e3e9f7] bg-[#fbfcff] p-5"
                                 >
                                     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                         <div>
                                             <div class="flex flex-wrap items-center gap-3">
-                                                <h4 class="text-xl font-bold text-slate-950">{{ merchant.shop_name }}</h4>
+                                                <h4 class="text-xl font-bold text-slate-950">{{ merchantItem.shop_name }}</h4>
                                                 <span class="rounded-full bg-yellow-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-yellow-800">
-                                                    {{ merchant.status }}
+                                                    {{ merchantItem.status }}
                                                 </span>
                                             </div>
-                                            <p class="mt-2 text-sm text-slate-500">{{ merchant.business_type }} • {{ merchant.user.name }} • {{ merchant.user.email }}</p>
-                                            <p class="mt-1 text-sm text-slate-500">{{ merchant.locationLabel }}</p>
+                                            <p class="mt-2 text-sm text-slate-500">{{ merchantItem.business_type }} • {{ merchantItem.user.name }} • {{ merchantItem.user.email }}</p>
+                                            <p class="mt-1 text-sm text-slate-500">{{ merchantItem.locationLabel }}</p>
                                         </div>
                                         <div class="flex flex-wrap gap-3">
                                             <a
-                                                :href="`/admin/merchants/${merchant.id}`"
+                                                :href="`/admin/merchants/${merchantItem.id}`"
                                                 class="admin-secondary-button rounded-2xl px-4 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
                                             >
                                                 View details
@@ -158,16 +158,16 @@
                                             <button
                                                 type="button"
                                                 class="rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
-                                                :disabled="processingMerchantId === merchant.id"
-                                                @click="approveMerchant(merchant)"
+                                                :disabled="processingMerchantId === merchantItem.id"
+                                                @click="approveMerchant(merchantItem)"
                                             >
                                                 Approve
                                             </button>
                                             <button
                                                 type="button"
                                                 class="rounded-2xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5"
-                                                :disabled="processingMerchantId === merchant.id"
-                                                @click="rejectMerchant(merchant)"
+                                                :disabled="processingMerchantId === merchantItem.id"
+                                                @click="rejectMerchant(merchantItem)"
                                             >
                                                 Reject
                                             </button>
@@ -304,8 +304,8 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
-import ProductHeader from '../products/sections/ProductHeader.vue';
-import ProductSidebar from '../products/sections/ProductSidebar.vue';
+import AdminHeader from '../layout/AdminHeader.vue';
+import AdminSidebar from '../layout/AdminSidebar.vue';
 
 const screen = window.__APP_CONTEXT__?.screen ?? 'merchants';
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/admin/merchants';
@@ -317,9 +317,9 @@ const dashboard = ref(initialDashboard());
 
 const menuScreen = computed(() => 'merchants');
 const stats = computed(() => dashboard.value.stats ?? {});
-const merchants = computed(() => (dashboard.value.merchants ?? []).map((merchant) => ({
-    ...merchant,
-    locationLabel: [merchant.location?.province_city, merchant.location?.full_address].filter(Boolean).join(' • ') || 'No location provided',
+const merchants = computed(() => (dashboard.value.merchants ?? []).map((merchantItem) => ({
+    ...merchantItem,
+    locationLabel: [merchantItem.location?.province_city, merchantItem.location?.full_address].filter(Boolean).join(' • ') || 'No location provided',
 })));
 const merchant = computed(() => dashboard.value.merchant ?? null);
 const statCards = computed(() => [

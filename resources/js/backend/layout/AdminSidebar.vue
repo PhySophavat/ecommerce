@@ -1,5 +1,5 @@
 <template>
-    <aside class="hidden w-[300px] shrink-0 bg-[#EEF2F7] text-[#222] lg:flex lg:flex-col shadow-xl border-r border-[#e3e7ef]">
+    <aside class="hidden w-[300px] shrink-0 border-r border-[#e3e7ef] bg-[#EEF2F7] text-[#222] shadow-xl lg:flex lg:flex-col">
         <div class="px-5 pt-5">
             <div class="rounded-[30px] border border-[#e3e7ef] bg-white px-5 py-5 shadow-md">
                 <div class="flex items-center gap-3">
@@ -13,33 +13,35 @@
                         <h1 class="truncate text-xl font-bold tracking-[-0.04em] text-[#222]">{{ dashboard.meta.brand }}</h1>
                     </div>
                 </div>
-
-                
             </div>
         </div>
 
         <div class="soft-scroll flex-1 overflow-y-auto px-4 py-5">
             <nav class="space-y-1">
-                <div v-for="item in dashboard.menu" :key="item.slug">
+                <div v-for="item in menuItems" :key="item.slug">
                     <button
-                        v-if="item.children.length"
+                        v-if="itemChildren(item).length"
                         type="button"
-                        class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition text-sm"
-                        :class="[parentItemClass(item), 'focus:ring-2 focus:ring-[#A25F88] outline-none']"
+                        class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition"
+                        :class="[parentItemClass(item), 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
                         @click="$emit('toggle-menu', item.slug)"
                     >
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg"
-                              :class="parentIconWrapClass(item)">
-                            <svg class="h-4 w-4"
-                                 :class="parentIconClass(item)"
-                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" :class="parentIconWrapClass(item)">
+                            <svg
+                                class="h-4 w-4"
+                                :class="parentIconClass(item)"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
                                 <path stroke-linecap="round" stroke-linejoin="round" :d="iconPath(item.icon)" />
                             </svg>
                         </span>
                         <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
                         <svg
                             class="h-3 w-3 transition"
-                            :class="[parentChevronClass(item), isMenuOpen(item.slug) ? 'rotate-180' : '']"
+                            :class="[parentChevronClass(item), isOpen(item) ? 'rotate-180' : '']"
                             viewBox="0 0 20 20"
                             fill="none"
                             stroke="currentColor"
@@ -51,33 +53,37 @@
                     <button
                         v-else
                         type="button"
-                        class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left transition text-sm"
-                        :class="[item.is_active ? 'bg-[#A25F88] text-white font-bold shadow' : 'hover:bg-[#F3E8F1] text-[#222]/80', 'focus:ring-2 focus:ring-[#A25F88] outline-none']"
-                        :disabled="!menuIsInteractive(item)"
+                        class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition"
+                        :class="[item.is_active ? 'bg-[#A25F88] font-bold text-white shadow' : 'text-[#222]/80 hover:bg-[#F3E8F1]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
+                        :disabled="menuIsInteractive(item) === false"
                         @click="$emit('select-item', item)"
                     >
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg"
-                                                            :class="item.is_active ? 'bg-[#A25F88]' : 'bg-[#F8FAFC]'">
-                            <svg class="h-4 w-4"
-                                                                    :class="item.is_active ? 'text-white' : 'text-[#A25F88]'"
-                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" :class="item.is_active ? 'bg-[#A25F88]' : 'bg-[#F8FAFC]'">
+                            <svg
+                                class="h-4 w-4"
+                                :class="item.is_active ? 'text-white' : 'text-[#A25F88]'"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
                                 <path stroke-linecap="round" stroke-linejoin="round" :d="iconPath(item.icon)" />
                             </svg>
                         </span>
                         <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
                     </button>
                     <div
-                        v-if="item.children.length && isMenuOpen(item.slug)"
+                        v-if="itemChildren(item).length && isOpen(item)"
                         class="ml-3 mt-1 space-y-1 border-l-2 pl-3"
                         :class="isParentMenuHighlighted(item) ? 'border-[#A25F88]/40' : 'border-[#e3e7ef]'"
                     >
                         <button
-                            v-for="child in item.children"
+                            v-for="child in itemChildren(item)"
                             :key="child.slug"
                             type="button"
                             class="flex w-full items-center rounded px-2 py-1.5 text-left text-xs font-medium transition"
-                            :class="[child.is_active ? 'bg-[#A25F88] text-white font-bold' : 'hover:bg-[#F3E8F1] text-[#222]/70', 'focus:ring-2 focus:ring-[#A25F88] outline-none']"
-                            :disabled="!menuIsInteractive(child)"
+                            :class="[child.is_active ? 'bg-[#A25F88] font-bold text-white' : 'text-[#222]/70 hover:bg-[#F3E8F1]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
+                            :disabled="menuIsInteractive(child) === false"
                             @click="$emit('select-item', child)"
                         >
                             <span class="truncate">{{ child.label }}</span>
@@ -86,15 +92,15 @@
                 </div>
             </nav>
         </div>
-
-        
     </aside>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 
-const emit = defineEmits(['quick-action', 'scroll-add-product', 'select-item', 'toggle-menu']);
+import { buildFallbackMenu } from './adminMenuFallback.js';
+
+defineEmits(['quick-action', 'scroll-add-product', 'select-item', 'toggle-menu']);
 
 const props = defineProps({
     dashboard: {
@@ -112,57 +118,69 @@ const props = defineProps({
 });
 
 const logoUrl = '/logo.jpg';
-const currentSectionLabel = computed(() => ({
-    sliders: 'Slides manager',
-    dashboard: 'Overview dashboard',
-    products: 'Product catalog',
-    'featured-products': 'Featured catalog',
-    'add-product': 'Product editor',
-    users: 'Admin access control',
-    merchants: 'Merchant directory',
-}[props.screen] ?? 'Admin workspace'));
-const quickActionLabel = computed(() => ({
-    sliders: 'Create slide',
-    dashboard: 'View catalog',
-    products: '',
-    'featured-products': 'Add featured',
-    'add-product': 'Open editor',
-    users: 'Create admin',
-    merchants: 'Create merchant',
-}[props.screen] ?? 'Open manager'));
+const menuItems = computed(() => {
+    const normalized = (props.dashboard?.menu ?? []).map(normalizeItem).filter(Boolean);
+
+    if (normalized.length > 0) {
+        return normalized;
+    }
+
+    return buildFallbackMenu(props.screen).map(normalizeItem).filter(Boolean);
+});
+
+function normalizeItem(item) {
+    if (!item || !item.slug) {
+        return null;
+    }
+
+    return {
+        ...item,
+        children: Array.isArray(item.children) ? item.children.map(normalizeItem).filter(Boolean) : [],
+    };
+}
+
+function itemChildren(item) {
+    return Array.isArray(item?.children) ? item.children : [];
+}
 
 function menuIsInteractive(item) {
     return item.is_enabled || item.slug === 'add-product' || item.slug === 'logout';
 }
 
 function isParentMenuHighlighted(item) {
-    return Boolean(item.is_active || props.isMenuOpen(item.slug));
+    return Boolean(item.is_active || hasActiveChild(item));
+}
+
+function hasActiveChild(item) {
+    return itemChildren(item).some((child) => child.is_active);
+}
+
+function isOpen(item) {
+    if ((props.dashboard?.menu ?? []).length === 0) {
+        return Boolean(item.is_expanded);
+    }
+
+    return props.isMenuOpen(item.slug);
 }
 
 function parentItemClass(item) {
     if (isParentMenuHighlighted(item)) {
-        return 'bg-[#A25F88] text-white font-bold shadow';
+        return 'bg-[#A25F88] font-bold text-white shadow';
     }
 
-    return 'hover:bg-[#F3E8F1] text-[#222]/80';
+    return 'text-[#222]/80 hover:bg-[#F3E8F1]';
 }
 
 function parentIconWrapClass(item) {
-    return isParentMenuHighlighted(item)
-        ? 'bg-[#A25F88]'
-        : 'bg-[#F8FAFC]';
+    return isParentMenuHighlighted(item) ? 'bg-[#A25F88]' : 'bg-[#F8FAFC]';
 }
 
 function parentIconClass(item) {
-    return isParentMenuHighlighted(item)
-        ? 'text-white'
-        : 'text-[#A25F88]';
+    return isParentMenuHighlighted(item) ? 'text-white' : 'text-[#A25F88]';
 }
 
 function parentChevronClass(item) {
-    return isParentMenuHighlighted(item)
-        ? 'text-white'
-        : 'text-[#A0A4AE]';
+    return isParentMenuHighlighted(item) ? 'text-white' : 'text-[#A0A4AE]';
 }
 
 function iconPath(icon) {
@@ -172,6 +190,7 @@ function iconPath(icon) {
         products: 'M4 7.5 12 3l8 4.5-8 4.5L4 7.5ZM4 7.5V16.5L12 21l8-4.5V7.5',
         orders: 'M7 7h10l2 3-7 7-7-7 2-3Zm5 10v4',
         customers: 'M16 19a4 4 0 0 0-8 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 7a3 3 0 0 0-3-3m-8-8a3 3 0 1 0-3-3m13 10a3 3 0 0 1 3 3',
+        wallet: 'M5 8.5h14v9H5v-9Zm2 2.5h5M15 13h2m-7 4v2m4-2v2',
         payments: 'M3 7.5h18v9H3v-9Zm0 3h18M7 14h3',
         promotions: 'm7 7 10 10M7 7h5v5H7V7Zm5 5 5-5',
         reports: 'M5 19V9m7 10V5m7 14v-7',

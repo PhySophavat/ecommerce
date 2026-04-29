@@ -25,6 +25,8 @@ class Order extends Model
         'shipping_amount',
         'total_amount',
         'placed_at',
+        'platform_fee_processed_at',
+        'platform_fee_processed_stage',
     ];
 
     protected function casts(): array
@@ -34,11 +36,26 @@ class Order extends Model
             'shipping_amount' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'placed_at' => 'datetime',
+            'platform_fee_processed_at' => 'datetime',
         ];
     }
 
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function merchantTransactions(): HasMany
+    {
+        return $this->hasMany(MerchantTransaction::class);
+    }
+
+    public function shouldApplyPlatformFeeForStage(string $stage): bool
+    {
+        return match ($stage) {
+            'payment_success' => in_array($this->status, ['paid', 'payment_success'], true),
+            'order_completed' => in_array($this->status, ['completed', 'order_completed'], true),
+            default => false,
+        };
     }
 }

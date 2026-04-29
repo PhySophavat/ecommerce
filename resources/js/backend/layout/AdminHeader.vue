@@ -40,7 +40,6 @@
             <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div class="max-w-3xl">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6c78da]">{{ heroEyebrow }}</p>
-                    
                     <p class="mt-2 text-sm leading-7 text-slate-500">
                         {{ heroSubtitle }}
                     </p>
@@ -97,33 +96,31 @@ const updatedLabel = computed(() => new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
 }).format(new Date()));
-const heroEyebrow = computed(() => ({
+const heroEyebrow = computed(() => props.dashboard.meta.kicker || ({
     dashboard: 'Overview',
     sliders: '',
     products: '',
     'featured-products': 'Storefront highlights',
     'add-product': '',
     users: 'Access control',
+    wallet: 'Finance overview',
+    deposits: 'Wallet top-ups',
+    withdrawals: 'Merchant payouts',
+    'platform-fee-settings': 'Commission control',
     merchants: 'Seller management',
     'pending-merchants': 'Approval queue',
     'merchant-details': 'Merchant review',
 }[props.screen] ?? 'Admin workspace'));
-const heroTitle = computed(() => ({
-    dashboard: `Welcome back, ${props.dashboard.meta.brand}.`,
-    sliders: '',
-    products: '',
-    'featured-products': 'Curate products that lead the storefront.',
-    users: 'Manage backend access for admin users.',
-    merchants: 'Review and create merchant accounts.',
-    'pending-merchants': 'Review pending merchant applications.',
-    'merchant-details': 'Inspect merchant details before approval.',
-}[props.screen] ?? props.dashboard.meta.page_title));
 const heroSubtitle = computed(() => props.dashboard.meta.subheadline || ({
     dashboard: 'Track the latest product changes, featured placements, and inventory signals from one admin surface.',
     sliders: '',
     products: '',
     'featured-products': 'Focus on products with the strongest storefront visibility and update them without scanning the full catalog.',
     users: 'Keep administrator access tidy, create backend users, and review who is currently active in the dashboard.',
+    wallet: 'Open the wallet overview to monitor merchant deposit and withdrawal queues from one place.',
+    deposits: 'Verify merchant KHQR payment proofs and approve wallet top-ups after manual review.',
+    withdrawals: 'Review merchant withdrawal requests, approve valid payouts, and mark completed transfers as paid.',
+    'platform-fee-settings': 'Configure platform fee rules, choose the deduction stage, and preview what merchants receive from each order.',
     merchants: 'Create seller accounts, check merchant product activity, and keep storefront operators organized.',
     'pending-merchants': 'Approve or reject merchants who are waiting for access to the selling dashboard.',
     'merchant-details': 'Review merchant business, owner, and location information before taking action.',
@@ -135,17 +132,13 @@ const primaryActionLabel = computed(() => ({
     'featured-products': '+ Add product',
     'add-product': 'All products',
     users: 'Create admin',
+    wallet: 'Refresh overview',
+    deposits: 'Refresh deposits',
+    withdrawals: 'Refresh withdrawals',
+    'platform-fee-settings': 'Save settings',
     merchants: 'Create merchant',
     'pending-merchants': 'All merchants',
     'merchant-details': 'Back to merchants',
 }[props.screen] ?? '+ Add product'));
 const showUtilityActions = computed(() => props.screen !== 'sliders');
-
-function menuIsInteractive(item) {
-    return item.is_enabled || item.slug === 'add-product';
-}
-
-function isMobileMenuHighlighted(item) {
-    return Boolean(item.is_active || (item.children.length && props.isMenuOpen(item.slug)));
-}
 </script>
