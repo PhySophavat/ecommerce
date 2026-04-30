@@ -389,7 +389,7 @@ class AdminDashboardData
             'withdrawals' => [
                 'page_title' => 'Withdrawals',
                 'kicker' => 'Merchant payouts',
-                'subheadline' => 'Review withdrawal requests, approve valid payouts, and mark completed transfers as paid.',
+                'subheadline' => '.',
             ],
             'deposits' => [
                 'page_title' => 'Deposits',

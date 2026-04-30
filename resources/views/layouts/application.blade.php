@@ -12,8 +12,23 @@
         <link href="https://fonts.bunny.net/css?family=fraunces:600,700|plus-jakarta-sans:400,500,600,700,800|space-grotesk:400,500,700" rel="stylesheet" />
 
         @if ($mountVueApp ?? true)
+            @php
+                $appContext = array_merge(
+                    $context ?? ['app' => 'frontend'],
+                    [
+                        'currentUser' => auth()->user()?->only([
+                            'id',
+                            'name',
+                            'email',
+                            'profile_image',
+                            'role',
+                        ]),
+                    ]
+                );
+            @endphp
+
             <script>
-                window.__APP_CONTEXT__ = @json($context ?? ['app' => 'frontend']);
+                window.__APP_CONTEXT__ = @json($appContext);
             </script>
 
             @vite(['resources/css/app.css', 'resources/js/app.js'])

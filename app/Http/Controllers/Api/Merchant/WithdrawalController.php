@@ -43,10 +43,20 @@ class WithdrawalController extends Controller
     {
         $merchant = $this->merchant($request);
         $validated = $request->validate([
-            'bank_account_id' => ['required', 'integer'],
-            'amount' => ['required', 'numeric', 'gt:0'],
+            'bank_account_id' => ['required', 'integer', 'exists:merchant_bank_accounts,id'],
+            'amount' => ['required', 'numeric', 'min:1'],
+            'currency' => ['required', 'in:USD,KHR'],
             'note' => ['nullable', 'string'],
         ]);
+
+        if ($validated['currency'] === 'KHR' && floor((float) $validated['amount']) !== (float) $validated['amount']) {
+            return response()->json([
+                'message' => 'The amount field must be a whole number when currency is KHR.',
+                'errors' => [
+                    'amount' => ['The amount field must be a whole number when currency is KHR.'],
+                ],
+            ], 422);
+        }
 
         $bankAccount = $merchant->bankAccounts()
             ->whereKey($validated['bank_account_id'])
@@ -56,7 +66,10 @@ class WithdrawalController extends Controller
         $withdrawal = $this->withdrawalService->create(
             $merchant,
             $bankAccount,
-            round((float) $validated['amount'], 2),
+            $validated['currency'] === 'KHR'
+                ? (float) ((int) $validated['amount'])
+                : round((float) $validated['amount'], 2),
+            $validated['currency'],
             $validated['note'] ?? null,
         );
 
@@ -89,6 +102,7 @@ class WithdrawalController extends Controller
         return [
             'id' => $withdrawal->id,
             'amount' => number_format((float) $withdrawal->amount, 2, '.', ''),
+            'currency' => $withdrawal->currency ?? 'USD',
             'fee_amount' => number_format((float) $withdrawal->fee_amount, 2, '.', ''),
             'net_amount' => number_format((float) $withdrawal->net_amount, 2, '.', ''),
             'status' => $withdrawal->status,

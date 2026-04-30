@@ -15,10 +15,14 @@ class WithdrawalService
     {
     }
 
-    public function create(Merchant $merchant, MerchantBankAccount $bankAccount, float $amount, ?string $note = null): Withdrawal
+    public function create(Merchant $merchant, MerchantBankAccount $bankAccount, float $amount, string $currency = 'USD', ?string $note = null): Withdrawal
     {
-        return DB::transaction(function () use ($merchant, $bankAccount, $amount, $note): Withdrawal {
+        return DB::transaction(function () use ($merchant, $bankAccount, $amount, $currency, $note): Withdrawal {
             $merchant = Merchant::query()->lockForUpdate()->findOrFail($merchant->getKey());
+            $currency = strtoupper($currency);
+            $amount = $currency === 'KHR'
+                ? (float) ((int) round($amount))
+                : round($amount, 2);
 
             $minimumAmount = $this->minimumAmount();
             $feeAmount = $this->feeAmount();
@@ -54,8 +58,11 @@ class WithdrawalService
                 'merchant_id' => $merchant->getKey(),
                 'bank_account_id' => $bankAccount->getKey(),
                 'amount' => $amount,
+                'currency' => $currency,
                 'fee_amount' => $feeAmount,
-                'net_amount' => round($amount - $feeAmount, 2),
+                'net_amount' => $currency === 'KHR'
+                    ? (float) ((int) round($amount - $feeAmount))
+                    : round($amount - $feeAmount, 2),
                 'status' => 'pending',
                 'note' => $this->nullableString($note),
             ])->load(['merchant.user', 'bankAccount']);
@@ -162,11 +169,11 @@ class WithdrawalService
                 'type' => 'withdrawal',
                 'amount' => -((float) $withdrawal->amount),
                 'description' => sprintf(
-                    'Withdrawal paid to %s (%s). Fee: $%s. Net payout: $%s.',
+                    'Withdrawal paid to %s (%s). Fee: %s. Net payout: %s.',
                     $withdrawal->bankAccount->bank_name,
                     $withdrawal->bankAccount->maskedAccountNumber(),
-                    number_format((float) $withdrawal->fee_amount, 2, '.', ''),
-                    number_format((float) $withdrawal->net_amount, 2, '.', ''),
+                    $this->formatCurrencyText((float) $withdrawal->fee_amount, $withdrawal->currency),
+                    $this->formatCurrencyText((float) $withdrawal->net_amount, $withdrawal->currency),
                 ),
             ]);
 
@@ -223,5 +230,16 @@ class WithdrawalService
         }
 
         return trim($existing).PHP_EOL.PHP_EOL.$incoming;
+    }
+
+    private function formatCurrencyText(float $amount, ?string $currency): string
+    {
+        $currency = strtoupper((string) $currency);
+
+        if ($currency === 'KHR') {
+            return 'KHR '.number_format($amount, 0, '.', ',');
+        }
+
+        return 'USD '.number_format($amount, 2, '.', ',');
     }
 }

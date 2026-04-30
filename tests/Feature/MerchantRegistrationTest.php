@@ -91,4 +91,14 @@ class MerchantRegistrationTest extends TestCase
         $this->actingAs($merchantUser);
         $this->get('/merchant/status')->assertRedirect('/merchant/dashboard');
     }
+
+    public function test_admin_cannot_access_merchant_finance_routes(): void
+    {
+        $this->signInAsAdmin();
+
+        $this->get('/merchant/wallet')->assertRedirect('/admin/dashboard');
+        $this->get('/merchant/deposits')->assertRedirect('/admin/dashboard');
+        $this->get('/merchant/withdrawals')->assertRedirect('/admin/dashboard');
+        $this->get('/merchant/bank-accounts')->assertRedirect('/admin/dashboard');
+    }
 }

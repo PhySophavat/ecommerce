@@ -95,11 +95,6 @@
                 <div style="margin-top:4px;font-size:15px;font-weight:800;color:#0f172a;line-height:1.4;">{{ $receiverName }}</div>
             </div>
 
-            @if ($khqrCode !== '')
-                <div style="border:1px solid #e8eef6;border-radius:16px;padding:12px 14px;background:#fff;word-break:break-all;font-size:12px;line-height:1.7;color:#64748b;">
-                    {{ $khqrCode }}
-                </div>
-            @endif
         </div>
     </div>
 </div>

@@ -10,16 +10,6 @@
             />
 
             <div class="flex min-w-0 flex-1 flex-col">
-                <AdminHeader
-                    :dashboard="dashboard"
-                    :is-menu-open="isMenuOpen"
-                    :screen="screen"
-                    @primary-action="loadDashboard"
-                    @refresh="loadDashboard"
-                    @select-item="handleMenuSelection"
-                    @toggle-menu="toggleMenu"
-                />
-
                 <main class="flex-1 p-4 sm:p-6 lg:p-7">
                     <div v-if="isLoading" class="rounded-[30px] border border-slate-200 bg-white px-6 py-14 text-center text-sm text-slate-500">
                         Loading wallet overview...
@@ -82,11 +72,11 @@
                                     </label>
 
                                     <label class="block space-y-2">
-                                        <span class="text-sm font-semibold text-slate-700">Upload Payment Screenshot</span>
+                                        <span class="text-sm font-semibold text-slate-700">Upload Payment</span>
                                         <input type="file" accept="image/*" class="field-input file:mr-4 file:rounded-xl file:border-0 file:bg-[#A25F88] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" @change="handleScreenshotChange">
                                     </label>
 
-                                    <div v-if="paymentScreenshotName" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                                    <div v-if="payment" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                                         Selected file: <span class="font-semibold text-slate-900">{{ paymentScreenshotName }}</span>
                                     </div>
                                 </div>
@@ -103,7 +93,6 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
-import AdminHeader from '../layout/AdminHeader.vue';
 import AdminSidebar from '../layout/AdminSidebar.vue';
 
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/wallet';

@@ -87,12 +87,25 @@
                 @downloaded="$emit('downloaded-khqr')"
             />
         </section>
+
+        <section id="wallet-withdrawal">
+            <MerchantWithdraw
+                :bank-accounts="bankAccounts"
+                :wallet="wallet"
+                :minimum-amount="minimumAmount"
+                :withdraw-fee="withdrawFee"
+                :is-submitting="isSubmitting"
+                :success-token="successToken"
+                @submit="$emit('submit-withdrawal', $event)"
+            />
+        </section>
     </div>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
 import MerchantDeposit from './MerchantDeposit.vue';
+import MerchantWithdraw from './MerchantWithdraw.vue';
 
 const props = defineProps({
     wallet: { type: Object, required: true },
@@ -100,10 +113,14 @@ const props = defineProps({
     merchant: { type: Object, required: true },
     providers: { type: Array, default: () => [] },
     deposits: { type: Array, default: () => [] },
+    bankAccounts: { type: Array, default: () => [] },
+    minimumAmount: { type: String, default: '10.00' },
+    withdrawFee: { type: String, default: '0.00' },
     isSubmitting: { type: Boolean, default: false },
+    successToken: { type: Number, default: 0 },
 });
 
-defineEmits(['submit-deposit', 'copied-khqr', 'downloaded-khqr']);
+defineEmits(['submit-deposit', 'submit-withdrawal', 'copied-khqr', 'downloaded-khqr']);
 
 const depositSection = ref(null);
 

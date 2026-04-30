@@ -73,9 +73,11 @@ class MerchantWithdrawalSystemTest extends TestCase
         $this->postJson('/api/merchant/withdrawals', [
             'bank_account_id' => $accountId,
             'amount' => 150,
+            'currency' => 'USD',
             'note' => 'Weekly payout',
         ])->assertCreated()
             ->assertJsonPath('withdrawal.status', 'pending')
+            ->assertJsonPath('withdrawal.currency', 'USD')
             ->assertJsonPath('withdrawal.net_amount', '150.00')
             ->assertJsonPath('balances.pending_balance', '150.00');
 
@@ -87,6 +89,14 @@ class MerchantWithdrawalSystemTest extends TestCase
         $this->postJson('/api/merchant/withdrawals', [
             'bank_account_id' => $accountId,
             'amount' => 100,
+            'currency' => 'KHR',
+        ])->assertStatus(422)
+            ->assertJsonValidationErrors('amount');
+
+        $this->postJson('/api/merchant/withdrawals', [
+            'bank_account_id' => $accountId,
+            'amount' => 25.5,
+            'currency' => 'KHR',
         ])->assertStatus(422)
             ->assertJsonValidationErrors('amount');
     }
@@ -113,6 +123,7 @@ class MerchantWithdrawalSystemTest extends TestCase
         $withdrawalId = $this->postJson('/api/merchant/withdrawals', [
             'bank_account_id' => $accountId,
             'amount' => 120,
+            'currency' => 'KHR',
         ])->json('withdrawal.id');
 
         $this->signInAsAdmin();
@@ -140,6 +151,7 @@ class MerchantWithdrawalSystemTest extends TestCase
         $this->assertSame('0.00', $merchant->pending_balance);
 
         $this->assertSame('paid', Withdrawal::query()->findOrFail($withdrawalId)->status);
+        $this->assertSame('KHR', Withdrawal::query()->findOrFail($withdrawalId)->currency);
     }
 
     public function test_admin_can_approve_deposit_and_credit_wallet(): void

@@ -4,6 +4,7 @@ import { createApp } from 'vue';
 import UserManagementApp from './backend/UserManagementApp.vue';
 import MerchantRegistrationApp from './backend/merchant/MerchantRegistrationApp.vue';
 import MerchantManagerPage from './backend/merchant/MerchantManagerPage.vue';
+import MerchantStatusApp from './backend/merchant/MerchantStatusApp.vue';
 import AdminDeposits from './backend/deposits/AdminDeposits.vue';
 import AdminWallet from './backend/wallet/AdminWallet.vue';
 import AdminWithdrawals from './backend/withdrawals/AdminWithdrawals.vue';
@@ -17,6 +18,7 @@ const appMap = {
     'backend-products': ProductManagerPage,
     'backend-slides': SlideManagerPage,
     'backend-merchants': MerchantManagerPage,
+    'merchant-status': MerchantStatusApp,
     'backend-deposits': AdminDeposits,
     'backend-wallet': AdminWallet,
     'backend-withdrawals': AdminWithdrawals,

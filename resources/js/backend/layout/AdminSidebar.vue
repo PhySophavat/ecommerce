@@ -9,7 +9,7 @@
                         class="h-12 w-12 rounded-2xl bg-[#F8FAFC] p-1 shadow"
                     >
                     <div class="min-w-0">
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#A0A4AE]">Admin</p>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#A0A4AE]">{{ currentRoleLabel }}</p>
                         <h1 class="truncate text-xl font-bold tracking-[-0.04em] text-[#222]">{{ dashboard.meta.brand }}</h1>
                     </div>
                 </div>
@@ -92,6 +92,36 @@
                 </div>
             </nav>
         </div>
+
+        <div class="border-t border-[#dfe5f5] px-4 py-4">
+            <button
+                type="button"
+                class="flex w-full items-center gap-3 rounded-2xl bg-white px-3 py-3 text-left shadow-sm transition hover:bg-[#f8fafc]"
+                @click="$emit('select-item', { slug: 'logout' })"
+            >
+                <img
+                    v-if="currentUser?.profile_image"
+                    :src="`/storage/${currentUser.profile_image}`"
+                    :alt="currentUser.name || 'Signed-in user'"
+                    class="h-11 w-11 rounded-full object-cover"
+                >
+                <span
+                    v-else
+                    class="flex h-11 w-11 items-center justify-center rounded-full bg-[#edf3ff] text-sm font-bold text-[#355eea]"
+                >
+                    {{ currentUserInitials }}
+                </span>
+
+                <span class="min-w-0 flex-1">
+                    <span class="block truncate text-sm font-semibold text-slate-900">
+                        {{ currentUser?.name || 'Admin User' }}
+                    </span>
+                    <span class="block truncate text-xs text-slate-500">
+                        {{ currentUserSubtitle }}
+                    </span>
+                </span>
+            </button>
+        </div>
     </aside>
 </template>
 
@@ -118,6 +148,32 @@ const props = defineProps({
 });
 
 const logoUrl = '/logo.jpg';
+const currentUser = computed(() => window.__APP_CONTEXT__?.currentUser ?? null);
+const currentUserInitials = computed(() => {
+    const name = currentUser.value?.name?.trim();
+
+    if (!name) {
+        return 'AD';
+    }
+
+    return name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('');
+});
+const currentUserSubtitle = computed(() => {
+    if (!currentUser.value) {
+        return 'Sign out';
+    }
+
+    return currentUser.value.email || currentUser.value.role || 'Sign out';
+});
+const currentRoleLabel = computed(() => {
+    const role = currentUser.value?.role;
+
+    return role === 'merchant' ? 'Merchant' : 'Admin';
+});
 const menuItems = computed(() => {
     const normalized = (props.dashboard?.menu ?? []).map(normalizeItem).filter(Boolean);
 

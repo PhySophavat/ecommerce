@@ -75,6 +75,11 @@ class Merchant extends Model
         return $this->hasMany(MerchantTransaction::class);
     }
 
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'merchant_id', 'user_id');
+    }
+
     public function bankAccounts(): HasMany
     {
         return $this->hasMany(MerchantBankAccount::class);

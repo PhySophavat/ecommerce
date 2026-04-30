@@ -173,7 +173,7 @@ class AuthController extends Controller
                 ? redirect()->route('admin.dashboard')
                 : redirect()->route('auth.otp.form'),
             'merchant' => $user->merchant?->isApproved()
-                ? redirect('/merchant/products')
+                ? redirect()->route('merchant.wallet')
                 : redirect()->route('merchant.status'),
             'customer' => redirect('/'),
             default => redirect('/'),

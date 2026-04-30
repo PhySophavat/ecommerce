@@ -15,6 +15,11 @@ class MerchantController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         $query = Merchant::with(['user', 'location', 'approver'])
+            ->withCount([
+                'products',
+                'products as pending_products_count' => fn ($query) => $query->where('status', 'pending'),
+                'products as approved_products_count' => fn ($query) => $query->where('status', 'approved'),
+            ])
             ->orderBy('created_at', 'desc');
 
         // Filter by status
@@ -42,7 +47,7 @@ class MerchantController extends Controller
         $merchants = $query->paginate(15);
 
         if ($request->expectsJson()) {
-            return response()->json(AdminDashboardData::accountsIndex('merchants'));
+            return response()->json($this->indexPayload($merchants));
         }
 
         return $this->page('merchants', 'Admin | Merchants');
@@ -51,6 +56,11 @@ class MerchantController extends Controller
     public function pending(Request $request): View|JsonResponse
     {
         $query = Merchant::with(['user', 'location'])
+            ->withCount([
+                'products',
+                'products as pending_products_count' => fn ($query) => $query->where('status', 'pending'),
+                'products as approved_products_count' => fn ($query) => $query->where('status', 'approved'),
+            ])
             ->where('status', 'Pending')
             ->orderBy('created_at', 'desc');
 
@@ -65,7 +75,12 @@ class MerchantController extends Controller
 
     public function show(Request $request, Merchant $merchant): JsonResponse|View
     {
-        $merchant->load(['user', 'location', 'approver']);
+        $merchant->load(['user', 'location', 'approver'])
+            ->loadCount([
+                'products',
+                'products as pending_products_count' => fn ($query) => $query->where('status', 'pending'),
+                'products as approved_products_count' => fn ($query) => $query->where('status', 'approved'),
+            ]);
 
         if ($request->expectsJson()) {
             return response()->json($this->showPayload($merchant));
@@ -187,6 +202,9 @@ class MerchantController extends Controller
             'verification_status' => $merchant->verification_status,
             'status' => $merchant->status,
             'rejection_reason' => $merchant->rejection_reason,
+            'products_count' => (int) ($merchant->products_count ?? 0),
+            'pending_products_count' => (int) ($merchant->pending_products_count ?? 0),
+            'approved_products_count' => (int) ($merchant->approved_products_count ?? 0),
             'created_at' => $merchant->created_at->toIso8601String(),
             'approved_at' => $merchant->approved_at?->toIso8601String(),
             'user' => [
@@ -247,6 +265,32 @@ class MerchantController extends Controller
                 'kicker' => 'Merchant approval queue',
                 'subheadline' => 'Review registrations waiting for approval before sellers can access the merchant area.',
             ],
+            'menu' => $this->normalizeMerchantMenu($base['menu']),
+            'stats' => $this->merchantStats(),
+            'merchants' => $merchants->map(fn ($merchant) => $this->merchantPayload($merchant, true))->values()->all(),
+            'pagination' => [
+                'current_page' => $merchants->currentPage(),
+                'last_page' => $merchants->lastPage(),
+                'per_page' => $merchants->perPage(),
+                'total' => $merchants->total(),
+            ],
+        ];
+    }
+
+    private function indexPayload($merchants): array
+    {
+        $base = AdminDashboardData::accountsIndex('merchants');
+
+        return [
+            ...$base,
+            'screen' => 'merchants',
+            'meta' => [
+                ...$base['meta'],
+                'page_title' => 'Merchants',
+                'kicker' => 'Seller management',
+                'subheadline' => 'Create merchant accounts, review their store information, and manage seller access from one place.',
+            ],
+            'menu' => $this->normalizeMerchantMenu($base['menu']),
             'stats' => $this->merchantStats(),
             'merchants' => $merchants->map(fn ($merchant) => $this->merchantPayload($merchant, true))->values()->all(),
             'pagination' => [
@@ -271,9 +315,42 @@ class MerchantController extends Controller
                 'kicker' => 'Merchant review',
                 'subheadline' => 'Inspect merchant, owner, and location information before taking action.',
             ],
+            'menu' => $this->normalizeMerchantMenu($base['menu']),
             'stats' => $this->merchantStats(),
             'merchant' => $this->merchantPayload($merchant, true),
         ];
+    }
+
+    private function activateMenuItems(array $menuItems, array $activeSlugs): array
+    {
+        return array_map(function (array $item) use ($activeSlugs) {
+            $children = isset($item['children']) && is_array($item['children'])
+                ? $this->activateMenuItems($item['children'], $activeSlugs)
+                : [];
+
+            $childIsActive = collect($children)->contains(fn (array $child): bool => (bool) ($child['is_active'] ?? false));
+            $isActive = in_array($item['slug'] ?? null, $activeSlugs, true) || $childIsActive;
+
+            return [
+                ...$item,
+                'children' => $children,
+                'is_active' => $isActive,
+                'is_expanded' => ($item['is_expanded'] ?? false) || $isActive,
+            ];
+        }, $menuItems);
+    }
+
+    private function normalizeMerchantMenu(array $menuItems): array
+    {
+        $menuItems = $this->activateMenuItems($menuItems, ['users-admin-management', 'merchants']);
+
+        if (isset($menuItems[8]['children'][1])) {
+            $menuItems[8]['is_active'] = true;
+            $menuItems[8]['is_expanded'] = true;
+            $menuItems[8]['children'][1]['is_active'] = true;
+        }
+
+        return $menuItems;
     }
 
     private function merchantStats(): array

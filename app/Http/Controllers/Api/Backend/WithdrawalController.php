@@ -99,6 +99,7 @@ class WithdrawalController extends Controller
         return [
             'id' => $withdrawal->id,
             'amount' => number_format((float) $withdrawal->amount, 2, '.', ''),
+            'currency' => $withdrawal->currency ?? 'USD',
             'fee_amount' => number_format((float) $withdrawal->fee_amount, 2, '.', ''),
             'net_amount' => number_format((float) $withdrawal->net_amount, 2, '.', ''),
             'status' => $withdrawal->status,

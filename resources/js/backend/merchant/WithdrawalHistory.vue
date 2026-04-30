@@ -26,8 +26,8 @@
                 <tbody>
                     <tr v-for="item in withdrawals" :key="item.id" class="border-t border-slate-200">
                         <td class="px-4 py-4 font-semibold text-slate-950">
-                            {{ currency(item.amount) }}
-                            <p class="mt-1 text-xs font-medium text-slate-500">Net: {{ currency(item.net_amount) }}</p>
+                            {{ currency(item.amount, item.currency) }}
+                            <p class="mt-1 text-xs font-medium text-slate-500">Net: {{ currency(item.net_amount, item.currency) }}</p>
                         </td>
                         <td class="px-4 py-4 text-slate-600">
                             <p class="font-semibold text-slate-900">{{ item.bank_account?.bank_name }}</p>
@@ -55,8 +55,16 @@ defineProps({
     },
 });
 
-function currency(value) {
+function currency(value, code = 'USD') {
     const amount = Number.parseFloat(value ?? 0);
+
+    if (code === 'KHR') {
+        return new Intl.NumberFormat('km-KH', {
+            style: 'currency',
+            currency: 'KHR',
+            maximumFractionDigits: 0,
+        }).format(Number.isNaN(amount) ? 0 : amount);
+    }
 
     return new Intl.NumberFormat('en-US', {
         style: 'currency',

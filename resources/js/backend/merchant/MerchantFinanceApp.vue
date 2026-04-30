@@ -1,49 +1,26 @@
 <template>
-    <div class="min-h-screen bg-[linear-gradient(180deg,#fff8fc_0%,#f9fafb_45%,#eef4ff_100%)] px-4 py-6 sm:px-6 lg:px-8">
-        <div class="mx-auto max-w-7xl">
-            <div class="overflow-hidden rounded-[32px] border border-slate-200 bg-white/95 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur">
-                <div class="border-b border-slate-200 bg-[radial-gradient(circle_at_top_left,rgba(162,95,136,0.18),transparent_36%),radial-gradient(circle_at_top_right,rgba(251,191,36,0.18),transparent_30%),white] px-6 py-8 sm:px-8">
-                    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#A25F88]">Merchant Wallet</p>
-                            <h1 class="mt-2 text-3xl font-extrabold tracking-[-0.05em] text-slate-950">Wallet, deposits, withdrawals, and payout accounts</h1>
-                            <p class="mt-2 max-w-2xl text-sm text-slate-600">
-                                Track wallet balances, top up via KHQR, request payouts, and review your full wallet ledger.
-                            </p>
-                        </div>
+    <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
+        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
+            <AdminSidebar
+                :dashboard="dashboard"
+                :is-menu-open="isMenuOpen"
+                :screen="screen"
+                @select-item="handleMenuSelection"
+                @toggle-menu="toggleMenu"
+            />
 
-                        <div class="grid gap-3 sm:grid-cols-3">
-                            <article class="rounded-3xl border border-slate-200 bg-white px-4 py-4">
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Available</p>
-                                <p class="mt-2 text-2xl font-extrabold text-slate-950">{{ currency(wallet.available_balance) }}</p>
-                            </article>
-                            <article class="rounded-3xl border border-slate-200 bg-white px-4 py-4">
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pending</p>
-                                <p class="mt-2 text-2xl font-extrabold text-amber-600">{{ currency(wallet.pending_balance) }}</p>
-                            </article>
-                            <article class="rounded-3xl border border-slate-200 bg-white px-4 py-4">
-                                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Wallet Total</p>
-                                <p class="mt-2 text-2xl font-extrabold text-slate-950">{{ currency(wallet.balance_total) }}</p>
-                            </article>
-                        </div>
-                    </div>
-                </div>
+            <div class="flex min-w-0 flex-1 flex-col">
+                <AdminHeader
+                    :dashboard="dashboard"
+                    :is-menu-open="isMenuOpen"
+                    :screen="screen"
+                    @primary-action="refresh"
+                    @refresh="refresh"
+                    @select-item="handleMenuSelection"
+                    @toggle-menu="toggleMenu"
+                />
 
-                <div class="border-b border-slate-200 px-6 py-4 sm:px-8">
-                    <nav class="flex flex-wrap gap-3">
-                        <a
-                            v-for="item in navItems"
-                            :key="item.key"
-                            :href="item.href"
-                            class="rounded-full px-4 py-2 text-sm font-semibold transition"
-                            :class="screen === item.key ? 'bg-[#A25F88] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                        >
-                            {{ item.label }}
-                        </a>
-                    </nav>
-                </div>
-
-                <div class="px-6 py-6 sm:px-8">
+                <main class="flex-1 p-4 sm:p-6 lg:p-7">
                     <section
                         v-if="notice"
                         class="mb-6 rounded-3xl border px-4 py-4 text-sm"
@@ -51,6 +28,20 @@
                     >
                         {{ notice.text }}
                     </section>
+
+                    <div class="mb-6 rounded-[30px] border border-slate-200 bg-white px-6 py-5 shadow-sm">
+                        <nav class="flex flex-wrap gap-3">
+                            <a
+                                v-for="item in navItems"
+                                :key="item.key"
+                                :href="item.href"
+                                class="rounded-full px-4 py-2 text-sm font-semibold transition"
+                                :class="screen === item.key ? 'bg-[#A25F88] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                            >
+                                {{ item.label }}
+                            </a>
+                        </nav>
+                    </div>
 
                     <div v-if="isLoading" class="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 text-center text-sm text-slate-500">
                         Loading wallet data...
@@ -63,8 +54,13 @@
                         :merchant="merchantProfile"
                         :providers="depositProviders"
                         :deposits="deposits"
+                        :bank-accounts="withdrawalAccounts"
+                        :minimum-amount="minimumAmount"
+                        :withdraw-fee="withdrawFee"
                         :is-submitting="isSubmitting"
+                        :success-token="withdrawalSuccessToken"
                         @submit-deposit="submitDeposit"
+                        @submit-withdrawal="submitWithdrawal"
                         @copied-khqr="showSuccess('KHQR code copied to clipboard.')"
                         @downloaded-khqr="showSuccess('KHQR image downloaded.')"
                     />
@@ -97,6 +93,7 @@
                         :minimum-amount="minimumAmount"
                         :withdraw-fee="withdrawFee"
                         :is-submitting="isSubmitting"
+                        :success-token="withdrawalSuccessToken"
                         @submit="submitWithdrawal"
                     />
 
@@ -107,14 +104,16 @@
                         :transactions="transactions"
                         @change-type="changeTransactionType"
                     />
-                </div>
+                </main>
             </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import AdminHeader from '../layout/AdminHeader.vue';
+import AdminSidebar from '../layout/AdminSidebar.vue';
 import MerchantBankAccounts from './MerchantBankAccounts.vue';
 import MerchantDeposit from './MerchantDeposit.vue';
 import MerchantTransactionHistory from './MerchantTransactionHistory.vue';
@@ -134,6 +133,7 @@ const isLoading = ref(true);
 const isSubmitting = ref(false);
 const busyId = ref(null);
 const notice = ref(null);
+const openMenus = ref({});
 const accounts = ref([]);
 const bankOptions = ref([]);
 const deposits = ref([]);
@@ -144,6 +144,7 @@ const transactions = ref([]);
 const transactionFilters = ref([]);
 const selectedTransactionType = ref('all');
 const withdrawalAccounts = ref([]);
+const withdrawalSuccessToken = ref(0);
 const minimumAmount = ref('10.00');
 const withdrawFee = ref('0.00');
 const wallet = ref({
@@ -155,10 +156,99 @@ const wallet = ref({
     total_deposited: '0.00',
     total_platform_fee_paid: '0.00',
 });
+const dashboard = computed(() => ({
+    meta: {
+        brand: 'E-commerce',
+        page_title: ({
+            wallet: 'Merchant Wallet',
+            deposit: 'Merchant Deposit',
+            withdraw: 'Merchant Withdrawals',
+            transactions: 'Merchant Transactions',
+            'bank-accounts': 'Merchant Bank Accounts',
+        })[screen] ?? 'Merchant Wallet',
+        kicker: 'Merchant finance',
+        subheadline: 'Track wallet balances, top up via KHQR, request payouts, and review your full wallet ledger.',
+    },
+    menu: [
+        {
+            label: 'Wallet',
+            slug: 'wallet',
+            icon: 'wallet',
+            path: '/merchant/wallet',
+            is_enabled: true,
+            is_active: screen === 'wallet',
+            is_expanded: false,
+            children: [],
+        },
+        {
+            label: 'Deposit',
+            slug: 'deposit',
+            icon: 'payments',
+            path: '/merchant/deposits',
+            is_enabled: true,
+            is_active: screen === 'deposit',
+            is_expanded: false,
+            children: [],
+        },
+        {
+            label: 'Withdrawals',
+            slug: 'merchant-finance',
+            icon: 'payments',
+            path: null,
+            is_enabled: true,
+            is_active: screen === 'withdraw' || screen === 'transactions' || screen === 'bank-accounts',
+            is_expanded: true,
+            children: [
+                {
+                    label: 'Withdraw',
+                    slug: 'withdraw',
+                    path: '/merchant/withdrawals',
+                    is_enabled: true,
+                    is_active: screen === 'withdraw',
+                    is_expanded: false,
+                    children: [],
+                },
+                {
+                    label: 'Transactions',
+                    slug: 'transactions',
+                    path: '/merchant/wallet/transactions',
+                    is_enabled: true,
+                    is_active: screen === 'transactions',
+                    is_expanded: false,
+                    children: [],
+                },
+                {
+                    label: 'Bank Accounts',
+                    slug: 'bank-accounts',
+                    path: '/merchant/bank-accounts',
+                    is_enabled: true,
+                    is_active: screen === 'bank-accounts',
+                    is_expanded: false,
+                    children: [],
+                },
+            ],
+        },
+    ],
+}));
 
 onMounted(async () => {
     await refresh();
 });
+
+function toggleMenu(slug) {
+    openMenus.value = {
+        ...openMenus.value,
+        [slug]: !openMenus.value[slug],
+    };
+}
+
+function isMenuOpen(slug) {
+    if (!(slug in openMenus.value)) {
+        return slug === 'merchant-finance';
+    }
+
+    return Boolean(openMenus.value[slug]);
+}
 
 async function refresh() {
     isLoading.value = true;
@@ -188,6 +278,13 @@ async function loadAccounts() {
     const response = await window.axios.get('/api/merchant/bank-accounts');
     accounts.value = response.data.accounts ?? [];
     bankOptions.value = response.data.meta?.bank_options ?? [];
+    withdrawalAccounts.value = accounts.value
+        .filter((account) => account.status === 'active')
+        .map((account) => ({
+            id: account.id,
+            label: `${account.bank_name} (${account.account_number ?? `****${account.account_number_last4 ?? ''}`})`,
+            is_default: Boolean(account.is_default),
+        }));
 }
 
 async function loadDeposits() {
@@ -205,7 +302,6 @@ async function loadWithdrawals() {
     };
     minimumAmount.value = response.data.minimum_amount ?? minimumAmount.value;
     withdrawFee.value = response.data.withdraw_fee ?? withdrawFee.value;
-    withdrawalAccounts.value = response.data.bank_accounts ?? [];
 }
 
 async function loadTransactions(type = selectedTransactionType.value) {
@@ -293,6 +389,7 @@ async function submitWithdrawal(payload) {
     try {
         const response = await window.axios.post('/api/merchant/withdrawals', payload);
         showSuccess(response.data.message ?? 'Withdrawal submitted.');
+        withdrawalSuccessToken.value += 1;
         await Promise.all([loadWithdrawals(), loadWallet(), loadTransactions()]);
     } catch (error) {
         showError(error, 'Unable to submit withdrawal.');
@@ -304,6 +401,20 @@ async function submitWithdrawal(payload) {
 
 function showSuccess(text) {
     notice.value = { type: 'success', text };
+}
+
+async function handleMenuSelection(item) {
+    if (item.slug === 'logout') {
+        await window.axios.post('/auth/logout');
+        window.location.assign('/login');
+        return;
+    }
+
+    if (!item.path || item.is_enabled === false) {
+        return;
+    }
+
+    window.location.href = item.path;
 }
 
 function showError(error, fallback) {

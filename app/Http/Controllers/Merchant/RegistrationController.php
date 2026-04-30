@@ -225,7 +225,74 @@ class RegistrationController extends Controller
 
         return view('merchant.status', [
             'title' => 'Merchant Registration Status',
-            'merchant' => $merchant->load('location'),
+            'context' => [
+                'app' => 'merchant-status',
+                'screen' => 'merchant-status',
+                'merchant' => [
+                    'shop_name' => $merchant->shop_name,
+                    'status' => $merchant->status,
+                    'verification_status' => $merchant->verification_status,
+                    'rejection_reason' => $merchant->rejection_reason,
+                    'created_at' => $merchant->created_at?->toIso8601String(),
+                    'owner' => [
+                        'name' => $merchant->user?->name,
+                        'email' => $merchant->user?->email,
+                        'phone' => $merchant->user?->phone,
+                    ],
+                    'location' => [
+                        'province_city' => $merchant->location?->province_city,
+                        'full_address' => $merchant->location?->full_address,
+                    ],
+                ],
+                'meta' => [
+                    'brand' => 'E-commerce',
+                    'page_title' => 'Merchant Status',
+                    'kicker' => 'Merchant review',
+                    'subheadline' => 'Track your merchant registration status before full merchant access is granted.',
+                ],
+                'menu' => [
+                    [
+                        'label' => 'Merchant',
+                        'slug' => 'merchant-home',
+                        'icon' => 'dashboard',
+                        'path' => null,
+                        'is_enabled' => false,
+                        'is_active' => false,
+                        'is_expanded' => false,
+                        'children' => [],
+                    ],
+                    [
+                        'label' => 'Status',
+                        'slug' => 'merchant-status',
+                        'icon' => 'notifications',
+                        'path' => route('merchant.status'),
+                        'is_enabled' => true,
+                        'is_active' => true,
+                        'is_expanded' => false,
+                        'children' => [],
+                    ],
+                    [
+                        'label' => 'Wallet',
+                        'slug' => 'merchant-wallet',
+                        'icon' => 'wallet',
+                        'path' => null,
+                        'is_enabled' => false,
+                        'is_active' => false,
+                        'is_expanded' => false,
+                        'children' => [],
+                    ],
+                    [
+                        'label' => 'Withdrawals',
+                        'slug' => 'merchant-withdrawals',
+                        'icon' => 'payments',
+                        'path' => null,
+                        'is_enabled' => false,
+                        'is_active' => false,
+                        'is_expanded' => false,
+                        'children' => [],
+                    ],
+                ],
+            ],
         ]);
     }
 

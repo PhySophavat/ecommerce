@@ -15,21 +15,9 @@ class ProductController extends Controller
     /**
      * Show merchant dashboard
      */
-    public function dashboard(): View
+    public function dashboard(): \Illuminate\Http\RedirectResponse
     {
-        $user = auth()->user();
-        
-        $stats = [
-            'total_products' => $user->products()->count(),
-            'pending_products' => $user->products()->where('status', 'pending')->count(),
-            'approved_products' => $user->products()->where('status', 'approved')->count(),
-            'rejected_products' => $user->products()->where('status', 'rejected')->count(),
-        ];
-
-        return view('merchant.dashboard', [
-            'title' => 'Merchant | Dashboard',
-            'stats' => $stats,
-        ]);
+        return redirect()->route('merchant.wallet');
     }
 
     /**

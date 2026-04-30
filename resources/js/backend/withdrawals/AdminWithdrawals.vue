@@ -10,15 +10,7 @@
             />
 
             <div class="flex min-w-0 flex-1 flex-col">
-                <AdminHeader
-                    :dashboard="dashboard"
-                    :is-menu-open="isMenuOpen"
-                    :screen="screen"
-                    @primary-action="loadDashboard"
-                    @refresh="loadDashboard"
-                    @select-item="handleMenuSelection"
-                    @toggle-menu="toggleMenu"
-                />
+               
 
                 <main class="flex-1 p-4 sm:p-6 lg:p-7">
                     <section
@@ -41,11 +33,11 @@
                             </article>
                         </section>
 
-                        <section class="rounded-[30px] border border-slate-200 bg-white px-6 py-6 shadow-sm">
-                            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <section class="withdraw-card overflow-hidden rounded-2xl">
+                            <div class="withdraw-card-header px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Payout queue</p>
-                                    <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Merchant withdrawal requests</h2>
+                                    <p class="withdraw-kicker">Payout queue</p>
+                                    <h2 class="withdraw-title mt-1">Merchant withdrawal requests</h2>
                                 </div>
 
                                 <div class="flex flex-wrap gap-2">
@@ -53,8 +45,8 @@
                                         v-for="filter in filters"
                                         :key="filter.value"
                                         type="button"
-                                        class="rounded-full px-4 py-2 text-sm font-semibold transition"
-                                        :class="selectedStatus === filter.value ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                        class="withdraw-filter rounded-xl px-4 py-2 text-sm"
+                                        :class="selectedStatus === filter.value ? 'withdraw-filter-active' : 'withdraw-filter-idle'"
                                         @click="changeStatus(filter.value)"
                                     >
                                         {{ filter.label }}
@@ -62,38 +54,123 @@
                                 </div>
                             </div>
 
-                            <div v-if="withdrawals.length === 0" class="mt-6 rounded-[24px] border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center text-sm text-slate-500">
+                            <div class="withdraw-toolbar border-b border-slate-200 px-6 py-3">
+                                <!-- <p class="text-xs text-slate-500">Review merchant payout requests.</p> -->
+                            </div>
+
+                            <div class="mt-6 flex justify-center px-6">
+                                 
+
+                                    <section class="w-full xl:w-[80%] rounded-2xl border border-slate-200 bg-white p-5">
+                                     
+
+                                        <div class="mt-6 space-y-5">
+                                            <label class="block">
+                                                <span class="mb-2 block text-sm font-semibold text-slate-700">Currency</span>
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <button
+                                                        type="button"
+                                                        class="rounded-2xl border px-4 py-3 text-left transition"
+                                                        :class="actionForm.currency === 'USD'
+                                                            ? 'border-[#A25F88] bg-[#A25F88] text-white shadow-sm'
+                                                            : 'border-slate-200 bg-slate-50 text-slate-900 hover:border-[#A25F88]/40 hover:bg-white'"
+                                                        @click="actionForm.currency = 'USD'; normalizeActionAmount()"
+                                                    >
+                                                        <p class="text-sm font-bold">USD</p>
+                                                        <p class="mt-1 text-xs" :class="actionForm.currency === 'USD' ? 'text-white/80' : 'text-slate-500'">Dollar $</p>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        class="rounded-2xl border px-4 py-3 text-left transition"
+                                                        :class="actionForm.currency === 'KHR'
+                                                            ? 'border-[#A25F88] bg-[#A25F88] text-white shadow-sm'
+                                                            : 'border-slate-200 bg-slate-50 text-slate-900 hover:border-[#A25F88]/40 hover:bg-white'"
+                                                        @click="actionForm.currency = 'KHR'; normalizeActionAmount()"
+                                                    >
+                                                        <p class="text-sm font-bold">KHR</p>
+                                                        <p class="mt-1 text-xs" :class="actionForm.currency === 'KHR' ? 'text-white/80' : 'text-slate-500'">Khmer Riel ៛</p>
+                                                    </button>
+                                                </div>
+                                            </label>
+
+                                            <label class="block">
+                                                <span class="mb-2 block text-sm font-semibold text-slate-700">Amount</span>
+                                                <div class="relative">
+                                                    <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
+                                                        {{ actionForm.currency === 'KHR' ? '៛' : '$' }}
+                                                    </span>
+                                                    <input
+                                                        v-model="actionForm.amount"
+                                                        type="number"
+                                                        :step="actionForm.currency === 'KHR' ? '1' : '0.01'"
+                                                        min="0"
+                                                        :inputmode="actionForm.currency === 'KHR' ? 'numeric' : 'decimal'"
+                                                        class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-900 outline-none"
+                                                        :placeholder="actionForm.currency === 'KHR' ? 'KHR' : 'USD'"
+                                                        @input="normalizeActionAmount"
+                                                    >
+                                                </div>
+                                                <p class="mt-2 text-xs text-slate-500">
+                                                    {{ actionForm.currency === 'KHR' ? 'KHR accepts whole numbers ' : 'USD accepts decimal amounts like 10.50.' }}
+                                                </p>
+                                            </label>
+
+                                            <div class="rounded-2xl border border-dashed border-[#A25F88] bg-[#fff7fb] hover:bg-[#D4A5C1] px-4 py-4 text-sm text-slate-600">
+                                                <button class="font-semibold text-oklch(40.8% 0.153 2.432)">Withdrawal request:</button>
+                                                <!-- This request is submitted for merchant withdrawal. Review the selected currency and amount before processing it. -->
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                            <!-- </div> -->
+
+                            <div v-if="false" class="mx-6 my-5 rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center text-sm text-slate-500">
                                 No withdrawals match this filter.
                             </div>
 
-                            <div v-else class="mt-6 overflow-x-auto rounded-[28px] border border-slate-200">
+                            <div class="withdraw-table-wrap mt-5 overflow-x-auto">
                                 <table class="min-w-[1080px] w-full text-sm">
                                     <thead class="bg-slate-50 text-left text-[11px] uppercase tracking-[0.16em] text-slate-400">
-                                        <tr>
+                                        <tr class="withdraw-table-head">
                                             <th class="px-5 py-4">Merchant</th>
+                                            <th class="px-4 py-4">Currency</th>
                                             <th class="px-4 py-4">Amount</th>
                                             <th class="px-4 py-4">Bank Account</th>
+                                            <th class="px-4 py-4">Note</th>
                                             <th class="px-4 py-4">Status</th>
                                             <th class="px-4 py-4">Created</th>
                                             <th class="px-5 py-4 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr v-for="item in withdrawals" :key="item.id" class="border-t border-slate-200">
+                                        <tr v-if="withdrawals.length === 0">
+                                            <td colspan="8" class="px-5 py-12 text-center text-sm text-slate-500">
+                                                No withdrawals match this filter.
+                                            </td>
+                                        </tr>
+                                        <tr v-for="item in withdrawals" :key="item.id" class="withdraw-table-row">
                                             <td class="px-5 py-4">
                                                 <p class="font-bold text-slate-950">{{ item.merchant?.shop_name }}</p>
                                                 <p class="text-slate-500">{{ item.merchant?.owner_name }} • {{ item.merchant?.email }}</p>
                                             </td>
                                             <td class="px-4 py-4">
-                                                <p class="font-bold text-slate-950">{{ currency(item.amount) }}</p>
-                                                <p class="text-slate-500">Net {{ currency(item.net_amount) }} • Fee {{ currency(item.fee_amount) }}</p>
+                                                <p class="font-bold text-slate-950">{{ item.currency }}</p>
+                                                <p class="text-slate-500">{{ currencyLabel(item.currency) }}</p>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <p class="font-bold text-slate-950">{{ currency(item.amount, item.currency) }}</p>
+                                                <p class="text-slate-500">Net {{ currency(item.net_amount, item.currency) }} • Fee {{ currency(item.fee_amount, item.currency) }}</p>
                                             </td>
                                             <td class="px-4 py-4 text-slate-600">
                                                 <p class="font-semibold text-slate-900">{{ item.bank_account?.bank_name }}</p>
                                                 <p>{{ item.bank_account?.account_name }} • {{ item.bank_account?.account_number }}</p>
                                             </td>
+                                            <td class="px-4 py-4 text-slate-600">
+                                                <p class="max-w-[220px] whitespace-normal break-words">{{ item.note || '-' }}</p>
+                                            </td>
                                             <td class="px-4 py-4">
-                                                <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]" :class="statusClass(item.status)">
+                                                <span class="withdraw-badge" :class="statusClass(item.status)">
                                                     {{ item.status }}
                                                 </span>
                                             </td>
@@ -133,8 +210,13 @@
                                     </tbody>
                                 </table>
                             </div>
+
+                            <div class="withdraw-table-footer px-6 py-3">
+                                <span class="text-xs text-slate-400">{{ withdrawals.length > 0 ? `Showing ${withdrawals.length} withdrawal requests` : 'No withdrawal requests yet' }}</span>
+                            </div>
                         </section>
                     </template>
+
                 </main>
             </div>
         </div>
@@ -142,7 +224,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import AdminHeader from '../layout/AdminHeader.vue';
 import AdminSidebar from '../layout/AdminSidebar.vue';
 
@@ -171,12 +253,22 @@ const dashboard = ref({
 });
 const filters = ref([]);
 const withdrawals = ref([]);
+const actionPanel = ref(null);
 const summary = ref({
     all: 0,
     pending: 0,
     approved: 0,
     rejected: 0,
     paid: 0,
+});
+const actionForm = reactive({
+    action: '',
+    note: '',
+    item: null,
+    currency: 'USD',
+    amount: '',
+    bank_label: '',
+    bank_detail: '',
 });
 
 const statCards = computed(() => [
@@ -186,6 +278,21 @@ const statCards = computed(() => [
     { label: 'Rejected', value: String(summary.value.rejected ?? 0) },
     { label: 'Paid', value: String(summary.value.paid ?? 0) },
 ]);
+const actionTitle = computed(() => ({
+    approve: 'Approve withdrawal',
+    reject: 'Reject withdrawal',
+    'mark-paid': 'Mark withdrawal as paid',
+}[actionForm.action] ?? 'Update withdrawal'));
+const actionButtonLabel = computed(() => ({
+    approve: 'Approve',
+    reject: 'Reject',
+    'mark-paid': 'Mark Paid',
+}[actionForm.action] ?? 'Submit'));
+const actionPlaceholder = computed(() => ({
+    approve: 'Optional note for approval.',
+    reject: 'Reason for rejection.',
+    'mark-paid': 'Optional transfer reference or payout note.',
+}[actionForm.action] ?? 'Optional note.'));
 
 onMounted(async () => {
     await loadDashboard();
@@ -223,8 +330,77 @@ async function changeStatus(status) {
     await loadDashboard();
 }
 
-async function runAction(item, action) {
-    const note = window.prompt('Optional note:', '') ?? '';
+function runAction(item, action) {
+    actionForm.item = item;
+    actionForm.action = action;
+    actionForm.note = item.note ?? '';
+    actionForm.currency = item.currency ?? 'USD';
+    actionForm.amount = item.amount ?? '';
+    actionForm.bank_label = item.bank_account?.bank_name ?? '';
+    actionForm.bank_detail = [item.bank_account?.account_name, item.bank_account?.account_number].filter(Boolean).join(' • ');
+    nextTick(() => {
+        actionPanel.value?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+        });
+    });
+}
+
+function closeActionForm() {
+    actionForm.action = '';
+    actionForm.note = '';
+    actionForm.item = null;
+    actionForm.currency = 'USD';
+    actionForm.amount = '';
+    actionForm.bank_label = '';
+    actionForm.bank_detail = '';
+}
+
+function normalizeActionAmount() {
+    if (actionForm.amount === '') {
+        return;
+    }
+
+    if (actionForm.currency === 'KHR') {
+        const amount = Number.parseFloat(actionForm.amount || '0');
+        actionForm.amount = Number.isNaN(amount) ? '' : String(Math.max(Math.trunc(amount), 0));
+        return;
+    }
+
+    const amount = Number.parseFloat(actionForm.amount || '0');
+    actionForm.amount = Number.isNaN(amount) ? '' : String(amount);
+}
+
+function setAction(action) {
+    if (!canRunAction(action)) {
+        return;
+    }
+
+    actionForm.action = action;
+}
+
+function canRunAction(action) {
+    if (!actionForm.item) {
+        return false;
+    }
+
+    if (action === 'approve' || action === 'reject') {
+        return actionForm.item.status === 'pending';
+    }
+
+    if (action === 'mark-paid') {
+        return actionForm.item.status === 'approved';
+    }
+
+    return false;
+}
+
+async function submitActionForm() {
+    if (!actionForm.item || !actionForm.action) {
+        return;
+    }
+
+    const { item, action, note } = actionForm;
     processingId.value = item.id;
 
     try {
@@ -238,6 +414,7 @@ async function runAction(item, action) {
         };
 
         await loadDashboard();
+        closeActionForm();
     } catch (error) {
         showError(error, 'Unable to update withdrawal.');
     } finally {
@@ -292,8 +469,16 @@ function showError(error, fallback) {
     };
 }
 
-function currency(value) {
+function currency(value, code = 'USD') {
     const amount = Number.parseFloat(value ?? 0);
+
+    if (code === 'KHR') {
+        return new Intl.NumberFormat('km-KH', {
+            style: 'currency',
+            currency: 'KHR',
+            maximumFractionDigits: 0,
+        }).format(Number.isNaN(amount) ? 0 : amount);
+    }
 
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -313,12 +498,129 @@ function formatDate(value) {
     }).format(new Date(value));
 }
 
+function formatDateTime(value) {
+    if (!value) {
+        return '-';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(new Date(value));
+}
+
+function currencyLabel(code) {
+    return {
+        USD: 'US Dollar',
+        KHR: 'Khmer Riel',
+    }[code] ?? code ?? '-';
+}
+
 function statusClass(status) {
     return {
-        pending: 'bg-amber-100 text-amber-700',
-        approved: 'bg-sky-100 text-sky-700',
-        rejected: 'bg-rose-100 text-rose-700',
-        paid: 'bg-emerald-100 text-emerald-700',
-    }[status] ?? 'bg-slate-100 text-slate-700';
+        pending: 'badge-pending',
+        approved: 'badge-approved',
+        rejected: 'badge-rejected',
+        paid: 'badge-paid',
+    }[status] ?? 'badge-default';
 }
 </script>
+
+<style scoped>
+.withdraw-card {
+    background: #fff;
+    border: 0.5px solid #e2e8f0;
+}
+
+.withdraw-card-header {
+    border-bottom: 0.5px solid #e2e8f0;
+}
+
+.withdraw-toolbar,
+.withdraw-table-footer {
+    background: #fafafa;
+}
+
+.withdraw-kicker {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.withdraw-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.withdraw-filter {
+    font-weight: 500;
+    border: 0.5px solid #cbd5e1;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+
+.withdraw-filter-active {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #fff;
+}
+
+.withdraw-filter-idle {
+    background: #fff;
+    color: #475569;
+}
+
+.withdraw-filter-idle:hover {
+    background: #f8fafc;
+}
+
+.withdraw-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.withdraw-table-wrap {
+    border-top: 0.5px solid #e2e8f0;
+}
+
+.withdraw-table-head th {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 0.5px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.withdraw-table-row {
+    border-bottom: 0.5px solid #f1f5f9;
+    transition: background 0.1s;
+}
+
+.withdraw-table-row:hover {
+    background: #f8fafc;
+}
+
+.withdraw-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.badge-pending { background: #fef3c7; color: #92400e; }
+.badge-approved { background: #dbeafe; color: #1d4ed8; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
+.badge-paid { background: #d1fae5; color: #065f46; }
+.badge-default { background: #f1f5f9; color: #64748b; }
+</style>

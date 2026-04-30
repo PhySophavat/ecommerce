@@ -14,6 +14,7 @@ class Withdrawal extends Model
         'merchant_id',
         'bank_account_id',
         'amount',
+        'currency',
         'fee_amount',
         'net_amount',
         'status',
