@@ -113,9 +113,10 @@ class WithdrawalController extends Controller
             'bank_account' => [
                 'id' => $withdrawal->bankAccount?->id,
                 'bank_name' => $withdrawal->bankAccount?->bank_name,
-                'account_name' => $withdrawal->bankAccount?->account_name,
+                'account_holder_name' => $withdrawal->bankAccount?->account_holder_name,
                 'account_number' => $withdrawal->bankAccount?->maskedAccountNumber(),
                 'account_type' => $withdrawal->bankAccount?->account_type,
+                'currency' => $withdrawal->bankAccount?->currency,
             ],
             'created_at' => $withdrawal->created_at?->toIso8601String(),
             'approved_at' => $withdrawal->approved_at?->toIso8601String(),

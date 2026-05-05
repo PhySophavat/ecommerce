@@ -18,7 +18,7 @@ class WithdrawalController extends Controller
     public function index(Request $request): JsonResponse
     {
         $merchant = $this->merchant($request)->load([
-            'bankAccounts' => fn ($query) => $query->where('status', 'active')->orderByDesc('is_default')->orderByDesc('id'),
+            'bankAccounts' => fn ($query) => $query->where('status', 'approved')->orderByDesc('is_default')->orderByDesc('id'),
         ]);
 
         $withdrawals = $merchant->withdrawals()
@@ -32,8 +32,10 @@ class WithdrawalController extends Controller
             'withdraw_fee' => number_format($this->withdrawalService->feeAmount(), 2, '.', ''),
             'bank_accounts' => $merchant->bankAccounts->map(fn ($account): array => [
                 'id' => $account->id,
-                'label' => sprintf('%s - %s (%s)', $account->bank_name, $account->account_name, $account->maskedAccountNumber()),
+                'label' => sprintf('%s - %s (%s)', $account->bank_name, $account->account_holder_name, $account->maskedAccountNumber()),
                 'is_default' => (bool) $account->is_default,
+                'currency' => $account->currency,
+                'account_type' => $account->account_type,
             ])->values()->all(),
             'withdrawals' => $withdrawals->map(fn (Withdrawal $withdrawal): array => $this->payload($withdrawal))->all(),
         ]);
@@ -60,7 +62,8 @@ class WithdrawalController extends Controller
 
         $bankAccount = $merchant->bankAccounts()
             ->whereKey($validated['bank_account_id'])
-            ->where('status', 'active')
+            ->where('status', 'approved')
+            ->where('currency', $validated['currency'])
             ->firstOrFail();
 
         $withdrawal = $this->withdrawalService->create(
@@ -110,9 +113,10 @@ class WithdrawalController extends Controller
             'bank_account' => [
                 'id' => $withdrawal->bankAccount?->id,
                 'bank_name' => $withdrawal->bankAccount?->bank_name,
-                'account_name' => $withdrawal->bankAccount?->account_name,
+                'account_holder_name' => $withdrawal->bankAccount?->account_holder_name,
                 'account_number' => $withdrawal->bankAccount?->maskedAccountNumber(),
                 'account_type' => $withdrawal->bankAccount?->account_type,
+                'currency' => $withdrawal->bankAccount?->currency,
             ],
             'created_at' => $withdrawal->created_at?->toIso8601String(),
             'approved_at' => $withdrawal->approved_at?->toIso8601String(),

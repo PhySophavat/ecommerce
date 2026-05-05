@@ -9,13 +9,20 @@ use Symfony\Component\HttpFoundation\Response;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!$request->user()) {
             return redirect()->route('login');
         }
 
-        if ($request->user()->role !== $role) {
+        $allowedRoles = collect($roles)
+            ->flatMap(fn (string $value): array => explode(',', $value))
+            ->map(fn (string $value): string => trim($value))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (!in_array($request->user()->role, $allowedRoles, true)) {
             if ($request->expectsJson()) {
                 abort(403, 'Unauthorized access.');
             }
@@ -30,8 +37,19 @@ class RoleMiddleware
     {
         return match ($role) {
             'admin' => redirect()->route('admin.dashboard'),
-            'merchant' => redirect()->route('merchant.status'),
+            'merchant' => $this->redirectMerchant(),
             default => redirect('/'),
         };
+    }
+
+    private function redirectMerchant(): RedirectResponse
+    {
+        $merchant = auth()->user()?->merchant;
+
+        if (!$merchant || !$merchant->isApproved()) {
+            return redirect()->route('merchant.status');
+        }
+
+        return redirect()->route('merchant.dashboard');
     }
 }

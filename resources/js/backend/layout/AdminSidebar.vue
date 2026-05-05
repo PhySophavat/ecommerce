@@ -170,9 +170,11 @@ const currentUserSubtitle = computed(() => {
     return currentUser.value.email || currentUser.value.role || 'Sign out';
 });
 const currentRoleLabel = computed(() => {
-    const role = currentUser.value?.role;
+    if (!currentUser.value) {
+        return 'Backend';
+    }
 
-    return role === 'merchant' ? 'Merchant' : 'Admin';
+    return 'Backend access';
 });
 const menuItems = computed(() => {
     const normalized = (props.dashboard?.menu ?? []).map(normalizeItem).filter(Boolean);
@@ -247,6 +249,7 @@ function iconPath(icon) {
         orders: 'M7 7h10l2 3-7 7-7-7 2-3Zm5 10v4',
         customers: 'M16 19a4 4 0 0 0-8 0M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 7a3 3 0 0 0-3-3m-8-8a3 3 0 1 0-3-3m13 10a3 3 0 0 1 3 3',
         wallet: 'M5 8.5h14v9H5v-9Zm2 2.5h5M15 13h2m-7 4v2m4-2v2',
+        'bank-accounts': 'M4 7h16v10H4V7Zm2 3h6m4 0h2m-8 4h8M7 5h10',
         payments: 'M3 7.5h18v9H3v-9Zm0 3h18M7 14h3',
         promotions: 'm7 7 10 10M7 7h5v5H7V7Zm5 5 5-5',
         reports: 'M5 19V9m7 10V5m7 14v-7',

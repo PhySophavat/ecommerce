@@ -56,7 +56,7 @@ class MerchantRegistrationTest extends TestCase
         $this->assertNotNull($merchant->id_card_document);
     }
 
-    public function test_pending_merchant_is_redirected_to_status_until_admin_approves(): void
+    public function test_pending_merchant_login_redirects_to_merchant_status(): void
     {
         $merchantUser = User::create([
             'name' => 'Merchant',
@@ -76,20 +76,8 @@ class MerchantRegistrationTest extends TestCase
 
         $this->actingAs($merchantUser);
 
-        $this->get('/merchant/products')->assertRedirect('/merchant/status');
+        $this->get('/auth/dashboard')->assertRedirect('/merchant/status');
         $this->get('/merchant/status')->assertOk();
-
-        $admin = $this->signInAsAdmin();
-        $this->post("/admin/merchants/{$merchant->id}/approve")->assertRedirect();
-
-        $merchantUser->refresh();
-        $merchant->refresh();
-
-        $this->assertSame('Approved', $merchant->status);
-        $this->assertSame('Verified', $merchant->verification_status);
-
-        $this->actingAs($merchantUser);
-        $this->get('/merchant/status')->assertRedirect('/merchant/dashboard');
     }
 
     public function test_admin_cannot_access_merchant_finance_routes(): void

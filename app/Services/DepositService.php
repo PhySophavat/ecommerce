@@ -36,19 +36,52 @@ class DepositService
         $provider = $this->provider($bankName);
         $proofPath = $paymentProof?->store('merchant/deposits', 'public');
 
-        return MerchantDeposit::query()->create([
-            'merchant_id' => $merchant->getKey(),
-            'bank_name' => $provider['bank_name'],
-            'account_name' => $accountName,
-            'account_number' => $accountNumber,
-            'phone_number' => $phoneNumber,
-            'amount' => round($amount, 2),
-            'payment_method' => 'khqr',
-            'khqr_code' => $this->buildKhqrCode($merchant, $provider, round($amount, 2)),
-            'payment_proof' => $proofPath,
-            'status' => 'pending',
-            'note' => $this->nullableString($note),
-        ])->load('merchant.user');
+        return DB::transaction(function () use (
+            $merchant,
+            $provider,
+            $accountName,
+            $accountNumber,
+            $phoneNumber,
+            $amount,
+            $proofPath,
+            $note
+        ): MerchantDeposit {
+            $merchant = Merchant::query()->lockForUpdate()->findOrFail($merchant->getKey());
+            $amount = round($amount, 2);
+
+            $deposit = MerchantDeposit::query()->create([
+                'merchant_id' => $merchant->getKey(),
+                'bank_name' => $provider['bank_name'],
+                'account_name' => $accountName,
+                'account_number' => $accountNumber,
+                'phone_number' => $phoneNumber,
+                'amount' => $amount,
+                'payment_method' => 'khqr',
+                'khqr_code' => $this->buildKhqrCode($merchant, $provider, $amount),
+                'payment_proof' => $proofPath,
+                'status' => 'approved',
+                'note' => $this->nullableString($note),
+                'admin_note' => 'Auto-approved on merchant submission.',
+                'approved_at' => now(),
+            ]);
+
+            $merchant->increment('available_balance', $amount);
+            $merchant->increment('balance_total', $amount);
+            $merchant->increment('total_deposited', $amount);
+            $merchant->refresh();
+
+            $this->walletTransactionService->record(
+                $merchant,
+                'deposit',
+                $amount,
+                'credit',
+                MerchantDeposit::class,
+                $deposit->getKey(),
+                sprintf('Deposit submitted via %s and credited automatically.', strtoupper((string) $provider['bank_name'])),
+            );
+
+            return $deposit->fresh(['merchant.user']);
+        });
     }
 
     public function approve(MerchantDeposit $deposit, ?string $adminNote = null): MerchantDeposit

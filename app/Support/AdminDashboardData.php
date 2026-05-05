@@ -340,9 +340,26 @@ class AdminDashboardData
         ];
     }
 
+    public static function bankAccountsPage(): array
+    {
+        $meta = self::metaForScreen('bank-accounts');
+
+        return [
+            'screen' => 'bank-accounts',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('bank-accounts')),
+        ];
+    }
+
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet', 'bank-accounts'], true) ? $screen : 'products';
     }
 
     /**
@@ -386,6 +403,11 @@ class AdminDashboardData
                 'kicker' => 'Finance overview',
                 'subheadline' => 'Review merchant deposit and withdrawal activity from a single admin wallet overview.',
             ],
+            'bank-accounts' => [
+                'page_title' => 'Bank Accounts',
+                'kicker' => 'Merchant payouts',
+                'subheadline' => 'Approve, reject, disable, and clean up merchant payout accounts before they can be used for withdrawals.',
+            ],
             'withdrawals' => [
                 'page_title' => 'Withdrawals',
                 'kicker' => 'Merchant payouts',
@@ -422,6 +444,7 @@ class AdminDashboardData
             'users' => ['users-admin-management', 'admin-users'],
             'merchants' => ['users-admin-management', 'merchants'],
             'wallet' => ['wallet'],
+            'bank-accounts' => ['bank-accounts'],
             'platform-fee-settings' => ['settings', 'platform-fee-settings'],
             'deposits' => ['payments', 'deposits'],
             'withdrawals' => ['payments', 'withdrawals'],
@@ -772,6 +795,7 @@ class AdminDashboardData
             'admin_users' => route('admin.users.index'),
             'admin_merchants' => route('admin.merchants.index'),
             'admin_wallet' => route('admin.wallet.index'),
+            'admin_bank_accounts' => route('admin.bank-accounts.index'),
             'admin_deposits' => route('admin.deposits.index'),
             'admin_withdrawals' => route('admin.withdrawals.index'),
             'logout' => route('auth.logout'),

@@ -6,6 +6,7 @@ import MerchantRegistrationApp from './backend/merchant/MerchantRegistrationApp.
 import MerchantManagerPage from './backend/merchant/MerchantManagerPage.vue';
 import MerchantStatusApp from './backend/merchant/MerchantStatusApp.vue';
 import AdminDeposits from './backend/deposits/AdminDeposits.vue';
+import BankAccountsPage from './backend/bank-accounts/BankAccountsPage.vue';
 import AdminWallet from './backend/wallet/AdminWallet.vue';
 import AdminWithdrawals from './backend/withdrawals/AdminWithdrawals.vue';
 import MerchantFinanceApp from './backend/merchant/MerchantFinanceApp.vue';
@@ -20,6 +21,7 @@ const appMap = {
     'backend-merchants': MerchantManagerPage,
     'merchant-status': MerchantStatusApp,
     'backend-deposits': AdminDeposits,
+    'backend-bank-accounts': BankAccountsPage,
     'backend-wallet': AdminWallet,
     'backend-withdrawals': AdminWithdrawals,
     'backend-merchant-register': MerchantRegistrationApp,

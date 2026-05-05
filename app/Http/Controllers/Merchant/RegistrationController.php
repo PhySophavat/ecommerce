@@ -220,7 +220,7 @@ class RegistrationController extends Controller
         }
 
         if ($merchant->isApproved()) {
-            return redirect()->route('merchant.dashboard');
+            return redirect()->route('admin.dashboard');
         }
 
         return view('merchant.status', [

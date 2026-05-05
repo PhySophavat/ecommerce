@@ -31,7 +31,7 @@
                         </td>
                         <td class="px-4 py-4 text-slate-600">
                             <p class="font-semibold text-slate-900">{{ item.bank_account?.bank_name }}</p>
-                            <p>{{ item.bank_account?.account_name }} • {{ item.bank_account?.account_number }}</p>
+                            <p>{{ item.bank_account?.account_holder_name }} • {{ item.bank_account?.account_number }}</p>
                         </td>
                         <td class="px-4 py-4">
                             <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]" :class="statusClass(item.status)">

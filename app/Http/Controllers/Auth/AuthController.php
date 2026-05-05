@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Merchant;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -172,12 +173,19 @@ class AuthController extends Controller
             'admin' => $this->hasVerifiedAdminOtp($request)
                 ? redirect()->route('admin.dashboard')
                 : redirect()->route('auth.otp.form'),
-            'merchant' => $user->merchant?->isApproved()
-                ? redirect()->route('merchant.wallet')
-                : redirect()->route('merchant.status'),
+            'merchant' => $this->redirectMerchantToDashboard($user->merchant),
             'customer' => redirect('/'),
             default => redirect('/'),
         };
+    }
+
+    private function redirectMerchantToDashboard(?Merchant $merchant): RedirectResponse
+    {
+        if (!$merchant || !$merchant->isApproved()) {
+            return redirect()->route('merchant.status');
+        }
+
+        return redirect()->route('merchant.dashboard');
     }
 
     /**

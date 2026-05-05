@@ -31,6 +31,18 @@ class WithdrawalPageController extends Controller
         ]);
     }
 
+    public function bankAccounts(): View
+    {
+        return view('backend.bank-accounts.index', [
+            'title' => 'Admin | Bank Accounts',
+            'context' => [
+                'app' => 'backend-bank-accounts',
+                'screen' => 'bank-accounts',
+                'endpoint' => route('api.admin.bank-accounts.index'),
+            ],
+        ]);
+    }
+
     public function deposits(): View
     {
         return view('backend.deposits.index', [

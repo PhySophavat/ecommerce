@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Backend\Product\ProductController;
+use App\Http\Controllers\Api\Backend\BankAccountController;
 use App\Http\Controllers\Api\Backend\DepositController;
 use App\Http\Controllers\Api\Backend\WalletController;
 use App\Http\Controllers\Api\Backend\WithdrawalController;
@@ -14,8 +15,8 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Protected API routes
-Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
+// Protected backend API routes
+Route::middleware(['auth', 'role:admin,merchant', 'admin.otp'])->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
@@ -27,12 +28,20 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::delete('/slides/{slide}', [SlideController::class, 'destroy'])->name('slides.destroy');
     Route::get('/platform-fee-settings', [PlatformFeeSettingsController::class, 'show'])->name('platform-fee-settings.show');
     Route::put('/platform-fee-settings', [PlatformFeeSettingsController::class, 'update'])->name('platform-fee-settings.update');
-    Route::get('/wallet', WalletController::class)->name('wallet.show');
-    Route::get('/deposits', [DepositController::class, 'index'])->name('deposits.index');
-    Route::put('/deposits/{deposit}/approve', [DepositController::class, 'approve'])->name('deposits.approve');
-    Route::put('/deposits/{deposit}/reject', [DepositController::class, 'reject'])->name('deposits.reject');
-    Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('withdrawals.index');
-    Route::put('/withdrawals/{withdrawal}/approve', [WithdrawalController::class, 'approve'])->name('withdrawals.approve');
-    Route::put('/withdrawals/{withdrawal}/reject', [WithdrawalController::class, 'reject'])->name('withdrawals.reject');
-    Route::put('/withdrawals/{withdrawal}/mark-paid', [WithdrawalController::class, 'markPaid'])->name('withdrawals.mark-paid');
+
+    Route::middleware('role:admin')->group(function (): void {
+        Route::get('/wallet', WalletController::class)->name('wallet.show');
+        Route::get('/deposits', [DepositController::class, 'index'])->name('deposits.index');
+        Route::put('/deposits/{deposit}/approve', [DepositController::class, 'approve'])->name('deposits.approve');
+        Route::put('/deposits/{deposit}/reject', [DepositController::class, 'reject'])->name('deposits.reject');
+        Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');
+        Route::put('/bank-accounts/{bankAccount}/approve', [BankAccountController::class, 'approve'])->name('bank-accounts.approve');
+        Route::put('/bank-accounts/{bankAccount}/reject', [BankAccountController::class, 'reject'])->name('bank-accounts.reject');
+        Route::put('/bank-accounts/{bankAccount}/disable', [BankAccountController::class, 'disable'])->name('bank-accounts.disable');
+        Route::delete('/bank-accounts/{bankAccount}', [BankAccountController::class, 'destroy'])->name('bank-accounts.destroy');
+        Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('withdrawals.index');
+        Route::put('/withdrawals/{withdrawal}/approve', [WithdrawalController::class, 'approve'])->name('withdrawals.approve');
+        Route::put('/withdrawals/{withdrawal}/reject', [WithdrawalController::class, 'reject'])->name('withdrawals.reject');
+        Route::put('/withdrawals/{withdrawal}/mark-paid', [WithdrawalController::class, 'markPaid'])->name('withdrawals.mark-paid');
+    });
 });

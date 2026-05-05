@@ -39,8 +39,23 @@
             <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Request withdrawal</h2>
             <p class="mt-2 text-sm text-slate-500">Choose your payout currency, amount, and destination account.</p>
 
-            <div v-if="bankAccounts.length === 0" class="mt-6 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-700">
-                Add an active bank account before requesting a withdrawal.
+            <div v-if="bankAccounts.length === 0" class="mt-6 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-5 text-sm text-amber-700">
+                <p class="font-semibold text-amber-800">No approved payout account yet.</p>
+                <p class="mt-2">Create a bank account first, then wait for admin approval before requesting a withdrawal.</p>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <a
+                        href="/merchant/bank-accounts"
+                        class="rounded-2xl bg-[#A25F88] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                    >
+                        Create Bank Account
+                    </a>
+                    <a
+                        href="/merchant/wallet"
+                        class="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                        Back to Wallet
+                    </a>
+                </div>
             </div>
 
             <form v-else class="mt-6 space-y-5" @submit.prevent="submit">
@@ -94,6 +109,19 @@
                     </p>
                 </label>
 
+                <div v-if="filteredAccounts.length === 0" class="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-5 text-sm text-amber-700">
+                    <p class="font-semibold text-amber-800">No approved {{ form.currency }} payout account is available.</p>
+                    <p class="mt-2">Add a matching {{ form.currency }} bank account on the bank accounts page, then wait for admin approval.</p>
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        <a
+                            href="/merchant/bank-accounts"
+                            class="rounded-2xl bg-[#A25F88] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+                        >
+                            Manage Bank Accounts
+                        </a>
+                    </div>
+                </div>
+
                 <label class="block">
                     <span class="mb-2 block text-sm font-semibold text-slate-700">Bank Account</span>
                     <select
@@ -101,7 +129,7 @@
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#A25F88]"
                     >
                         <option value="">Select account</option>
-                        <option v-for="account in bankAccounts" :key="account.id" :value="String(account.id)">
+                        <option v-for="account in filteredAccounts" :key="account.id" :value="String(account.id)">
                             {{ account.label }}
                         </option>
                     </select>
@@ -172,9 +200,7 @@ const amountPlaceholder = computed(() => (
 watch(
     () => props.bankAccounts,
     (accounts) => {
-        if (form.bank_account_id) return;
-        const defaultAccount = accounts.find((account) => account.is_default) ?? accounts[0];
-        form.bank_account_id = defaultAccount ? String(defaultAccount.id) : '';
+        syncDefaultAccount(accounts, form.currency);
     },
     { immediate: true, deep: true },
 );
@@ -183,6 +209,7 @@ watch(
     () => form.currency,
     () => {
         normalizeAmount();
+        syncDefaultAccount(props.bankAccounts, form.currency);
     },
 );
 
@@ -206,10 +233,13 @@ const netAmount = computed(() => {
     return form.currency === 'KHR' ? Math.round(net) : net.toFixed(2);
 });
 
+const filteredAccounts = computed(() => props.bankAccounts.filter((account) => account.currency === form.currency));
+
 const canSubmit = computed(() => {
     const amount = Number.parseFloat(form.amount || '0');
 
-    return Boolean(form.bank_account_id)
+    return filteredAccounts.value.length > 0
+        && Boolean(form.bank_account_id)
         && form.amount !== ''
         && amount >= Number.parseFloat(props.minimumAmount)
         && amount <= Number.parseFloat(props.wallet.available_to_withdraw ?? '0')
@@ -243,6 +273,18 @@ function normalizeAmount() {
     }
 
     form.amount = String(amount);
+}
+
+function syncDefaultAccount(accounts, currency) {
+    const candidates = accounts.filter((account) => account.currency === currency);
+    const existingStillValid = candidates.some((account) => String(account.id) === String(form.bank_account_id));
+
+    if (existingStillValid) {
+        return;
+    }
+
+    const defaultAccount = candidates.find((account) => account.is_default) ?? candidates[0];
+    form.bank_account_id = defaultAccount ? String(defaultAccount.id) : '';
 }
 
 function currency(value, code = 'USD') {

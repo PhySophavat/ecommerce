@@ -115,10 +115,109 @@
                                                 </p>
                                             </label>
 
+                                            <label v-if="isMerchantUser" class="block">
+                                                <span class="mb-2 block text-sm font-semibold text-slate-700">Bank Account</span>
+                                                <div v-if="merchantBankAccounts.length === 0" class="mb-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-700">
+                                                    No bank account yet. Create one below and it will be selected automatically.
+                                                </div>
+                                                <select
+                                                    v-model="merchantForm.bank_account_id"
+                                                    class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                                                    :disabled="merchantBankAccounts.length === 0"
+                                                >
+                                                    <option value="">Select account</option>
+                                                    <option v-for="account in merchantBankAccounts" :key="account.id" :value="String(account.id)">
+                                                        {{ account.label }}
+                                                    </option>
+                                                </select>
+                                            </label>
+
+                                            <section v-if="isMerchantUser && merchantBankAccounts.length === 0" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
+                                                <div class="mb-4">
+                                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Bank Account</p>
+                                                    <h3 class="mt-1 text-lg font-bold text-slate-950">Create payout account</h3>
+                                                </div>
+
+                                                <div class="grid gap-4 md:grid-cols-2">
+                                                    <label class="block">
+                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Bank name</span>
+                                                        <select v-model="bankAccountForm.bank_name" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
+                                                            <option value="">Select bank</option>
+                                                            <option v-for="option in merchantBankOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
+                                                        </select>
+                                                    </label>
+
+                                                    <label class="block">
+                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Account type</span>
+                                                        <select v-model="bankAccountForm.account_type" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
+                                                            <option value="bank">Bank</option>
+                                                            <option value="ewallet">E-Wallet</option>
+                                                        </select>
+                                                    </label>
+                                                </div>
+
+                                                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                                                    <label class="block">
+                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Account name</span>
+                                                        <input v-model="bankAccountForm.account_name" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
+                                                    </label>
+
+                                                    <label class="block">
+                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Account number</span>
+                                                        <input v-model="bankAccountForm.account_number" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
+                                                    </label>
+                                                </div>
+
+                                                <button
+                                                    type="button"
+                                                    class="mt-4 w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    :disabled="processingId === 'bank-account-create' || !canCreateBankAccount"
+                                                    @click="createMerchantBankAccount"
+                                                >
+                                                    {{ processingId === 'bank-account-create' ? 'Creating...' : 'Create Bank Account' }}
+                                                </button>
+                                            </section>
+
+                                            <label v-if="isMerchantUser" class="block">
+                                                <span class="mb-2 block text-sm font-semibold text-slate-700">Note</span>
+                                                <textarea
+                                                    v-model="merchantForm.note"
+                                                    rows="3"
+                                                    class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
+                                                    placeholder="Optional payout note"
+                                                />
+                                            </label>
+
+                                            <div v-if="isMerchantUser" class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 sm:grid-cols-3">
+                                                <div>
+                                                    <p class="font-semibold text-slate-900">Available to withdraw</p>
+                                                    <p class="mt-1">{{ currency(merchantBalances.available_to_withdraw, actionForm.currency) }}</p>
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-slate-900">Available balance</p>
+                                                    <p class="mt-1">{{ currency(merchantBalances.available_balance, actionForm.currency) }}</p>
+                                                </div>
+                                                <div>
+                                                    <p class="font-semibold text-slate-900">Pending balance</p>
+                                                    <p class="mt-1">{{ currency(merchantBalances.pending_balance, actionForm.currency) }}</p>
+                                                </div>
+                                            </div>
+
                                             <div class="rounded-2xl border border-dashed border-[#A25F88] bg-[#fff7fb] hover:bg-[#D4A5C1] px-4 py-4 text-sm text-slate-600">
                                                 <button class="font-semibold text-oklch(40.8% 0.153 2.432)">Withdrawal request:</button>
-                                                <!-- This request is submitted for merchant withdrawal. Review the selected currency and amount before processing it. -->
+                                                <span v-if="isMerchantUser" class="ml-2">Submit the request and it will be added to the table below immediately.</span>
+                                                <span v-else class="ml-2">Review merchant withdrawal requests in the table below.</span>
                                             </div>
+
+                                            <button
+                                                v-if="isMerchantUser"
+                                                type="button"
+                                                class="w-full rounded-2xl bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                                                :disabled="processingId === 'merchant-submit' || !merchantCanSubmit"
+                                                @click="submitMerchantWithdrawal"
+                                            >
+                                                {{ processingId === 'merchant-submit' ? 'Submitting...' : 'Submit Withdrawal Request' }}
+                                            </button>
                                         </div>
                                     </section>
                                 </div>
@@ -164,7 +263,7 @@
                                             </td>
                                             <td class="px-4 py-4 text-slate-600">
                                                 <p class="font-semibold text-slate-900">{{ item.bank_account?.bank_name }}</p>
-                                                <p>{{ item.bank_account?.account_name }} • {{ item.bank_account?.account_number }}</p>
+                                                <p>{{ item.bank_account?.account_holder_name }} • {{ item.bank_account?.account_number }}</p>
                                             </td>
                                             <td class="px-4 py-4 text-slate-600">
                                                 <p class="max-w-[220px] whitespace-normal break-words">{{ item.note || '-' }}</p>
@@ -224,17 +323,27 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue';
 import AdminHeader from '../layout/AdminHeader.vue';
 import AdminSidebar from '../layout/AdminSidebar.vue';
 
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/withdrawals';
 const screen = window.__APP_CONTEXT__?.screen ?? 'withdrawals';
+const refreshIntervalMs = 5000;
 const isLoading = ref(true);
 const notice = ref(null);
 const processingId = ref(null);
 const selectedStatus = ref('all');
 const openMenus = ref({});
+const refreshTimerId = ref(null);
+const currentUser = ref(window.__APP_CONTEXT__?.currentUser ?? null);
+const merchantBankAccounts = ref([]);
+const merchantBankOptions = ref([]);
+const merchantBalances = ref({
+    available_to_withdraw: '0.00',
+    available_balance: '0.00',
+    pending_balance: '0.00',
+});
 const dashboard = ref({
     meta: {
         brand: 'E-commerce',
@@ -270,6 +379,16 @@ const actionForm = reactive({
     bank_label: '',
     bank_detail: '',
 });
+const merchantForm = reactive({
+    bank_account_id: '',
+    note: '',
+});
+const bankAccountForm = reactive({
+    bank_name: '',
+    account_name: '',
+    account_number: '',
+    account_type: 'bank',
+});
 
 const statCards = computed(() => [
     { label: 'All', value: String(summary.value.all ?? 0) },
@@ -293,20 +412,39 @@ const actionPlaceholder = computed(() => ({
     reject: 'Reason for rejection.',
     'mark-paid': 'Optional transfer reference or payout note.',
 }[actionForm.action] ?? 'Optional note.'));
+const isMerchantUser = computed(() => currentUser.value?.role === 'merchant');
+const merchantCanSubmit = computed(() => {
+    const amount = Number.parseFloat(actionForm.amount || '0');
+
+    return isMerchantUser.value
+        && merchantForm.bank_account_id !== ''
+        && !Number.isNaN(amount)
+        && amount > 0;
+});
+const canCreateBankAccount = computed(() => {
+    return bankAccountForm.bank_name.trim() !== ''
+        && bankAccountForm.account_name.trim() !== ''
+        && bankAccountForm.account_number.trim() !== '';
+});
 
 onMounted(async () => {
-    await loadDashboard();
+    await loadInitialState();
+    startAutoRefresh();
+    window.addEventListener('focus', handleWindowFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+});
+
+onUnmounted(() => {
+    stopAutoRefresh();
+    window.removeEventListener('focus', handleWindowFocus);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
 });
 
 async function loadDashboard() {
     isLoading.value = true;
 
     try {
-        const response = await window.axios.get(endpoint, {
-            params: {
-                status: selectedStatus.value,
-            },
-        });
+        const response = await fetchDashboard();
 
         summary.value = response.data.summary ?? summary.value;
         filters.value = response.data.filters ?? [];
@@ -325,9 +463,106 @@ async function loadDashboard() {
     }
 }
 
+async function loadInitialState() {
+    await loadDashboard();
+
+    if (isMerchantUser.value) {
+        await loadMerchantWithdrawalForm();
+    }
+}
+
+async function fetchDashboard() {
+    return window.axios.get(endpoint, {
+        params: {
+            status: selectedStatus.value,
+        },
+    });
+}
+
 async function changeStatus(status) {
     selectedStatus.value = status;
     await loadDashboard();
+}
+
+function startAutoRefresh() {
+    stopAutoRefresh();
+    refreshTimerId.value = window.setInterval(() => {
+        refreshQuietly();
+    }, refreshIntervalMs);
+}
+
+function stopAutoRefresh() {
+    if (refreshTimerId.value !== null) {
+        window.clearInterval(refreshTimerId.value);
+        refreshTimerId.value = null;
+    }
+}
+
+async function refreshQuietly() {
+    if (document.hidden || isLoading.value || processingId.value !== null) {
+        return;
+    }
+
+    try {
+        const response = await fetchDashboard();
+
+        summary.value = response.data.summary ?? summary.value;
+        filters.value = response.data.filters ?? filters.value;
+        selectedStatus.value = response.data.selected_status ?? selectedStatus.value;
+        withdrawals.value = response.data.withdrawals ?? withdrawals.value;
+        dashboard.value = {
+            ...dashboard.value,
+            meta: response.data.meta ?? dashboard.value.meta,
+            menu: response.data.menu ?? dashboard.value.menu,
+        };
+        syncOpenMenus(response.data.menu ?? dashboard.value.menu ?? []);
+
+        if (isMerchantUser.value) {
+            await loadMerchantWithdrawalForm();
+        }
+    } catch {
+        // Keep the current table state if a background refresh fails.
+    }
+}
+
+async function loadMerchantWithdrawalForm() {
+    const [withdrawalResponse, accountResponse] = await Promise.all([
+        window.axios.get('/api/merchant/withdrawals'),
+        window.axios.get('/api/merchant/bank-accounts'),
+    ]);
+
+    merchantBalances.value = withdrawalResponse.data.balances ?? merchantBalances.value;
+    merchantBankOptions.value = accountResponse.data.meta?.bank_options ?? merchantBankOptions.value;
+    merchantBankAccounts.value = withdrawalResponse.data.bank_accounts ?? [];
+
+    if (merchantBankAccounts.value.length === 0) {
+        merchantBankAccounts.value = (accountResponse.data.accounts ?? [])
+            .filter((account) => account.status === 'approved')
+            .map((account) => ({
+                id: account.id,
+                label: `${account.bank_name} - ${account.account_holder_name} (${account.account_number ?? `****${account.account_number_last4 ?? ''}`})`,
+                is_default: Boolean(account.is_default),
+            }));
+    }
+
+    if (!merchantForm.bank_account_id) {
+        const defaultAccount = merchantBankAccounts.value.find((account) => account.is_default) ?? merchantBankAccounts.value[0];
+        merchantForm.bank_account_id = defaultAccount ? String(defaultAccount.id) : '';
+    }
+
+    if (!bankAccountForm.bank_name) {
+        bankAccountForm.bank_name = merchantBankOptions.value[0]?.value ?? '';
+    }
+}
+
+function handleWindowFocus() {
+    refreshQuietly();
+}
+
+function handleVisibilityChange() {
+    if (!document.hidden) {
+        refreshQuietly();
+    }
 }
 
 function runAction(item, action) {
@@ -337,13 +572,121 @@ function runAction(item, action) {
     actionForm.currency = item.currency ?? 'USD';
     actionForm.amount = item.amount ?? '';
     actionForm.bank_label = item.bank_account?.bank_name ?? '';
-    actionForm.bank_detail = [item.bank_account?.account_name, item.bank_account?.account_number].filter(Boolean).join(' • ');
+    actionForm.bank_detail = [item.bank_account?.account_holder_name, item.bank_account?.account_number].filter(Boolean).join(' • ');
     nextTick(() => {
         actionPanel.value?.scrollIntoView({
             behavior: 'smooth',
             block: 'start',
         });
     });
+}
+
+async function submitMerchantWithdrawal() {
+    if (!merchantCanSubmit.value) {
+        notice.value = {
+            type: 'error',
+            text: 'Select a bank account and enter a valid amount first.',
+        };
+        return;
+    }
+
+    processingId.value = 'merchant-submit';
+
+    try {
+        const response = await window.axios.post('/api/merchant/withdrawals', {
+            bank_account_id: Number.parseInt(merchantForm.bank_account_id, 10),
+            amount: actionForm.amount,
+            currency: actionForm.currency,
+            note: merchantForm.note,
+        });
+
+        const createdWithdrawal = response.data.withdrawal ?? null;
+
+        notice.value = {
+            type: 'success',
+            text: response.data.message ?? 'Withdrawal request submitted successfully.',
+        };
+
+        merchantBalances.value = response.data.balances ?? merchantBalances.value;
+        merchantForm.note = '';
+        actionForm.amount = '';
+
+        if (createdWithdrawal) {
+            if (selectedStatus.value !== 'all' && selectedStatus.value !== createdWithdrawal.status) {
+                selectedStatus.value = 'all';
+            }
+
+            withdrawals.value = [
+                createdWithdrawal,
+                ...withdrawals.value.filter((item) => item.id !== createdWithdrawal.id),
+            ];
+        }
+
+        await Promise.all([
+            loadDashboard(),
+            loadMerchantWithdrawalForm(),
+        ]);
+    } catch (error) {
+        showError(error, 'Unable to submit withdrawal request.');
+    } finally {
+        processingId.value = null;
+    }
+}
+
+async function createMerchantBankAccount() {
+    if (!canCreateBankAccount.value) {
+        notice.value = {
+            type: 'error',
+            text: 'Fill in bank name, account name, and account number first.',
+        };
+        return;
+    }
+
+    processingId.value = 'bank-account-create';
+
+    try {
+        const response = await window.axios.post('/api/merchant/bank-accounts', {
+            bank_name: bankAccountForm.bank_name,
+            account_name: bankAccountForm.account_name,
+            account_number: bankAccountForm.account_number,
+            account_type: bankAccountForm.account_type,
+            is_default: true,
+            status: 'active',
+        });
+
+        const account = response.data.account;
+
+        notice.value = {
+            type: 'success',
+            text: response.data.message ?? 'Bank account added successfully.',
+        };
+
+        if (account) {
+            merchantBankAccounts.value = [
+                {
+                    id: account.id,
+                    label: `${account.bank_name} - ${account.account_holder_name} (${account.account_number})`,
+                    is_default: Boolean(account.is_default),
+                },
+                ...merchantBankAccounts.value.filter((item) => item.id !== account.id),
+            ];
+            merchantForm.bank_account_id = String(account.id);
+        }
+
+        resetBankAccountForm();
+        await loadMerchantWithdrawalForm();
+    } catch (error) {
+        showError(error, 'Unable to create bank account.');
+    } finally {
+        processingId.value = null;
+    }
+}
+
+function resetBankAccountForm() {
+    bankAccountForm.bank_name = merchantBankOptions.value[0]?.value ?? '';
+    bankAccountForm.account_name = '';
+    bankAccountForm.account_number = '';
+    bankAccountForm.account_type = 'bank';
 }
 
 function closeActionForm() {

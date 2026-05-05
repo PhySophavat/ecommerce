@@ -56,7 +56,7 @@ class DepositController extends Controller
         );
 
         return response()->json([
-            'message' => 'Deposit request submitted successfully.',
+            'message' => 'Deposit submitted and credited successfully.',
             'deposit' => $this->payload($deposit),
         ], 201);
     }

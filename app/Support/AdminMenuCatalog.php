@@ -71,6 +71,14 @@ class AdminMenuCatalog
                 'children' => [],
             ],
             [
+                'label' => 'Bank Accounts',
+                'slug' => 'bank-accounts',
+                'icon' => 'bank-accounts',
+                'path' => '/admin/bank-accounts',
+                'is_enabled' => true,
+                'children' => [],
+            ],
+            [
                 'label' => 'Payments',
                 'slug' => 'payments',
                 'icon' => 'payments',

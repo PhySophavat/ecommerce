@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Merchant;
 use App\Models\User;
 use Database\Seeders\AdminUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -78,5 +79,32 @@ class AdminAuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $this->assertSame('admin@example.com', auth()->user()?->email);
+    }
+
+    public function test_merchant_login_redirects_to_merchant_status_when_not_approved(): void
+    {
+        $merchantUser = User::query()->create([
+            'name' => 'merchant-user',
+            'email' => 'merchant@example.com',
+            'password' => 'merchant-password',
+            'role' => 'merchant',
+        ]);
+
+        Merchant::query()->create([
+            'user_id' => $merchantUser->id,
+            'shop_name' => 'Pending Shop',
+            'business_type' => 'Fashion',
+            'status' => 'Pending',
+            'verification_status' => 'Pending',
+        ]);
+
+        $this->post('/auth/login', [
+            'login' => 'merchant@example.com',
+            'password' => 'merchant-password',
+        ])->assertRedirect('/merchant/status');
+
+        $this->assertAuthenticated();
+        $this->assertSame('merchant', auth()->user()?->role);
+        $this->get('/merchant/status')->assertOk();
     }
 }

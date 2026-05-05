@@ -47,6 +47,14 @@ const MENU_ITEMS = [
         children: [],
     },
     {
+        label: 'Bank Accounts',
+        slug: 'bank-accounts',
+        icon: 'bank-accounts',
+        path: '/admin/bank-accounts',
+        is_enabled: true,
+        children: [],
+    },
+    {
         label: 'Payments',
         slug: 'payments',
         icon: 'payments',
@@ -138,6 +146,7 @@ function activeSlugsForScreen(screen) {
         users: ['users-admin-management', 'admin-users'],
         merchants: ['users-admin-management', 'merchants'],
         wallet: ['wallet'],
+        'bank-accounts': ['bank-accounts'],
         'pending-merchants': ['users-admin-management', 'merchants'],
         'merchant-details': ['users-admin-management', 'merchants'],
         'platform-fee-settings': ['settings', 'platform-fee-settings'],

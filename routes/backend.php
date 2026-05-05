@@ -17,8 +17,8 @@ Route::get('/', function () {
     return redirect()->route('admin.login');
 })->name('home');
 
-// Admin routes - requires admin role
-Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
+// Backend routes - shared by admin and approved merchants
+Route::middleware(['auth', 'role:admin,merchant', 'admin.otp'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [ProductController::class, 'dashboard'])->name('dashboard');
 
@@ -53,7 +53,11 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::post('/merchants/{merchant}/reactivate', [MerchantController::class, 'reactivate'])->name('merchants.reactivate');
 
     Route::get('/settings/platform-fee', PlatformFeeSettingsPageController::class)->name('settings.platform-fee');
-    Route::get('/wallet', [WithdrawalPageController::class, 'wallet'])->name('wallet.index');
-    Route::get('/withdrawals', [WithdrawalPageController::class, 'withdrawals'])->name('withdrawals.index');
-    Route::get('/deposits', [WithdrawalPageController::class, 'deposits'])->name('deposits.index');
+
+    Route::middleware('role:admin')->group(function (): void {
+        Route::get('/wallet', [WithdrawalPageController::class, 'wallet'])->name('wallet.index');
+        Route::get('/bank-accounts', [WithdrawalPageController::class, 'bankAccounts'])->name('bank-accounts.index');
+        Route::get('/withdrawals', [WithdrawalPageController::class, 'withdrawals'])->name('withdrawals.index');
+        Route::get('/deposits', [WithdrawalPageController::class, 'deposits'])->name('deposits.index');
+    });
 });

@@ -14,17 +14,28 @@ class MerchantBankAccount extends Model
     protected $fillable = [
         'merchant_id',
         'bank_name',
-        'account_name',
+        'account_holder_name',
         'account_number',
+        'phone_number',
+        'currency',
         'account_type',
+        'qr_image_path',
+        'khqr_code',
         'is_default',
         'status',
+        'reject_reason',
+        'approved_at',
+        'rejected_at',
+        'disabled_at',
     ];
 
     protected function casts(): array
     {
         return [
             'is_default' => 'boolean',
+            'approved_at' => 'datetime',
+            'rejected_at' => 'datetime',
+            'disabled_at' => 'datetime',
         ];
     }
 
@@ -43,5 +54,10 @@ class MerchantBankAccount extends Model
         $visible = substr($this->account_number, -4);
 
         return '****'.$visible;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->status === 'approved';
     }
 }

@@ -278,13 +278,6 @@ async function loadAccounts() {
     const response = await window.axios.get('/api/merchant/bank-accounts');
     accounts.value = response.data.accounts ?? [];
     bankOptions.value = response.data.meta?.bank_options ?? [];
-    withdrawalAccounts.value = accounts.value
-        .filter((account) => account.status === 'active')
-        .map((account) => ({
-            id: account.id,
-            label: `${account.bank_name} (${account.account_number ?? `****${account.account_number_last4 ?? ''}`})`,
-            is_default: Boolean(account.is_default),
-        }));
 }
 
 async function loadDeposits() {
@@ -302,6 +295,7 @@ async function loadWithdrawals() {
     };
     minimumAmount.value = response.data.minimum_amount ?? minimumAmount.value;
     withdrawFee.value = response.data.withdraw_fee ?? withdrawFee.value;
+    withdrawalAccounts.value = response.data.bank_accounts ?? [];
 }
 
 async function loadTransactions(type = selectedTransactionType.value) {
@@ -322,7 +316,9 @@ async function createAccount(payload) {
     busyId.value = 'create';
 
     try {
-        const response = await window.axios.post('/api/merchant/bank-accounts', payload);
+        const response = await window.axios.post('/api/merchant/bank-accounts', buildBankAccountFormData(payload), {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
         showSuccess(response.data.message ?? 'Bank account added.');
         await Promise.all([loadAccounts(), loadWithdrawals()]);
     } catch (error) {
@@ -337,7 +333,9 @@ async function updateAccount(id, payload) {
     busyId.value = id;
 
     try {
-        const response = await window.axios.put(`/api/merchant/bank-accounts/${id}`, payload);
+        const response = await window.axios.post(`/api/merchant/bank-accounts/${id}`, buildBankAccountFormData(payload, true), {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
         showSuccess(response.data.message ?? 'Bank account updated.');
         await Promise.all([loadAccounts(), loadWithdrawals()]);
     } catch (error) {
@@ -427,6 +425,29 @@ function showError(error, fallback) {
     }
 
     notice.value = { type: 'error', text: response?.message ?? fallback };
+}
+
+function buildBankAccountFormData(payload, methodOverride = false) {
+    const formData = new FormData();
+
+    if (methodOverride) {
+        formData.append('_method', 'PUT');
+    }
+
+    formData.append('bank_name', payload.bank_name ?? '');
+    formData.append('account_holder_name', payload.account_holder_name ?? '');
+    formData.append('account_number', payload.account_number ?? '');
+    formData.append('phone_number', payload.phone_number ?? '');
+    formData.append('currency', payload.currency ?? 'USD');
+    formData.append('account_type', payload.account_type ?? 'bank_account');
+    formData.append('khqr_code', payload.khqr_code ?? '');
+    formData.append('is_default', payload.is_default ? '1' : '0');
+
+    if (payload.qr_image instanceof File) {
+        formData.append('qr_image', payload.qr_image);
+    }
+
+    return formData;
 }
 
 function currency(value) {

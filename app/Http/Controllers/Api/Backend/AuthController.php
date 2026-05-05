@@ -29,14 +29,14 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if ($user->role !== 'admin') {
+        if (!in_array($user->role, ['admin', 'merchant'], true)) {
             return response()->json([
-                'message' => 'You do not have permission to access the admin area.',
+                'message' => 'You do not have permission to access the backend area.',
             ], 403);
         }
 
         // Create token for API authentication
-        $token = $user->createToken('admin-api-token')->plainTextToken;
+        $token = $user->createToken('backend-api-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful',

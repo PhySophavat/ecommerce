@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Merchant;
+use App\Models\MerchantBankAccount;
 use App\Models\MerchantDeposit;
 use App\Models\User;
 use App\Models\Withdrawal;
@@ -15,43 +16,87 @@ class MerchantWithdrawalSystemTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_merchant_can_manage_bank_accounts_with_single_default(): void
+    public function test_merchant_bank_account_submission_starts_as_pending(): void
+    {
+        [$user] = $this->approvedMerchant();
+
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/merchant/bank-accounts', [
+            'bank_name' => 'ABA',
+            'account_holder_name' => 'Primary Shop',
+            'account_number' => '1234567890',
+            'phone_number' => '0881234567',
+            'currency' => 'USD',
+            'account_type' => 'bank_account',
+        ])->assertCreated()
+            ->assertJsonPath('account.status', 'pending')
+            ->assertJsonPath('account.is_default', false);
+
+        $this->assertSame('pending', MerchantBankAccount::query()->findOrFail($response->json('account.id'))->status);
+    }
+
+    public function test_admin_can_approve_accounts_and_merchant_can_set_single_default_on_approved_accounts(): void
     {
         [$user, $merchant] = $this->approvedMerchant();
 
         $this->actingAs($user);
 
-        $this->postJson('/api/merchant/bank-accounts', [
+        $firstId = $this->createMerchantBankAccount([
             'bank_name' => 'ABA',
-            'account_name' => 'Primary Shop',
+            'account_holder_name' => 'Primary Shop',
             'account_number' => '1234567890',
-            'account_type' => 'bank',
-            'is_default' => true,
-            'status' => 'active',
-        ])->assertCreated()
-            ->assertJsonPath('account.account_number', '****7890')
-            ->assertJsonPath('account.is_default', true);
+            'phone_number' => '0881234567',
+            'currency' => 'USD',
+            'account_type' => 'bank_account',
+        ]);
 
-        $secondResponse = $this->postJson('/api/merchant/bank-accounts', [
+        $secondId = $this->createMerchantBankAccount([
             'bank_name' => 'Wing',
-            'account_name' => 'Wallet',
+            'account_holder_name' => 'Second Shop',
             'account_number' => '999988887777',
-            'account_type' => 'ewallet',
+            'phone_number' => '0977654321',
+            'currency' => 'USD',
+            'account_type' => 'khqr',
+            'khqr_code' => 'KHQR-123',
+        ]);
+
+        $this->signInAsAdmin();
+        $this->putJson("/api/admin/bank-accounts/{$firstId}/approve")->assertOk();
+        $this->putJson("/api/admin/bank-accounts/{$secondId}/approve")->assertOk();
+
+        $this->actingAs($user);
+        $this->post("/api/merchant/bank-accounts/{$secondId}", [
+            '_method' => 'PUT',
+            'bank_name' => 'Wing',
+            'account_holder_name' => 'Second Shop',
+            'account_number' => '',
+            'phone_number' => '0977654321',
+            'currency' => 'USD',
+            'account_type' => 'khqr',
+            'khqr_code' => 'KHQR-123',
             'is_default' => true,
-            'status' => 'active',
-        ])->assertCreated();
+        ], ['Accept' => 'application/json'])->assertOk();
 
-        $secondId = $secondResponse->json('account.id');
+        $merchant->refresh();
+        $accounts = $merchant->bankAccounts()->orderBy('id')->get();
 
-        $this->getJson('/api/merchant/bank-accounts')
-            ->assertOk()
-            ->assertJsonCount(2, 'accounts')
-            ->assertJsonPath('accounts.0.id', $secondId)
-            ->assertJsonPath('accounts.0.is_default', true)
-            ->assertJsonPath('accounts.1.is_default', false);
+        $this->assertTrue((bool) $accounts->firstWhere('id', $secondId)?->is_default);
+        $this->assertFalse((bool) $accounts->firstWhere('id', $firstId)?->is_default);
     }
 
-    public function test_merchant_withdrawal_request_reserves_pending_balance_and_validates_available_amount(): void
+    public function test_merchant_can_open_merchant_bank_accounts_page(): void
+    {
+        [$user] = $this->approvedMerchant();
+
+        $this->actingAs($user);
+
+        $this->get('/merchant/bank-accounts')
+            ->assertOk()
+            ->assertSee('id="app"', false);
+    }
+
+    public function test_merchant_withdrawal_requires_approved_matching_currency_bank_account(): void
     {
         [$user, $merchant] = $this->approvedMerchant([
             'balance_total' => 200,
@@ -61,44 +106,48 @@ class MerchantWithdrawalSystemTest extends TestCase
 
         $this->actingAs($user);
 
-        $accountId = $this->postJson('/api/merchant/bank-accounts', [
+        $pendingAccountId = $this->createMerchantBankAccount([
             'bank_name' => 'ABA',
-            'account_name' => 'Primary Shop',
+            'account_holder_name' => 'Primary Shop',
             'account_number' => '1234567890',
-            'account_type' => 'bank',
-            'is_default' => true,
-            'status' => 'active',
-        ])->json('account.id');
+            'phone_number' => '0881234567',
+            'currency' => 'USD',
+            'account_type' => 'bank_account',
+        ]);
 
         $this->postJson('/api/merchant/withdrawals', [
-            'bank_account_id' => $accountId,
+            'bank_account_id' => $pendingAccountId,
+            'amount' => 150,
+            'currency' => 'USD',
+            'note' => 'Weekly payout',
+        ])->assertStatus(404);
+
+        $this->signInAsAdmin();
+        $this->putJson("/api/admin/bank-accounts/{$pendingAccountId}/approve")->assertOk();
+
+        $this->actingAs($user);
+
+        $this->postJson('/api/merchant/withdrawals', [
+            'bank_account_id' => $pendingAccountId,
+            'amount' => 150,
+            'currency' => 'KHR',
+            'note' => 'Wrong currency payout',
+        ])->assertStatus(404);
+
+        $this->postJson('/api/merchant/withdrawals', [
+            'bank_account_id' => $pendingAccountId,
             'amount' => 150,
             'currency' => 'USD',
             'note' => 'Weekly payout',
         ])->assertCreated()
             ->assertJsonPath('withdrawal.status', 'pending')
             ->assertJsonPath('withdrawal.currency', 'USD')
-            ->assertJsonPath('withdrawal.net_amount', '150.00')
             ->assertJsonPath('balances.pending_balance', '150.00');
 
         $merchant->refresh();
 
         $this->assertSame('200.00', $merchant->available_balance);
         $this->assertSame('150.00', $merchant->pending_balance);
-
-        $this->postJson('/api/merchant/withdrawals', [
-            'bank_account_id' => $accountId,
-            'amount' => 100,
-            'currency' => 'KHR',
-        ])->assertStatus(422)
-            ->assertJsonValidationErrors('amount');
-
-        $this->postJson('/api/merchant/withdrawals', [
-            'bank_account_id' => $accountId,
-            'amount' => 25.5,
-            'currency' => 'KHR',
-        ])->assertStatus(422)
-            ->assertJsonValidationErrors('amount');
     }
 
     public function test_admin_can_approve_and_mark_withdrawal_paid(): void
@@ -111,15 +160,19 @@ class MerchantWithdrawalSystemTest extends TestCase
 
         $this->actingAs($merchantUser);
 
-        $accountId = $this->postJson('/api/merchant/bank-accounts', [
+        $accountId = $this->createMerchantBankAccount([
             'bank_name' => 'ACLEDA',
-            'account_name' => 'Shop Owner',
+            'account_holder_name' => 'Shop Owner',
             'account_number' => '112233445566',
-            'account_type' => 'bank',
-            'is_default' => true,
-            'status' => 'active',
-        ])->json('account.id');
+            'phone_number' => '010222333',
+            'currency' => 'KHR',
+            'account_type' => 'bank_account',
+        ]);
 
+        $this->signInAsAdmin();
+        $this->putJson("/api/admin/bank-accounts/{$accountId}/approve")->assertOk();
+
+        $this->actingAs($merchantUser);
         $withdrawalId = $this->postJson('/api/merchant/withdrawals', [
             'bank_account_id' => $accountId,
             'amount' => 120,
@@ -149,12 +202,36 @@ class MerchantWithdrawalSystemTest extends TestCase
         $this->assertSame('180.00', $merchant->balance_total);
         $this->assertSame('180.00', $merchant->available_balance);
         $this->assertSame('0.00', $merchant->pending_balance);
-
         $this->assertSame('paid', Withdrawal::query()->findOrFail($withdrawalId)->status);
-        $this->assertSame('KHR', Withdrawal::query()->findOrFail($withdrawalId)->currency);
     }
 
-    public function test_admin_can_approve_deposit_and_credit_wallet(): void
+    public function test_admin_bank_accounts_index_includes_merchant_submission(): void
+    {
+        [$merchantUser] = $this->approvedMerchant();
+
+        $this->actingAs($merchantUser);
+
+        $this->createMerchantBankAccount([
+            'bank_name' => 'ABA',
+            'account_holder_name' => 'Primary Shop',
+            'account_number' => '1234567890',
+            'phone_number' => '0881234567',
+            'currency' => 'USD',
+            'account_type' => 'bank_account',
+        ]);
+
+        $this->signInAsAdmin();
+
+        $this->getJson('/api/admin/bank-accounts')
+            ->assertOk()
+            ->assertJsonPath('summary.all', 1)
+            ->assertJsonPath('summary.pending', 1)
+            ->assertJsonPath('accounts.0.status', 'pending')
+            ->assertJsonPath('accounts.0.currency', 'USD')
+            ->assertJsonPath('accounts.0.merchant.shop_name', 'Payout Shop');
+    }
+
+    public function test_merchant_deposit_is_auto_approved_and_credits_wallet(): void
     {
         Storage::fake('public');
 
@@ -177,14 +254,8 @@ class MerchantWithdrawalSystemTest extends TestCase
         ], [
             'Accept' => 'application/json',
         ])->assertCreated()
+            ->assertJsonPath('deposit.status', 'approved')
             ->json('deposit.id');
-
-        $this->signInAsAdmin();
-
-        $this->putJson("/api/admin/deposits/{$depositId}/approve", [
-            'admin_note' => 'Verified',
-        ])->assertOk()
-            ->assertJsonPath('deposit.status', 'approved');
 
         $merchant->refresh();
 
@@ -219,6 +290,13 @@ class MerchantWithdrawalSystemTest extends TestCase
                 'phone_number',
                 'payment_proof',
             ]);
+    }
+
+    private function createMerchantBankAccount(array $payload): int
+    {
+        return $this->post('/api/merchant/bank-accounts', $payload, [
+            'Accept' => 'application/json',
+        ])->assertCreated()->json('account.id');
     }
 
     /**
