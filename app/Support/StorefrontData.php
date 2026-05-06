@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Slide;
 use App\Models\User;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class StorefrontData
 {
@@ -16,6 +17,8 @@ class StorefrontData
             'id' => $user->id,
             'name' => $user->name ?: Str::before($user->email, '@'),
             'email' => $user->email,
+            'phone' => $user->phone,
+            'role' => $user->role,
             'joined_at' => $user->created_at?->toDateString(),
         ];
     }
@@ -34,6 +37,10 @@ class StorefrontData
 
     public static function product(Product $product): array
     {
+        $primaryImage = $product->images->sortBy('sort_order')->first();
+        $merchantUser = $product->merchant;
+        $merchantProfile = $merchantUser?->merchant;
+
         return [
             'id' => $product->id,
             'name' => $product->name,
@@ -41,13 +48,22 @@ class StorefrontData
             'category' => $product->category?->name ?? 'Uncategorized',
             'category_slug' => $product->category?->slug,
             'tagline' => $product->tagline ?: Str::limit(strip_tags((string) $product->description), 90),
+            'description' => Str::limit(strip_tags((string) $product->description), 180),
             'price' => self::currency((float) $product->price),
+            'price_value' => number_format((float) $product->price, 2, '.', ''),
             'compare_at_price' => $product->compare_at_price ? self::currency((float) $product->compare_at_price) : null,
+            'compare_at_price_value' => $product->compare_at_price ? number_format((float) $product->compare_at_price, 2, '.', '') : null,
             'status' => $product->status,
             'theme' => $product->theme,
             'is_featured' => (bool) $product->is_featured,
             'rating' => $product->rating ? number_format((float) $product->rating, 2) : null,
             'reviews_count' => (int) $product->reviews_count,
+            'inventory' => (int) $product->inventory,
+            'is_orderable' => $product->isApproved() && (int) $product->inventory > 0,
+            'merchant_id' => $merchantProfile?->id,
+            'merchant_name' => $merchantProfile?->shop_name ?: ($merchantUser?->name ?: 'Merchant shop'),
+            'merchant_owner' => $merchantUser?->name ?: Str::before((string) $merchantUser?->email, '@'),
+            'image_url' => $primaryImage?->path ? Storage::disk('public')->url($primaryImage->path) : null,
         ];
     }
 

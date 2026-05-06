@@ -26,6 +26,8 @@ class BackendProductManagementTest extends TestCase
         $this->assertTrue(Route::has('admin.products.create'));
         $this->assertTrue(Route::has('admin.products.featured'));
         $this->assertTrue(Route::has('admin.users.index'));
+        $this->assertTrue(Route::has('admin.customers.index'));
+        $this->assertTrue(Route::has('admin.customers.purchase-history'));
         $this->assertTrue(Route::has('admin.users.create'));
         $this->assertTrue(Route::has('admin.users.store'));
         $this->assertTrue(Route::has('admin.merchants.index'));
@@ -37,6 +39,7 @@ class BackendProductManagementTest extends TestCase
         $this->assertSame(url('/admin/products/create'), route('admin.products.create'));
         $this->assertSame(url('/admin/products/featured'), route('admin.products.featured'));
         $this->assertSame(url('/admin/users'), route('admin.users.index'));
+        $this->assertSame(url('/admin/customers'), route('admin.customers.index'));
         $this->assertSame(url('/admin/users/create'), route('admin.users.create'));
         $this->assertSame(url('/admin/merchants'), route('admin.merchants.index'));
     }
@@ -93,6 +96,26 @@ class BackendProductManagementTest extends TestCase
             ->assertJsonPath('accounts.count', 1)
             ->assertJsonPath('menu.8.children.1.is_active', true)
             ->assertJsonPath('accounts.items.0.email', 'seller@example.com');
+    }
+
+    public function test_admin_customers_directory_returns_accounts_payload(): void
+    {
+        $this->signInAsAdmin();
+        User::factory()->create([
+            'name' => 'Storefront Buyer',
+            'email' => 'buyer@example.com',
+            'role' => 'customer',
+        ]);
+
+        $response = $this->getJson('/admin/customers');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('screen', 'customers')
+            ->assertJsonPath('meta.page_title', 'Customers')
+            ->assertJsonPath('accounts.role', 'customer')
+            ->assertJsonPath('accounts.count', 1)
+            ->assertJsonPath('accounts.items.0.email', 'buyer@example.com');
     }
 
     public function test_admin_product_dashboard_api_returns_menu_and_products(): void

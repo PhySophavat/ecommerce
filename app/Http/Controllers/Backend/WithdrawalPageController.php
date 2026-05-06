@@ -19,6 +19,42 @@ class WithdrawalPageController extends Controller
         ]);
     }
 
+    public function paymentRecords(): View
+    {
+        return view('backend.payment-records.index', [
+            'title' => 'Admin | Payment Records',
+            'context' => [
+                'app' => 'backend-payment-records',
+                'screen' => 'payment-records',
+                'endpoint' => route('api.admin.orders.index'),
+            ],
+        ]);
+    }
+
+    public function paymentMethods(): View
+    {
+        return view('backend.payment-methods.index', [
+            'title' => 'Admin | Payment Methods',
+            'context' => [
+                'app' => 'backend-payment-methods',
+                'screen' => 'payment-methods',
+                'endpoint' => route('api.admin.payment-methods.index'),
+            ],
+        ]);
+    }
+
+    public function merchantBalance(): View
+    {
+        return view('backend.merchant-balance.index', [
+            'title' => 'Admin | Merchant Balance',
+            'context' => [
+                'app' => 'backend-merchant-balance',
+                'screen' => 'merchant-balance',
+                'endpoint' => route('api.admin.merchant-balance.index'),
+            ],
+        ]);
+    }
+
     public function withdrawals(): View
     {
         return view('backend.withdrawals.index', [

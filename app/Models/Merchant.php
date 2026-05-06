@@ -100,6 +100,11 @@ class Merchant extends Model
         return $this->hasMany(WalletTransaction::class)->latest();
     }
 
+    public function orderItems(): HasMany
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
     /**
      * Check if merchant is approved.
      */

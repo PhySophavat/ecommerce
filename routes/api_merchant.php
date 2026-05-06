@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Merchant\BankAccountController;
 use App\Http\Controllers\Api\Merchant\DepositController;
+use App\Http\Controllers\Api\Merchant\OrderController;
 use App\Http\Controllers\Api\Merchant\WalletController;
 use App\Http\Controllers\Api\Merchant\WithdrawalController;
 use Illuminate\Support\Facades\Route;
@@ -18,4 +19,7 @@ Route::middleware(['auth', 'role:merchant', 'merchant.approved'])->group(functio
     Route::post('/deposits', [DepositController::class, 'store'])->name('deposits.store');
     Route::get('/withdrawals', [WithdrawalController::class, 'index'])->name('withdrawals.index');
     Route::post('/withdrawals', [WithdrawalController::class, 'store'])->name('withdrawals.store');
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 });

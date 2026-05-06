@@ -12,6 +12,10 @@ class RoleMiddleware
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
         if (!$request->user()) {
+            if ($request->expectsJson()) {
+                abort(401, 'Unauthenticated.');
+            }
+
             return redirect()->route('login');
         }
 

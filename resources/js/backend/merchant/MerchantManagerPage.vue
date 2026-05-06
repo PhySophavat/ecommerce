@@ -274,6 +274,36 @@
                                 </article>
 
                                 <article class="card rounded-2xl px-6 py-5">
+                                    <h3 class="info-title">Merchant Balance</h3>
+                                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                        <div class="balance-tile">
+                                            <p class="balance-label">Total Balance</p>
+                                            <p class="balance-value text-slate-950">{{ currency(merchant.wallet?.balance_total) }}</p>
+                                        </div>
+                                        <div class="balance-tile">
+                                            <p class="balance-label">Available</p>
+                                            <p class="balance-value text-slate-950">{{ currency(merchant.wallet?.available_balance) }}</p>
+                                        </div>
+                                        <div class="balance-tile">
+                                            <p class="balance-label">Pending</p>
+                                            <p class="balance-value text-amber-600">{{ currency(merchant.wallet?.pending_balance) }}</p>
+                                        </div>
+                                        <div class="balance-tile">
+                                            <p class="balance-label">Deposited</p>
+                                            <p class="balance-value text-emerald-600">{{ currency(merchant.wallet?.total_deposited) }}</p>
+                                        </div>
+                                        <div class="balance-tile">
+                                            <p class="balance-label">Withdrawn</p>
+                                            <p class="balance-value text-slate-950">{{ currency(merchant.wallet?.total_withdrawn) }}</p>
+                                        </div>
+                                        <div class="balance-tile">
+                                            <p class="balance-label">Platform Fees</p>
+                                            <p class="balance-value text-rose-600">{{ currency(merchant.wallet?.total_platform_fee_paid) }}</p>
+                                        </div>
+                                    </div>
+                                </article>
+
+                                <article class="card rounded-2xl px-6 py-5">
                                     <h3 class="info-title">Actions</h3>
                                     <div class="mt-3 flex flex-wrap gap-2">
                                         <button v-if="merchant.status === 'Pending'"   class="btn btn-success rounded-xl px-4 py-2 text-sm" :disabled="processingMerchantId === merchant.id" @click="approveMerchant(merchant)">Approve</button>
@@ -456,6 +486,11 @@ function iconStyle(status) {
     }[status] ?? { background: '#eff6ff', color: '#1e40af' };
 }
 
+function currency(value) {
+    const amount = Number.parseFloat(String(value ?? '0'));
+    return `$${Number.isNaN(amount) ? '0.00' : amount.toFixed(2)}`;
+}
+
 function initialDashboard() {
     return {
         meta: { brand: 'E-commerce', page_title: 'Merchants', kicker: 'Seller management', subheadline: 'Manage merchant registrations and approvals.' },
@@ -576,4 +611,7 @@ function extractMessage(error, fallback) {
 .info-row { display: flex; gap: 8px; font-size: 13px; }
 .info-row dt { color: #64748b; min-width: 120px; flex-shrink: 0; }
 .info-row dd { color: #0f172a; }
+.balance-tile { border: 0.5px solid #e2e8f0; background: #f8fafc; border-radius: 16px; padding: 14px 16px; }
+.balance-label { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; }
+.balance-value { margin-top: 8px; font-size: 24px; font-weight: 700; }
 </style>

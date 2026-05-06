@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Merchant;
 use App\Models\MerchantBankAccount;
 use App\Services\MerchantBankAccountService;
 use App\Support\AdminDashboardData;
@@ -31,6 +32,19 @@ class BankAccountController extends Controller
 
         return response()->json([
             ...AdminDashboardData::bankAccountsPage(),
+            'form' => [
+                'merchants' => Merchant::query()
+                    ->with('user')
+                    ->orderBy('shop_name')
+                    ->get()
+                    ->map(fn (Merchant $merchant): array => [
+                        'id' => $merchant->id,
+                        'label' => $merchant->shop_name.' - '.$merchant->user?->name,
+                    ])
+                    ->values()
+                    ->all(),
+                ...$this->bankAccountService->metadata(),
+            ],
             'summary' => [
                 'all' => MerchantBankAccount::query()->count(),
                 'pending' => MerchantBankAccount::query()->where('status', 'pending')->count(),
@@ -48,6 +62,27 @@ class BankAccountController extends Controller
             'selected_status' => $status,
             'accounts' => $accounts->map(fn (MerchantBankAccount $account): array => $this->bankAccountService->payload($account, true))->all(),
         ]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'merchant_id' => ['required', 'integer', 'exists:merchants,id'],
+            ...$this->bankAccountService->merchantRules(),
+        ]);
+
+        $merchant = Merchant::query()->findOrFail($validated['merchant_id']);
+
+        $account = $this->bankAccountService->createForMerchant(
+            $merchant,
+            $validated,
+            $request->file('qr_image'),
+        );
+
+        return response()->json([
+            'message' => 'Bank account created successfully.',
+            'account' => $this->bankAccountService->payload($account, true),
+        ], 201);
     }
 
     public function approve(MerchantBankAccount $bankAccount): JsonResponse

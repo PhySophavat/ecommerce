@@ -230,6 +230,15 @@ class MerchantController extends Controller
                 'id' => $merchant->approver->id,
                 'name' => $merchant->approver->name,
             ] : null;
+
+            $data['wallet'] = [
+                'balance_total' => number_format((float) $merchant->balance_total, 2, '.', ''),
+                'available_balance' => number_format((float) $merchant->available_balance, 2, '.', ''),
+                'pending_balance' => number_format((float) $merchant->pending_balance, 2, '.', ''),
+                'total_deposited' => number_format((float) $merchant->total_deposited, 2, '.', ''),
+                'total_withdrawn' => number_format((float) $merchant->total_withdrawn, 2, '.', ''),
+                'total_platform_fee_paid' => number_format((float) $merchant->total_platform_fee_paid, 2, '.', ''),
+            ];
         }
 
         return $data;
@@ -343,11 +352,20 @@ class MerchantController extends Controller
     private function normalizeMerchantMenu(array $menuItems): array
     {
         $menuItems = $this->activateMenuItems($menuItems, ['users-admin-management', 'merchants']);
+        
+        foreach ($menuItems as &$item) {
+            if (($item['slug'] ?? null) !== 'users-admin-management') {
+                continue;
+            }
 
-        if (isset($menuItems[8]['children'][1])) {
-            $menuItems[8]['is_active'] = true;
-            $menuItems[8]['is_expanded'] = true;
-            $menuItems[8]['children'][1]['is_active'] = true;
+            $item['is_active'] = true;
+            $item['is_expanded'] = true;
+
+            foreach ($item['children'] as &$child) {
+                if (($child['slug'] ?? null) === 'merchants') {
+                    $child['is_active'] = true;
+                }
+            }
         }
 
         return $menuItems;

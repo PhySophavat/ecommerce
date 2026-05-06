@@ -20,6 +20,13 @@ class FiftyProductsSeeder extends Seeder
         $categories = Category::query()
             ->get()
             ->keyBy('slug');
+        $defaultMerchantUser = \App\Models\User::query()
+            ->where('role', 'merchant')
+            ->where('email', '!=', 'merchant.shop@example.com')
+            ->whereHas('merchant', fn ($query) => $query->where('status', 'Approved'))
+            ->orderBy('id')
+            ->first()
+            ?? \App\Models\User::query()->where('email', 'merchant.shop@example.com')->first();
 
         $catalog = [
             [
@@ -111,7 +118,7 @@ class FiftyProductsSeeder extends Seeder
 
         $prefixes = ['Modern', 'Classic', 'Studio', 'Urban', 'Daily', 'Prime', 'Essential', 'Signature', 'Soft', 'Tailored'];
         $suffixes = ['Edit', 'Core', 'Line', 'Select', 'Series'];
-        $statuses = ['active', 'draft', 'scheduled'];
+        $statuses = ['approved', 'draft', 'approved'];
         $themes = ['cobalt', 'forest', 'sand', 'graphite', 'midnight', 'sky', 'ink', 'plum', 'denim', 'lilac'];
 
         foreach (range(11, 50) as $number) {
@@ -143,6 +150,7 @@ class FiftyProductsSeeder extends Seeder
                 'compare_at_price' => $compareAt,
                 'inventory' => $inventory,
                 'status' => $status,
+                'merchant_id' => $defaultMerchantUser?->id,
                 'is_featured' => $number % 4 === 0,
                 'theme' => $themes[$number % count($themes)],
                 'rating' => round(4.20 + (($number % 8) * 0.08), 2),

@@ -14,7 +14,7 @@ class WithdrawalPageController extends Controller
 
     public function deposit(): View
     {
-        return $this->page('deposit', 'Merchant | Deposit');
+        return $this->page('deposit', 'Merchant | Deposits');
     }
 
     public function bankAccounts(): View
@@ -24,12 +24,12 @@ class WithdrawalPageController extends Controller
 
     public function withdraw(): View
     {
-        return $this->page('withdraw', 'Merchant | Withdraw');
+        return $this->page('withdraw', 'Merchant | Withdrawals');
     }
 
     public function history(): View
     {
-        return $this->page('transactions', 'Merchant | Transaction History');
+        return $this->page('transactions', 'Merchant | Wallet History');
     }
 
     private function page(string $screen, string $title): View

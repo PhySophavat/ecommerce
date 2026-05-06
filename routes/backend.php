@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Backend\Product\ProductController;
+use App\Http\Controllers\Backend\Order\OrderController as OrderPageController;
 use App\Http\Controllers\Backend\Product\ProductApprovalController;
 use App\Http\Controllers\Backend\Settings\PlatformFeeSettingsPageController;
 use App\Http\Controllers\Backend\Slide\SlideController;
@@ -17,11 +18,10 @@ Route::get('/', function () {
     return redirect()->route('admin.login');
 })->name('home');
 
-// Backend routes - shared by admin and approved merchants
-Route::middleware(['auth', 'role:admin,merchant', 'admin.otp'])->group(function () {
+// Backend routes - admin only
+Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [ProductController::class, 'dashboard'])->name('dashboard');
-
     // Sliders
     Route::get('/sliders', [SlideController::class, 'index'])->name('sliders.index');
 
@@ -38,6 +38,9 @@ Route::middleware(['auth', 'role:admin,merchant', 'admin.otp'])->group(function 
     // User management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::get('/customers', [UserController::class, 'customers'])->name('customers.index');
+    Route::get('/customers/details', [UserController::class, 'customerDetails'])->name('customers.details');
+    Route::get('/customers/purchase-history', [UserController::class, 'purchaseHistory'])->name('customers.purchase-history');
     Route::post('/users', [UserController::class, 'store'])->name('users.store');
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
@@ -52,12 +55,20 @@ Route::middleware(['auth', 'role:admin,merchant', 'admin.otp'])->group(function 
     Route::post('/merchants/{merchant}/suspend', [MerchantController::class, 'suspend'])->name('merchants.suspend');
     Route::post('/merchants/{merchant}/reactivate', [MerchantController::class, 'reactivate'])->name('merchants.reactivate');
 
+    Route::get('/merchant-balance', [WithdrawalPageController::class, 'merchantBalance'])->name('merchant-balance.index');
     Route::get('/settings/platform-fee', PlatformFeeSettingsPageController::class)->name('settings.platform-fee');
 
-    Route::middleware('role:admin')->group(function (): void {
-        Route::get('/wallet', [WithdrawalPageController::class, 'wallet'])->name('wallet.index');
-        Route::get('/bank-accounts', [WithdrawalPageController::class, 'bankAccounts'])->name('bank-accounts.index');
-        Route::get('/withdrawals', [WithdrawalPageController::class, 'withdrawals'])->name('withdrawals.index');
-        Route::get('/deposits', [WithdrawalPageController::class, 'deposits'])->name('deposits.index');
-    });
+    Route::get('/wallet', [WithdrawalPageController::class, 'wallet'])->name('wallet.index');
+    Route::get('/bank-accounts', [WithdrawalPageController::class, 'bankAccounts'])->name('bank-accounts.index');
+    Route::get('/withdrawals', [WithdrawalPageController::class, 'withdrawals'])->name('withdrawals.index');
+    Route::get('/deposits', [WithdrawalPageController::class, 'deposits'])->name('deposits.index');
+    Route::get('/payment-records', [WithdrawalPageController::class, 'paymentRecords'])->name('payment-records.index');
+    Route::get('/payment-methods', [WithdrawalPageController::class, 'paymentMethods'])->name('payment-methods.index');
+    Route::get('/orders', [OrderPageController::class, 'index'])->name('orders.index');
+    Route::get('/orders/pending', [OrderPageController::class, 'pending'])->name('orders.pending');
+    Route::get('/orders/processing', [OrderPageController::class, 'processing'])->name('orders.processing');
+    Route::get('/orders/shipped', [OrderPageController::class, 'shipped'])->name('orders.shipped');
+    Route::get('/orders/delivered', [OrderPageController::class, 'delivered'])->name('orders.delivered');
+    Route::get('/orders/cancelled', [OrderPageController::class, 'cancelled'])->name('orders.cancelled');
+    Route::get('/orders/refunded', [OrderPageController::class, 'refunded'])->name('orders.refunded');
 });

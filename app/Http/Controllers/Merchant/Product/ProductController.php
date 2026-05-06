@@ -3,21 +3,19 @@
 namespace App\Http\Controllers\Merchant\Product;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Product;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Contracts\View\View;
 
 class ProductController extends Controller
 {
     /**
      * Show merchant dashboard
      */
-    public function dashboard(): \Illuminate\Http\RedirectResponse
+    public function dashboard(): View
     {
-        return redirect()->route('merchant.wallet');
+        return $this->page('dashboard', 'Merchant | Dashboard');
     }
 
     /**
@@ -25,29 +23,7 @@ class ProductController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = auth()->user()->products()
-            ->with(['category'])
-            ->orderBy('created_at', 'desc');
-
-        // Filter by status
-        if ($request->has('status') && $request->status) {
-            $query->where('status', $request->status);
-        }
-
-        // Filter by search
-        if ($request->has('search') && $request->search) {
-            $query->where(function ($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->search . '%')
-                    ->orWhere('sku', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        $products = $query->paginate(20);
-
-        return view('merchant.products.index', [
-            'title' => 'Merchant | My Products',
-            'products' => $products,
-        ]);
+        return $this->page('products', 'Merchant | My Products');
     }
 
     /**
@@ -55,12 +31,7 @@ class ProductController extends Controller
      */
     public function create(): View
     {
-        $categories = Category::all();
-        
-        return view('merchant.products.create', [
-            'title' => 'Merchant | Create Product',
-            'categories' => $categories,
-        ]);
+        return $this->page('add-product', 'Merchant | Create Product');
     }
 
     /**
@@ -106,10 +77,7 @@ class ProductController extends Controller
     {
         $this->authorizeProduct($product);
 
-        return view('merchant.products.show', [
-            'title' => 'Merchant | Product Details',
-            'product' => $product->load(['category', 'images', 'variants']),
-        ]);
+        return $this->page('products', 'Merchant | Product Details');
     }
 
     /**
@@ -119,13 +87,7 @@ class ProductController extends Controller
     {
         $this->authorizeProduct($product);
 
-        $categories = Category::all();
-
-        return view('merchant.products.edit', [
-            'title' => 'Merchant | Edit Product',
-            'product' => $product,
-            'categories' => $categories,
-        ]);
+        return redirect("/merchant/products/create?edit={$product->id}");
     }
 
     /**
@@ -193,17 +155,7 @@ class ProductController extends Controller
      */
     public function pending(): View
     {
-        $products = auth()->user()->products()
-            ->with(['category'])
-            ->where('status', 'pending')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return view('merchant.products.index', [
-            'title' => 'Merchant | Pending Products',
-            'products' => $products,
-            'filter' => 'pending',
-        ]);
+        return $this->page('merchant-pending-products', 'Merchant | Pending Products');
     }
 
     /**
@@ -211,17 +163,7 @@ class ProductController extends Controller
      */
     public function rejected(): View
     {
-        $products = auth()->user()->products()
-            ->with(['category'])
-            ->where('status', 'rejected')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return view('merchant.products.index', [
-            'title' => 'Merchant | Rejected Products',
-            'products' => $products,
-            'filter' => 'rejected',
-        ]);
+        return $this->page('merchant-rejected-products', 'Merchant | Rejected Products');
     }
 
     /**
@@ -229,17 +171,7 @@ class ProductController extends Controller
      */
     public function approved(): View
     {
-        $products = auth()->user()->products()
-            ->with(['category'])
-            ->where('status', 'approved')
-            ->orderBy('created_at', 'desc')
-            ->paginate(20);
-
-        return view('merchant.products.index', [
-            'title' => 'Merchant | Approved Products',
-            'products' => $products,
-            'filter' => 'approved',
-        ]);
+        return $this->page('merchant-approved-products', 'Merchant | Approved Products');
     }
 
     /**
@@ -250,5 +182,19 @@ class ProductController extends Controller
         if ($product->merchant_id !== auth()->id()) {
             abort(403, 'Unauthorized access.');
         }
+    }
+
+    private function page(string $screen, string $title): View
+    {
+        return view('backend.products.index', [
+            'title' => $title,
+            'context' => [
+                'app' => 'backend-products',
+                'screen' => $screen,
+                'endpoint' => '/api/admin/products',
+                'resource_base' => '/api/admin/products',
+                'role_scope' => 'merchant',
+            ],
+        ]);
     }
 }

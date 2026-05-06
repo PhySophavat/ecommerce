@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Merchant\Product\ProductController as MerchantProductController;
+use App\Http\Controllers\Merchant\Order\OrderController as MerchantOrderController;
 use App\Http\Controllers\Merchant\RegistrationController;
 use App\Http\Controllers\Merchant\Finance\WithdrawalPageController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,13 @@ Route::middleware(['auth', 'role:merchant'])->group(function () {
 Route::middleware(['auth', 'role:merchant', 'merchant.approved'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [MerchantProductController::class, 'dashboard'])->name('dashboard');
+    Route::get('/orders', [MerchantOrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/pending', [MerchantOrderController::class, 'pending'])->name('orders.pending');
+    Route::get('/orders/processing', [MerchantOrderController::class, 'processing'])->name('orders.processing');
+    Route::get('/orders/shipped', [MerchantOrderController::class, 'shipped'])->name('orders.shipped');
+    Route::get('/orders/delivered', [MerchantOrderController::class, 'delivered'])->name('orders.delivered');
+    Route::get('/orders/cancelled', [MerchantOrderController::class, 'cancelled'])->name('orders.cancelled');
+    Route::get('/orders/refunded', [MerchantOrderController::class, 'refunded'])->name('orders.refunded');
 
     // My Products
     Route::get('/products', [MerchantProductController::class, 'index'])->name('products.index');

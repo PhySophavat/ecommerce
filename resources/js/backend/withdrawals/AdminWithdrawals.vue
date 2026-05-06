@@ -132,61 +132,7 @@
                                                 </select>
                                             </label>
 
-                                            <section v-if="isMerchantUser && merchantBankAccounts.length === 0" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                                <div class="mb-4">
-                                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Bank Account</p>
-                                                    <h3 class="mt-1 text-lg font-bold text-slate-950">Create payout account</h3>
-                                                </div>
-
-                                                <div class="grid gap-4 md:grid-cols-2">
-                                                    <label class="block">
-                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Bank name</span>
-                                                        <select v-model="bankAccountForm.bank_name" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
-                                                            <option value="">Select bank</option>
-                                                            <option v-for="option in merchantBankOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-                                                        </select>
-                                                    </label>
-
-                                                    <label class="block">
-                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Account type</span>
-                                                        <select v-model="bankAccountForm.account_type" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
-                                                            <option value="bank">Bank</option>
-                                                            <option value="ewallet">E-Wallet</option>
-                                                        </select>
-                                                    </label>
-                                                </div>
-
-                                                <div class="mt-4 grid gap-4 md:grid-cols-2">
-                                                    <label class="block">
-                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Account name</span>
-                                                        <input v-model="bankAccountForm.account_name" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
-                                                    </label>
-
-                                                    <label class="block">
-                                                        <span class="mb-2 block text-sm font-semibold text-slate-700">Account number</span>
-                                                        <input v-model="bankAccountForm.account_number" type="text" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none">
-                                                    </label>
-                                                </div>
-
-                                                <button
-                                                    type="button"
-                                                    class="mt-4 w-full rounded-2xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                                                    :disabled="processingId === 'bank-account-create' || !canCreateBankAccount"
-                                                    @click="createMerchantBankAccount"
-                                                >
-                                                    {{ processingId === 'bank-account-create' ? 'Creating...' : 'Create Bank Account' }}
-                                                </button>
-                                            </section>
-
-                                            <label v-if="isMerchantUser" class="block">
-                                                <span class="mb-2 block text-sm font-semibold text-slate-700">Note</span>
-                                                <textarea
-                                                    v-model="merchantForm.note"
-                                                    rows="3"
-                                                    class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none"
-                                                    placeholder="Optional payout note"
-                                                />
-                                            </label>
+                                          
 
                                             <div v-if="isMerchantUser" class="grid gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 sm:grid-cols-3">
                                                 <div>
@@ -209,6 +155,10 @@
                                                 <span v-else class="ml-2">Review merchant withdrawal requests in the table below.</span>
                                             </div>
 
+                                            <p v-if="isMerchantUser" class="text-sm" :class="merchantCanSubmit ? 'text-emerald-700' : 'text-rose-600'">
+                                                {{ merchantSubmitHint }}
+                                            </p>
+
                                             <button
                                                 v-if="isMerchantUser"
                                                 type="button"
@@ -229,14 +179,14 @@
                             </div>
 
                             <div class="withdraw-table-wrap mt-5 overflow-x-auto">
-                                <table class="min-w-[1080px] w-full text-sm">
+                                <table class="min-w-[1180px] w-full text-sm">
                                     <thead class="bg-slate-50 text-left text-[11px] uppercase tracking-[0.16em] text-slate-400">
                                         <tr class="withdraw-table-head">
                                             <th class="px-5 py-4">Merchant</th>
                                             <th class="px-4 py-4">Currency</th>
                                             <th class="px-4 py-4">Amount</th>
+                                            <th class="px-4 py-4">Fee</th>
                                             <th class="px-4 py-4">Bank Account</th>
-                                            <th class="px-4 py-4">Note</th>
                                             <th class="px-4 py-4">Status</th>
                                             <th class="px-4 py-4">Created</th>
                                             <th class="px-5 py-4 text-right">Actions</th>
@@ -259,14 +209,14 @@
                                             </td>
                                             <td class="px-4 py-4">
                                                 <p class="font-bold text-slate-950">{{ currency(item.amount, item.currency) }}</p>
-                                                <p class="text-slate-500">Net {{ currency(item.net_amount, item.currency) }} • Fee {{ currency(item.fee_amount, item.currency) }}</p>
+                                                <p class="text-slate-500">Net {{ currency(item.net_amount, item.currency) }}</p>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <p class="font-semibold text-slate-900">{{ currency(item.fee_amount, item.currency) }}</p>
                                             </td>
                                             <td class="px-4 py-4 text-slate-600">
                                                 <p class="font-semibold text-slate-900">{{ item.bank_account?.bank_name }}</p>
                                                 <p>{{ item.bank_account?.account_holder_name }} • {{ item.bank_account?.account_number }}</p>
-                                            </td>
-                                            <td class="px-4 py-4 text-slate-600">
-                                                <p class="max-w-[220px] whitespace-normal break-words">{{ item.note || '-' }}</p>
                                             </td>
                                             <td class="px-4 py-4">
                                                 <span class="withdraw-badge" :class="statusClass(item.status)">
@@ -275,11 +225,11 @@
                                             </td>
                                             <td class="px-4 py-4 text-slate-600">{{ formatDate(item.created_at) }}</td>
                                             <td class="px-5 py-4 text-right">
-                                                <div class="flex justify-end gap-2">
+                                                <div class="flex flex-nowrap justify-end gap-2 whitespace-nowrap">
                                                     <button
                                                         v-if="item.status === 'pending'"
                                                         type="button"
-                                                        class="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                                                        class="rounded-full bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 whitespace-nowrap"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'approve')"
                                                     >
@@ -288,7 +238,7 @@
                                                     <button
                                                         v-if="item.status === 'pending'"
                                                         type="button"
-                                                        class="rounded-full bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500"
+                                                        class="rounded-full bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 whitespace-nowrap"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'reject')"
                                                     >
@@ -297,7 +247,7 @@
                                                     <button
                                                         v-if="item.status === 'approved'"
                                                         type="button"
-                                                        class="rounded-full bg-slate-950 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                                        class="rounded-full bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 whitespace-nowrap"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'mark-paid')"
                                                     >
@@ -344,6 +294,8 @@ const merchantBalances = ref({
     available_balance: '0.00',
     pending_balance: '0.00',
 });
+const merchantMinimumAmount = ref('10.00');
+const merchantWithdrawFee = ref('0.00');
 const dashboard = ref({
     meta: {
         brand: 'E-commerce',
@@ -415,11 +367,46 @@ const actionPlaceholder = computed(() => ({
 const isMerchantUser = computed(() => currentUser.value?.role === 'merchant');
 const merchantCanSubmit = computed(() => {
     const amount = Number.parseFloat(actionForm.amount || '0');
+    const availableToWithdraw = Number.parseFloat(merchantBalances.value.available_to_withdraw || '0');
+    const minimumAmount = Number.parseFloat(merchantMinimumAmount.value || '0');
 
     return isMerchantUser.value
         && merchantForm.bank_account_id !== ''
         && !Number.isNaN(amount)
-        && amount > 0;
+        && amount > 0
+        && amount >= minimumAmount
+        && amount <= availableToWithdraw;
+});
+const merchantSubmitHint = computed(() => {
+    if (!isMerchantUser.value) {
+        return '';
+    }
+
+    const amount = Number.parseFloat(actionForm.amount || '0');
+    const availableToWithdraw = Number.parseFloat(merchantBalances.value.available_to_withdraw || '0');
+    const minimumAmount = Number.parseFloat(merchantMinimumAmount.value || '0');
+
+    if (merchantForm.bank_account_id === '') {
+        return 'Select an approved bank account first.';
+    }
+
+    if (availableToWithdraw <= 0) {
+        return 'No available balance to withdraw yet. Add wallet balance first, then submit the request.';
+    }
+
+    if (Number.isNaN(amount) || amount <= 0) {
+        return `Enter a withdrawal amount of at least ${currency(minimumAmount, actionForm.currency)}.`;
+    }
+
+    if (amount < minimumAmount) {
+        return `Minimum withdrawal amount is ${currency(minimumAmount, actionForm.currency)}.`;
+    }
+
+    if (amount > availableToWithdraw) {
+        return `Withdrawal amount exceeds available balance of ${currency(availableToWithdraw, actionForm.currency)}.`;
+    }
+
+    return `This request will be added to the table below immediately after submission. Fee: ${currency(merchantWithdrawFee.value, actionForm.currency)}.`;
 });
 const canCreateBankAccount = computed(() => {
     return bankAccountForm.bank_name.trim() !== ''
@@ -532,6 +519,8 @@ async function loadMerchantWithdrawalForm() {
     ]);
 
     merchantBalances.value = withdrawalResponse.data.balances ?? merchantBalances.value;
+    merchantMinimumAmount.value = withdrawalResponse.data.minimum_amount ?? merchantMinimumAmount.value;
+    merchantWithdrawFee.value = withdrawalResponse.data.withdraw_fee ?? merchantWithdrawFee.value;
     merchantBankOptions.value = accountResponse.data.meta?.bank_options ?? merchantBankOptions.value;
     merchantBankAccounts.value = withdrawalResponse.data.bank_accounts ?? [];
 

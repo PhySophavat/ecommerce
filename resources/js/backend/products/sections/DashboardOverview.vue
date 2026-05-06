@@ -1,5 +1,5 @@
 <template>
-    <section class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.16fr)_minmax(300px,0.84fr)]">
+    <section class="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,1.16fr)_minmax(320px,0.84fr)]">
         <article class="admin-card rounded-[32px] px-6 py-6">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>

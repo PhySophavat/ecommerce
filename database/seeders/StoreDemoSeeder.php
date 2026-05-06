@@ -3,11 +3,14 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Slide;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Hash;
 
 class StoreDemoSeeder extends Seeder
 {
@@ -17,6 +20,7 @@ class StoreDemoSeeder extends Seeder
     public function run(): void
     {
         $categories = $this->syncCategories();
+        $defaultMerchantUser = $this->resolveStorefrontMerchantUser();
 
         collect([
             [
@@ -29,7 +33,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 39.80,
                 'compare_at_price' => 49.00,
                 'inventory' => 79,
-                'status' => 'scheduled',
+                'status' => 'approved',
                 'is_featured' => true,
                 'theme' => 'cobalt',
                 'rating' => 4.90,
@@ -45,7 +49,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 76.89,
                 'compare_at_price' => 84.00,
                 'inventory' => 86,
-                'status' => 'active',
+                'status' => 'approved',
                 'is_featured' => true,
                 'theme' => 'forest',
                 'rating' => 4.76,
@@ -77,7 +81,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 66.07,
                 'compare_at_price' => 78.00,
                 'inventory' => 69,
-                'status' => 'active',
+                'status' => 'approved',
                 'is_featured' => false,
                 'theme' => 'graphite',
                 'rating' => 4.72,
@@ -93,7 +97,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 86.07,
                 'compare_at_price' => null,
                 'inventory' => 69,
-                'status' => 'scheduled',
+                'status' => 'approved',
                 'is_featured' => true,
                 'theme' => 'midnight',
                 'rating' => 4.87,
@@ -125,7 +129,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 46.78,
                 'compare_at_price' => 58.00,
                 'inventory' => 58,
-                'status' => 'active',
+                'status' => 'approved',
                 'is_featured' => true,
                 'theme' => 'ink',
                 'rating' => 4.78,
@@ -141,7 +145,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 64.78,
                 'compare_at_price' => null,
                 'inventory' => 58,
-                'status' => 'active',
+                'status' => 'approved',
                 'is_featured' => false,
                 'theme' => 'plum',
                 'rating' => 4.66,
@@ -157,7 +161,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 42.78,
                 'compare_at_price' => 60.00,
                 'inventory' => 58,
-                'status' => 'scheduled',
+                'status' => 'approved',
                 'is_featured' => true,
                 'theme' => 'denim',
                 'rating' => 4.83,
@@ -173,7 +177,7 @@ class StoreDemoSeeder extends Seeder
                 'price' => 46.78,
                 'compare_at_price' => null,
                 'inventory' => 58,
-                'status' => 'active',
+                'status' => 'approved',
                 'is_featured' => false,
                 'theme' => 'lilac',
                 'rating' => 4.58,
@@ -192,6 +196,7 @@ class StoreDemoSeeder extends Seeder
                     'compare_at_price' => $product['compare_at_price'],
                     'inventory' => $product['inventory'],
                     'status' => $product['status'],
+                    'merchant_id' => $defaultMerchantUser->id,
                     'is_featured' => $product['is_featured'],
                     'theme' => $product['theme'],
                     'rating' => $product['rating'],
@@ -400,5 +405,43 @@ class StoreDemoSeeder extends Seeder
         }
 
         return $categories;
+    }
+
+    private function resolveStorefrontMerchantUser(): User
+    {
+        $approvedMerchantUser = User::query()
+            ->where('role', 'merchant')
+            ->where('email', '!=', 'merchant.shop@example.com')
+            ->whereHas('merchant', fn ($query) => $query->where('status', 'Approved'))
+            ->orderBy('id')
+            ->first();
+
+        return $approvedMerchantUser ?? $this->ensureDefaultMerchantUser();
+    }
+
+    private function ensureDefaultMerchantUser(): User
+    {
+        $user = User::query()->updateOrCreate(
+            ['email' => 'merchant.shop@example.com'],
+            [
+                'name' => 'Merchant Shop',
+                'phone' => '089999999',
+                'password' => Hash::make('password'),
+                'role' => 'merchant',
+            ],
+        );
+
+        Merchant::query()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'shop_name' => 'Merchant Shop',
+                'business_type' => 'Fashion',
+                'business_description' => 'Default storefront merchant for demo products.',
+                'status' => 'Approved',
+                'verification_status' => 'Verified',
+            ],
+        );
+
+        return $user;
     }
 }

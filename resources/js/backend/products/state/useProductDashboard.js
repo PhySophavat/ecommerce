@@ -15,6 +15,8 @@ const editorActions = [
 ];
 
 const currentScreen = normalizeScreen(window.__APP_CONTEXT__?.screen);
+const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/products';
+const resourceBase = window.__APP_CONTEXT__?.resource_base ?? endpoint;
 
 export function useProductDashboard() {
     const dashboard = ref(initialDashboard());
@@ -36,7 +38,7 @@ export function useProductDashboard() {
         isLoading.value = true;
 
         try {
-            const response = await window.axios.get('/api/admin/products', {
+            const response = await window.axios.get(endpoint, {
                 params: {
                     screen: currentScreen,
                 },
@@ -130,7 +132,7 @@ export function useProductDashboard() {
         isLoadingEditor.value = true;
 
         try {
-            const response = await window.axios.get(`/api/admin/products/${productId}`);
+            const response = await window.axios.get(`${resourceBase}/${productId}`);
             const editableProduct = normalizeEditableProduct(response.data?.product ?? {});
 
             editingProductId.value = editableProduct.id;
@@ -240,8 +242,8 @@ export function useProductDashboard() {
 
         try {
             const requestUrl = isEditingProduct.value
-                ? `/api/admin/products/${editingProductId.value}`
-                : '/api/admin/products';
+                ? `${resourceBase}/${editingProductId.value}`
+                : resourceBase;
 
             if (isEditingProduct.value) {
                 formData.append('_method', 'PUT');
@@ -295,7 +297,7 @@ export function useProductDashboard() {
         notice.value = null;
 
         try {
-            const response = await window.axios.delete(`/api/admin/products/${productId}`);
+            const response = await window.axios.delete(`${resourceBase}/${productId}`);
 
             if (editingProductId.value === productId) {
                 clearEditingState({ updateUrl: true });

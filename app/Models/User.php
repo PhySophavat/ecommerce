@@ -107,4 +107,9 @@ class User extends Authenticatable
     {
         return $this->hasOneThrough(MerchantLocation::class, Merchant::class);
     }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'customer_id');
+    }
 }

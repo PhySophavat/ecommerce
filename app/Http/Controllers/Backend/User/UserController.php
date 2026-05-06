@@ -24,6 +24,21 @@ class UserController extends Controller
         return $this->screen($request, 'merchants', 'Admin | Merchants');
     }
 
+    public function customers(Request $request): View|JsonResponse
+    {
+        return $this->screen($request, 'customers', 'Admin | Customers');
+    }
+
+    public function customerDetails(Request $request): View|JsonResponse
+    {
+        return $this->screen($request, 'customer-details', 'Admin | Customer Details');
+    }
+
+    public function purchaseHistory(Request $request): View|JsonResponse
+    {
+        return $this->screen($request, 'purchase-history', 'Admin | Customer Purchase History');
+    }
+
     public function create(Request $request): View
     {
         $screen = $this->screenForRole((string) $request->query('role', 'admin'));
@@ -39,9 +54,16 @@ class UserController extends Controller
             ]);
         }
 
+        $screen = $this->screenForRole($user->role);
+
         return $this->page(
-            $this->screenForRole($user->role),
-            $user->isMerchant() ? 'Admin | Merchants' : 'Admin | Users',
+            $screen,
+            match ($screen) {
+                'merchants' => 'Admin | Merchants',
+                'customers' => 'Admin | Customers',
+                'customer-details' => 'Admin | Customer Details',
+                default => 'Admin | Users',
+            },
         );
     }
 
@@ -74,6 +96,7 @@ class UserController extends Controller
         $route = match ($role) {
             'admin' => 'admin.users.index',
             'merchant' => 'admin.merchants.index',
+            'customer' => 'admin.customers.index',
             default => 'admin.products.index',
         };
 
@@ -109,7 +132,11 @@ class UserController extends Controller
         }
 
         return redirect()
-            ->route($user->isMerchant() ? 'admin.merchants.index' : 'admin.users.index')
+            ->route(match (true) {
+                $user->isMerchant() => 'admin.merchants.index',
+                $user->isCustomer() => 'admin.customers.index',
+                default => 'admin.users.index',
+            })
             ->with('status', "{$user->name} was updated successfully.");
     }
 
@@ -140,7 +167,11 @@ class UserController extends Controller
         }
 
         return redirect()
-            ->route($screen === 'merchants' ? 'admin.merchants.index' : 'admin.users.index')
+            ->route(match ($screen) {
+                'merchants' => 'admin.merchants.index',
+                'customers', 'customer-details', 'purchase-history' => 'admin.customers.index',
+                default => 'admin.users.index',
+            })
             ->with('status', "{$name} was deleted successfully.");
     }
 
@@ -160,7 +191,13 @@ class UserController extends Controller
             'context' => [
                 'app' => 'backend-users',
                 'screen' => $screen,
-                'endpoint' => route($screen === 'merchants' ? 'admin.merchants.index' : 'admin.users.index'),
+                'endpoint' => route(match ($screen) {
+                'merchants' => 'admin.merchants.index',
+                'customers' => 'admin.customers.index',
+                'customer-details' => 'admin.customers.details',
+                'purchase-history' => 'admin.customers.purchase-history',
+                default => 'admin.users.index',
+            }),
                 'currentUserId' => request()->user()?->getKey(),
             ],
         ]);
@@ -179,6 +216,10 @@ class UserController extends Controller
 
     private function screenForRole(?string $role): string
     {
-        return $role === 'merchant' ? 'merchants' : 'users';
+        return match ($role) {
+            'merchant' => 'merchants',
+            'customer' => 'customers',
+            default => 'users',
+        };
     }
 }

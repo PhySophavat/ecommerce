@@ -114,6 +114,7 @@
 import { computed, onMounted, ref } from 'vue';
 import AdminHeader from '../layout/AdminHeader.vue';
 import AdminSidebar from '../layout/AdminSidebar.vue';
+import { buildFallbackMenu } from '../layout/adminMenuFallback.js';
 import MerchantBankAccounts from './MerchantBankAccounts.vue';
 import MerchantDeposit from './MerchantDeposit.vue';
 import MerchantTransactionHistory from './MerchantTransactionHistory.vue';
@@ -147,6 +148,7 @@ const withdrawalAccounts = ref([]);
 const withdrawalSuccessToken = ref(0);
 const minimumAmount = ref('10.00');
 const withdrawFee = ref('0.00');
+const menuItems = computed(() => buildFallbackMenu(screen));
 const wallet = ref({
     balance_total: '0.00',
     available_balance: '0.00',
@@ -169,71 +171,20 @@ const dashboard = computed(() => ({
         kicker: 'Merchant finance',
         subheadline: 'Track wallet balances, top up via KHQR, request payouts, and review your full wallet ledger.',
     },
-    menu: [
-        {
-            label: 'Wallet',
-            slug: 'wallet',
-            icon: 'wallet',
-            path: '/merchant/wallet',
-            is_enabled: true,
-            is_active: screen === 'wallet',
-            is_expanded: false,
-            children: [],
-        },
-        {
-            label: 'Deposit',
-            slug: 'deposit',
-            icon: 'payments',
-            path: '/merchant/deposits',
-            is_enabled: true,
-            is_active: screen === 'deposit',
-            is_expanded: false,
-            children: [],
-        },
-        {
-            label: 'Withdrawals',
-            slug: 'merchant-finance',
-            icon: 'payments',
-            path: null,
-            is_enabled: true,
-            is_active: screen === 'withdraw' || screen === 'transactions' || screen === 'bank-accounts',
-            is_expanded: true,
-            children: [
-                {
-                    label: 'Withdraw',
-                    slug: 'withdraw',
-                    path: '/merchant/withdrawals',
-                    is_enabled: true,
-                    is_active: screen === 'withdraw',
-                    is_expanded: false,
-                    children: [],
-                },
-                {
-                    label: 'Transactions',
-                    slug: 'transactions',
-                    path: '/merchant/wallet/transactions',
-                    is_enabled: true,
-                    is_active: screen === 'transactions',
-                    is_expanded: false,
-                    children: [],
-                },
-                {
-                    label: 'Bank Accounts',
-                    slug: 'bank-accounts',
-                    path: '/merchant/bank-accounts',
-                    is_enabled: true,
-                    is_active: screen === 'bank-accounts',
-                    is_expanded: false,
-                    children: [],
-                },
-            ],
-        },
-    ],
+    menu: menuItems.value,
 }));
 
 onMounted(async () => {
+    syncOpenMenus(menuItems.value);
     await refresh();
 });
+
+function syncOpenMenus(menu) {
+    openMenus.value = menu.reduce((state, item) => {
+        state[item.slug] = Boolean(item.is_expanded);
+        return state;
+    }, {});
+}
 
 function toggleMenu(slug) {
     openMenus.value = {
@@ -243,10 +194,6 @@ function toggleMenu(slug) {
 }
 
 function isMenuOpen(slug) {
-    if (!(slug in openMenus.value)) {
-        return slug === 'merchant-finance';
-    }
-
     return Boolean(openMenus.value[slug]);
 }
 

@@ -17,8 +17,12 @@ class AdminDashboardData
 {
     public static function accountsIndex(string $screen = 'users'): array
     {
-        $screen = in_array($screen, ['users', 'merchants'], true) ? $screen : 'users';
-        $role = $screen === 'merchants' ? 'merchant' : 'admin';
+        $screen = in_array($screen, ['users', 'merchants', 'customers', 'customer-details', 'purchase-history'], true) ? $screen : 'users';
+        $role = match ($screen) {
+            'merchants' => 'merchant',
+            'customers', 'customer-details', 'purchase-history' => 'customer',
+            default => 'admin',
+        };
         $accounts = User::query()
             ->where('role', $role)
             ->withCount([
@@ -26,6 +30,7 @@ class AdminDashboardData
                 'products as pending_products_count' => fn ($query) => $query->where('status', 'pending'),
                 'products as approved_products_count' => fn ($query) => $query->where('status', 'approved'),
                 'approvedProducts as approved_products_total' => fn ($query) => $query->where('status', 'approved'),
+                'orders',
             ])
             ->orderByDesc('created_at')
             ->get();
@@ -51,8 +56,16 @@ class AdminDashboardData
             'menu' => self::menuTree(self::activeSlugsForScreen($screen)),
             'form' => [
                 'role' => $role,
-                'role_label' => $role === 'merchant' ? 'Merchant' : 'Admin user',
-                'submit_label' => $role === 'merchant' ? 'Create merchant' : 'Create admin user',
+                'role_label' => match ($role) {
+                    'merchant' => 'Merchant',
+                    'customer' => 'Customer',
+                    default => 'Admin user',
+                },
+                'submit_label' => match ($role) {
+                    'merchant' => 'Create merchant',
+                    'customer' => 'Create customer',
+                    default => 'Create admin user',
+                },
             ],
             'accounts' => [
                 'role' => $role,
@@ -80,6 +93,29 @@ class AdminDashboardData
                             'detail' => 'Merchant products currently approved',
                         ],
                     ]
+                    : ($role === 'customer'
+                    ? [
+                        [
+                            'label' => 'Total customers',
+                            'value' => (string) $accountsCount,
+                            'detail' => 'Customer accounts registered on the storefront',
+                        ],
+                        [
+                            'label' => 'Orders placed',
+                            'value' => (string) ((int) $accounts->sum('orders_count')),
+                            'detail' => 'Total orders created by customer accounts',
+                        ],
+                        [
+                            'label' => 'Active buyers',
+                            'value' => (string) ((int) $accounts->where('orders_count', '>', 0)->count()),
+                            'detail' => 'Customers who have placed at least one order',
+                        ],
+                        [
+                            'label' => 'New customers',
+                            'value' => (string) ((int) $accounts->where('created_at', '>=', now()->subDays(30))->count()),
+                            'detail' => 'Registered within the last 30 days',
+                        ],
+                    ]
                     : [
                         [
                             'label' => 'Admin users',
@@ -101,7 +137,7 @@ class AdminDashboardData
                             'value' => (string) $adminCount,
                             'detail' => 'Current approved admin seats',
                         ],
-                    ],
+                    ]),
                 'items' => $accounts
                     ->map(fn (User $user): array => self::account($user, $screen))
                     ->values()
@@ -112,6 +148,10 @@ class AdminDashboardData
 
     public static function productsIndex(string $screen = 'products'): array
     {
+        if (auth()->user()?->role === 'merchant') {
+            return self::merchantProductsIndex($screen, auth()->user());
+        }
+
         $screen = self::normalizedScreen($screen);
         $catalogProducts = Product::query()
             ->with('category')
@@ -121,8 +161,10 @@ class AdminDashboardData
             ? $catalogProducts->where('is_featured', true)->values()
             : $catalogProducts;
 
-        $orders = Order::query()->get();
-        $customerCount = User::query()->count();
+        $orders = Order::query()
+            ->whereNotNull('customer_id')
+            ->get();
+        $customerCount = User::query()->where('role', 'customer')->count();
         $lowStockCount = $catalogProducts->where('inventory', '<=', 60)->count();
         $meta = self::metaForScreen($screen);
 
@@ -163,19 +205,19 @@ class AdminDashboardData
                 [
                     'label' => 'Total sales',
                     'value' => self::currency((float) $orders->sum('total_amount')),
-                    'detail' => $orders->count().' orders recorded',
+                    'detail' => $orders->count().' storefront orders recorded',
                     'tone' => 'blue',
                 ],
                 [
                     'label' => 'Total orders',
                     'value' => (string) $orders->count(),
-                    'detail' => $orders->where('status', 'pending')->count().' pending',
+                    'detail' => $orders->where('status', 'pending')->count().' customer orders pending',
                     'tone' => 'slate',
                 ],
                 [
                     'label' => 'Total customers',
                     'value' => (string) $customerCount,
-                    'detail' => 'Seeded demo customers',
+                    'detail' => 'Registered storefront customer accounts',
                     'tone' => 'emerald',
                 ],
                 [
@@ -340,6 +382,23 @@ class AdminDashboardData
         ];
     }
 
+    public static function merchantBalancePage(): array
+    {
+        $meta = self::metaForScreen('merchant-balance');
+
+        return [
+            'screen' => 'merchant-balance',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('merchant-balance')),
+        ];
+    }
+
     public static function bankAccountsPage(): array
     {
         $meta = self::metaForScreen('bank-accounts');
@@ -359,7 +418,128 @@ class AdminDashboardData
 
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet', 'bank-accounts'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet', 'bank-accounts', 'merchant-balance'], true) ? $screen : 'products';
+    }
+
+    private static function merchantProductsIndex(string $screen, User $user): array
+    {
+        $screen = in_array($screen, ['dashboard', 'products', 'add-product', 'merchant-pending-products', 'merchant-approved-products', 'merchant-rejected-products'], true) ? $screen : 'products';
+        $products = Product::query()
+            ->where('merchant_id', $user->id)
+            ->with('category')
+            ->orderByDesc('id')
+            ->get();
+        $filteredProducts = match ($screen) {
+            'merchant-pending-products' => $products->where('status', 'pending')->values(),
+            'merchant-approved-products' => $products->where('status', 'approved')->values(),
+            'merchant-rejected-products' => $products->where('status', 'rejected')->values(),
+            default => $products->values(),
+        };
+
+        $menu = self::merchantWorkspaceMenu($screen);
+        $pendingCount = $products->where('status', 'pending')->count();
+        $approvedCount = $products->where('status', 'approved')->count();
+        $rejectedCount = $products->where('status', 'rejected')->count();
+        $lowStockCount = $products->where('inventory', '<=', 60)->count();
+
+        return [
+            'screen' => $screen,
+            'meta' => [
+                'brand' => $user->merchant?->shop_name ?? 'Merchant workspace',
+                'page_title' => match ($screen) {
+                    'dashboard' => 'Dashboard',
+                    'add-product' => 'Add Product',
+                    'merchant-pending-products' => 'Pending Products',
+                    'merchant-approved-products' => 'Approved Products',
+                    'merchant-rejected-products' => 'Rejected Products',
+                    default => 'Products',
+                },
+                'kicker' => match ($screen) {
+                    'dashboard' => 'Merchant workspace',
+                    'add-product' => 'Catalog creation',
+                    default => 'Merchant catalog',
+                },
+                'subheadline' => match ($screen) {
+                    'dashboard' => 'Track your storefront products, approval pipeline, and inventory from one merchant dashboard.',
+                    'add-product' => 'Create a new product submission for admin review.',
+                    'merchant-pending-products' => 'Review the products from your store that are waiting for admin approval.',
+                    'merchant-approved-products' => 'Review the products from your store that are already approved for storefront visibility.',
+                    'merchant-rejected-products' => 'Review the products from your store that were rejected and need updates before resubmission.',
+                    default => 'Manage only the products that belong to your approved merchant account.',
+                },
+                'primary_action_label' => $screen === 'add-product' ? 'My products' : '+ Add product',
+                'links' => [
+                    'frontend' => route('frontend.home'),
+                    'logout' => route('auth.logout'),
+                ],
+            ],
+            'form' => [
+                'categories' => Category::query()
+                    ->get(['id', 'name', 'slug'])
+                    ->sortBy(fn (Category $category): array => [self::categoryOrder($category->slug), $category->name])
+                    ->map(fn (Category $category): array => [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                        'slug' => $category->slug,
+                    ])
+                    ->values()
+                    ->all(),
+                'types' => [
+                    ['label' => 'Men', 'value' => 'men'],
+                    ['label' => 'Women', 'value' => 'women'],
+                ],
+                'statuses' => [
+                    ['label' => 'Pending review', 'value' => 'pending'],
+                ],
+                'sizes' => ['S', 'M', 'L', 'XL'],
+                'colors' => ['Red', 'Black', 'White', 'Blue', 'Green'],
+                'variant_presets' => self::variantPresets(),
+            ],
+            'summary' => [
+                [
+                    'label' => 'My products',
+                    'value' => (string) $products->count(),
+                    'detail' => 'Products owned by your merchant account',
+                    'tone' => 'blue',
+                ],
+                [
+                    'label' => 'Pending review',
+                    'value' => (string) $pendingCount,
+                    'detail' => 'Products waiting for admin approval',
+                    'tone' => 'slate',
+                ],
+                [
+                    'label' => 'Approved',
+                    'value' => (string) $approvedCount,
+                    'detail' => 'Products currently visible to customers',
+                    'tone' => 'emerald',
+                ],
+                [
+                    'label' => 'Rejected / low stock',
+                    'value' => (string) ($rejectedCount + $lowStockCount),
+                    'detail' => $rejectedCount.' rejected, '.$lowStockCount.' low stock',
+                    'tone' => 'amber',
+                ],
+            ],
+            'highlights' => [
+                ['label' => 'Categories', 'value' => (string) $products->pluck('category_id')->filter()->unique()->count()],
+                ['label' => 'Approved', 'value' => (string) $approvedCount],
+                ['label' => 'Pending', 'value' => (string) $pendingCount],
+                ['label' => 'Rejected', 'value' => (string) $rejectedCount],
+            ],
+            'menu' => $menu,
+            'products' => [
+                'count' => $filteredProducts->count(),
+                'items' => $filteredProducts->map(fn (Product $product): array => self::product($product))->values()->all(),
+                'pagination' => [
+                    'page' => 1,
+                    'pages' => 1,
+                    'from' => $filteredProducts->isEmpty() ? 0 : 1,
+                    'to' => $filteredProducts->count(),
+                    'total' => $filteredProducts->count(),
+                ],
+            ],
+        ];
     }
 
     /**
@@ -393,6 +573,21 @@ class AdminDashboardData
                 'kicker' => 'Admin access',
                 'subheadline' => 'Manage administrator accounts, review who can access the backend, and keep access tidy.',
             ],
+            'customers' => [
+                'page_title' => 'Customers',
+                'kicker' => 'Customer accounts',
+                'subheadline' => 'View registered storefront customers and monitor account activity.',
+            ],
+            'customer-details' => [
+                'page_title' => 'Customer Details',
+                'kicker' => 'Customer accounts',
+                'subheadline' => 'Inspect storefront customer profiles and account activity in a read-only view.',
+            ],
+            'purchase-history' => [
+                'page_title' => 'Customer Purchase History',
+                'kicker' => 'Customer accounts',
+                'subheadline' => 'Review customer accounts alongside the number of orders they have placed.',
+            ],
             'platform-fee-settings' => [
                 'page_title' => 'Platform Fee Settings',
                 'kicker' => 'Commission control',
@@ -402,6 +597,11 @@ class AdminDashboardData
                 'page_title' => 'Wallet',
                 'kicker' => 'Finance overview',
                 'subheadline' => 'Review merchant deposit and withdrawal activity from a single admin wallet overview.',
+            ],
+            'merchant-balance' => [
+                'page_title' => 'Merchant Balance',
+                'kicker' => 'Merchant finance',
+                'subheadline' => 'Review merchant balances, total deposits, withdrawals, and pending funds from one place.',
             ],
             'bank-accounts' => [
                 'page_title' => 'Bank Accounts',
@@ -441,8 +641,14 @@ class AdminDashboardData
             'sliders' => ['sliders'],
             'add-product' => ['products', 'add-product'],
             'featured-products' => ['content-management', 'featured-products'],
+            'customers' => ['customers', 'all-customers'],
+            'customer-details' => ['customers', 'customer-details'],
+            'purchase-history' => ['customers', 'purchase-history'],
             'users' => ['users-admin-management', 'admin-users'],
             'merchants' => ['users-admin-management', 'merchants'],
+            'merchant-balance' => ['merchant-balance', 'payments', 'transaction-history'],
+            'payment-records' => ['payments', 'payment-records'],
+            'payment-methods' => ['payments', 'payment-methods'],
             'wallet' => ['wallet'],
             'bank-accounts' => ['bank-accounts'],
             'platform-fee-settings' => ['settings', 'platform-fee-settings'],
@@ -480,7 +686,11 @@ class AdminDashboardData
             ->all();
 
         return self::normalizeMenuTree(
-            self::mergeMenuDefinitions($databaseMenu, $catalogMenu, $activeSlugs),
+            self::mergeMenuDefinitions(
+                self::applyRoleMenuOverrides($databaseMenu),
+                self::applyRoleMenuOverrides($catalogMenu),
+                $activeSlugs
+            ),
             $activeSlugs,
         );
     }
@@ -609,6 +819,69 @@ class AdminDashboardData
     }
 
     /**
+     * @param  array<int, array<string, mixed>>  $menuItems
+     * @return array<int, array<string, mixed>>
+     */
+    private static function applyRoleMenuOverrides(array $menuItems): array
+    {
+        if (auth()->user()?->role !== 'merchant') {
+            return $menuItems;
+        }
+
+        return collect($menuItems)
+            ->map(fn (array $item): array => self::applyMerchantMenuOverrides($item))
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $item
+     * @return array<string, mixed>
+     */
+    private static function applyMerchantMenuOverrides(array $item): array
+    {
+        $children = collect($item['children'] ?? [])
+            ->map(fn (array $child): array => self::applyMerchantMenuOverrides($child))
+            ->values()
+            ->all();
+
+        if (($item['slug'] ?? null) !== 'orders') {
+            return [
+                ...$item,
+                'children' => $children,
+            ];
+        }
+
+        $merchantOrderPaths = [
+            'all-orders' => '/merchant/orders',
+            'pending-orders' => '/merchant/orders/pending',
+            'processing-orders' => '/merchant/orders/processing',
+            'shipped-orders' => '/merchant/orders/shipped',
+            'delivered-orders' => '/merchant/orders/delivered',
+            'cancelled-orders' => '/merchant/orders/cancelled',
+            'returns-refunds' => '/merchant/orders/refunded',
+        ];
+
+        return [
+            ...$item,
+            'path' => '/merchant/orders',
+            'is_enabled' => true,
+            'children' => collect($children)
+                ->map(function (array $child) use ($merchantOrderPaths): array {
+                    $path = $merchantOrderPaths[$child['slug'] ?? ''] ?? ($child['path'] ?? '/merchant/orders');
+
+                    return [
+                        ...$child,
+                        'path' => $path,
+                        'is_enabled' => true,
+                    ];
+                })
+                ->values()
+                ->all(),
+        ];
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $databaseMenu
      * @param  array<int, array<string, mixed>>  $catalogMenu
      * @param  array<int, string>  $activeSlugs
@@ -715,6 +988,107 @@ class AdminDashboardData
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function merchantWorkspaceMenu(string $screen): array
+    {
+        $activeSlugs = match ($screen) {
+            'dashboard' => ['dashboard'],
+            'add-product' => ['products', 'add-product'],
+            'merchant-pending-products' => ['products', 'pending-products'],
+            'merchant-approved-products' => ['products', 'approved-products'],
+            'merchant-rejected-products' => ['products', 'rejected-products'],
+            default => ['products', 'all-products'],
+        };
+
+        $children = [
+            ['slug' => 'all-products', 'label' => 'All products', 'path' => '/merchant/products', 'is_enabled' => true],
+            ['slug' => 'add-product', 'label' => 'Add product', 'path' => '/merchant/products/create', 'is_enabled' => true],
+            ['slug' => 'pending-products', 'label' => 'Pending products', 'path' => '/merchant/products/pending', 'is_enabled' => true],
+            ['slug' => 'approved-products', 'label' => 'Approved products', 'path' => '/merchant/products/approved', 'is_enabled' => true],
+            ['slug' => 'rejected-products', 'label' => 'Rejected products', 'path' => '/merchant/products/rejected', 'is_enabled' => true],
+        ];
+
+        return [
+            [
+                'id' => 'dashboard',
+                'label' => 'Dashboard',
+                'slug' => 'dashboard',
+                'icon' => 'dashboard',
+                'path' => '/merchant/dashboard',
+                'is_enabled' => true,
+                'is_active' => in_array('dashboard', $activeSlugs, true),
+                'is_expanded' => false,
+                'children' => [],
+            ],
+            [
+                'id' => 'orders',
+                'label' => 'Orders',
+                'slug' => 'orders',
+                'icon' => 'orders',
+                'path' => '/merchant/orders',
+                'is_enabled' => true,
+                'is_active' => false,
+                'is_expanded' => true,
+                'children' => [
+                    ['id' => 'all-orders', 'label' => 'All orders', 'slug' => 'all-orders', 'path' => '/merchant/orders', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'pending-orders', 'label' => 'Pending orders', 'slug' => 'pending-orders', 'path' => '/merchant/orders/pending', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'processing-orders', 'label' => 'Processing orders', 'slug' => 'processing-orders', 'path' => '/merchant/orders/processing', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'shipped-orders', 'label' => 'Shipped orders', 'slug' => 'shipped-orders', 'path' => '/merchant/orders/shipped', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'delivered-orders', 'label' => 'Delivered orders', 'slug' => 'delivered-orders', 'path' => '/merchant/orders/delivered', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'cancelled-orders', 'label' => 'Cancelled orders', 'slug' => 'cancelled-orders', 'path' => '/merchant/orders/cancelled', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'returns-refunds', 'label' => 'Returns / refunds', 'slug' => 'returns-refunds', 'path' => '/merchant/orders/refunded', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                ],
+            ],
+            [
+                'id' => 'products',
+                'label' => 'Products',
+                'slug' => 'products',
+                'icon' => 'products',
+                'path' => '/merchant/products',
+                'is_enabled' => true,
+                'is_active' => in_array('products', $activeSlugs, true),
+                'is_expanded' => true,
+                'children' => collect($children)->map(fn (array $child): array => [
+                    ...$child,
+                    'id' => $child['slug'],
+                    'icon' => null,
+                    'is_active' => in_array($child['slug'], $activeSlugs, true),
+                    'is_expanded' => false,
+                    'children' => [],
+                ])->values()->all(),
+            ],
+            [
+                'id' => 'wallet',
+                'label' => 'Wallet',
+                'slug' => 'wallet',
+                'icon' => 'wallet',
+                'path' => '/merchant/wallet',
+                'is_enabled' => true,
+                'is_active' => false,
+                'is_expanded' => true,
+                'children' => [
+                    ['id' => 'deposit', 'label' => 'Deposit', 'slug' => 'deposit', 'path' => '/merchant/deposits', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'withdraw', 'label' => 'Withdraw', 'slug' => 'withdraw', 'path' => '/merchant/withdrawals', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'transactions', 'label' => 'Transactions', 'slug' => 'transactions', 'path' => '/merchant/wallet/transactions', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'bank-accounts', 'label' => 'Bank Accounts', 'slug' => 'bank-accounts', 'path' => '/merchant/bank-accounts', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                ],
+            ],
+            [
+                'id' => 'logout',
+                'label' => 'Logout',
+                'slug' => 'logout',
+                'icon' => 'logout',
+                'path' => null,
+                'is_enabled' => true,
+                'is_active' => false,
+                'is_expanded' => false,
+                'children' => [],
+            ],
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private static function product(Product $product): array
@@ -777,6 +1151,7 @@ class AdminDashboardData
             'email' => $user->email,
             'role' => $user->role,
             'products_count' => (int) ($user->products_count ?? 0),
+            'orders_count' => (int) ($user->orders_count ?? 0),
             'pending_products_count' => (int) ($user->pending_products_count ?? 0),
             'approved_products_count' => $screen === 'merchants'
                 ? (int) ($user->approved_products_count ?? 0)
@@ -794,6 +1169,7 @@ class AdminDashboardData
             'frontend' => route('frontend.home'),
             'admin_users' => route('admin.users.index'),
             'admin_merchants' => route('admin.merchants.index'),
+            'admin_customers' => route('admin.customers.index'),
             'admin_wallet' => route('admin.wallet.index'),
             'admin_bank_accounts' => route('admin.bank-accounts.index'),
             'admin_deposits' => route('admin.deposits.index'),

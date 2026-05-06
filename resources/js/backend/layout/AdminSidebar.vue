@@ -1,5 +1,5 @@
 <template>
-    <aside class="hidden w-[300px] shrink-0 border-r border-[#e3e7ef] bg-[#EEF2F7] text-[#222] shadow-xl lg:flex lg:flex-col">
+    <aside class="hidden w-[280px] shrink-0 border-r border-[#e3e7ef] bg-[#EEF2F7] text-[#222] shadow-xl xl:w-[300px] lg:flex lg:flex-col">
         <div class="px-5 pt-5">
             <div class="rounded-[30px] border border-[#e3e7ef] bg-white px-5 py-5 shadow-md">
                 <div class="flex items-center gap-3">

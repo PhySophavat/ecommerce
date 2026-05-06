@@ -59,8 +59,8 @@
                             </article>
                         </section>
 
-                        <div class="mt-6 grid gap-6 xl:grid-cols-[380px,minmax(0,1fr)]">
-                            <section ref="formSection" class="admin-card rounded-[30px] px-6 py-6">
+                        <div class="mt-6 grid gap-6" :class="isCustomerScreen ? 'xl:grid-cols-1' : 'xl:grid-cols-[380px,minmax(0,1fr)]'">
+                            <section v-if="!isCustomerScreen" ref="formSection" class="admin-card rounded-[30px] px-6 py-6">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
                                         <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Create {{ roleLabel.toLowerCase() }}</p>
@@ -82,7 +82,7 @@
                                             type="text"
                                             class="w-full rounded-2xl border px-4 py-3 text-sm text-slate-900 transition"
                                             :class="fieldClass('name')"
-                                            :placeholder="screen === 'merchants' ? 'Northstar Seller' : 'Admin User'"
+                                            :placeholder="screen === 'merchants' ? 'Northstar Seller' : (isCustomerScreen ? 'Customer Name' : 'Admin User')"
                                             required
                                         />
                                         <p v-if="errors.name" class="text-xs text-rose-600">{{ errors.name[0] }}</p>
@@ -95,7 +95,7 @@
                                             type="email"
                                             class="w-full rounded-2xl border px-4 py-3 text-sm text-slate-900 transition"
                                             :class="fieldClass('email')"
-                                            :placeholder="screen === 'merchants' ? 'seller@example.com' : 'admin@example.com'"
+                                            :placeholder="screen === 'merchants' ? 'seller@example.com' : (isCustomerScreen ? 'customer@example.com' : 'admin@example.com')"
                                             required
                                         />
                                         <p v-if="errors.email" class="text-xs text-rose-600">{{ errors.email[0] }}</p>
@@ -131,7 +131,7 @@
                                         <p class="font-semibold text-slate-900">Access role</p>
                                         <p class="mt-1 leading-6">
                                             This form creates a <span class="font-semibold text-[#A25F88]">{{ roleLabel.toLowerCase() }}</span>
-                                            account and gives backend access for that role.
+                                            account{{ isCustomerScreen ? ' for storefront ordering and account management.' : ' and gives backend access for that role.' }}
                                         </p>
                                     </div>
 
@@ -145,14 +145,34 @@
                                 </form>
                             </section>
 
+                            <section v-else class="admin-card rounded-[30px] px-6 py-6">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div>
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Frontend customer source</p>
+                                        <h3 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">
+                                            Customer records are read-only here
+                                        </h3>
+                                    </div>
+
+                                    <div class="rounded-2xl bg-[#F3E8F1] px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#A25F88]">
+                                        {{ accountCount }} total
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 rounded-[24px] border border-[#ead9e3] bg-[#fcf7fa] px-5 py-5 text-sm leading-7 text-slate-600">
+                                    This customer section only receives information from users who register on the frontend storefront.
+                                    Admin users cannot create customer accounts from this page.
+                                </div>
+                            </section>
+
                             <section class="admin-card rounded-[30px] px-6 py-6">
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
                                         <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-                                            {{ screen === 'merchants' ? 'Seller directory' : 'Backend access directory' }}
+                                            {{ screen === 'merchants' ? 'Seller directory' : (isCustomerScreen ? 'Customer directory' : 'Backend access directory') }}
                                         </p>
                                         <h3 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">
-                                            {{ accountCount }} {{ screen === 'merchants' ? 'merchant accounts' : 'admin accounts' }}
+                                            {{ accountCount }} {{ screen === 'merchants' ? 'merchant accounts' : (isCustomerScreen ? 'customer accounts' : 'admin accounts') }}
                                         </h3>
                                     </div>
 
@@ -166,7 +186,7 @@
                                 </div>
 
                                 <div v-if="accountRows.length === 0" class="admin-muted-panel mt-6 rounded-[24px] px-5 py-6 text-sm text-slate-500">
-                                    No {{ screen === 'merchants' ? 'merchant' : 'admin' }} accounts found yet.
+                                    No {{ screen === 'merchants' ? 'merchant' : (isCustomerScreen ? 'customer' : 'admin') }} accounts found yet.
                                 </div>
 
                                 <div v-else class="mt-6 overflow-x-auto rounded-[28px] border border-[#e3e9f7] bg-[#fbfcff]">
@@ -175,7 +195,7 @@
                                             <tr class="border-b border-[#e6ebf8]">
                                                 <th class="px-5 py-4">Account</th>
                                                 <th class="px-4 py-4">Role</th>
-                                                <th class="px-4 py-4">{{ screen === 'merchants' ? 'Products' : 'Approved' }}</th>
+                                                <th class="px-4 py-4">{{ screen === 'merchants' ? 'Products' : (isCustomerScreen ? 'Orders' : 'Approved') }}</th>
                                                 <th class="px-4 py-4">{{ screen === 'merchants' ? 'Pending' : 'Email' }}</th>
                                                 <th class="px-4 py-4">{{ screen === 'merchants' ? 'Approved' : 'Joined' }}</th>
                                                 <th class="px-5 py-4 text-right">Action</th>
@@ -215,7 +235,7 @@
                                                     </span>
                                                 </td>
                                                 <td class="px-4 py-4 font-semibold text-slate-900">
-                                                    {{ screen === 'merchants' ? account.products_count : account.approved_products_count }}
+                                                    {{ screen === 'merchants' ? account.products_count : (isCustomerScreen ? account.orders_count : account.approved_products_count) }}
                                                 </td>
                                                 <td class="px-4 py-4 text-slate-600">
                                                     {{ screen === 'merchants' ? account.pending_products_count : '@' + String(account.email ?? '').split('@')[0] }}
@@ -224,20 +244,102 @@
                                                     {{ screen === 'merchants' ? account.approved_products_count : account.joined_at }}
                                                 </td>
                                                 <td class="px-5 py-4 text-right">
-                                                    <button
-                                                        type="button"
-                                                        class="rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
-                                                        :disabled="deletingUserId === account.id || isCurrentUser(account)"
-                                                        @click="deleteAccount(account)"
-                                                    >
-                                                        {{ deletingUserId === account.id ? 'Deleting...' : 'Delete' }}
-                                                    </button>
+                                                    <div class="flex items-center justify-end gap-2">
+                                                        <button
+                                                            v-if="isCustomerScreen"
+                                                            type="button"
+                                                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                                                            title="View customer detail"
+                                                            @click="openCustomerDetail(account)"
+                                                        >
+                                                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12Z"/>
+                                                                <circle cx="12" cy="12" r="3"/>
+                                                            </svg>
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            class="rounded-xl border border-rose-200 px-3 py-2 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                            :disabled="deletingUserId === account.id || isCurrentUser(account)"
+                                                            @click="deleteAccount(account)"
+                                                        >
+                                                            {{ deletingUserId === account.id ? 'Deleting...' : 'Delete' }}
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </section>
+                        </div>
+
+                        <div
+                            v-if="selectedCustomer"
+                            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 px-4 py-8"
+                            @click.self="closeCustomerDetail"
+                        >
+                            <div class="w-full max-w-2xl rounded-[30px] bg-white shadow-2xl">
+                                <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+                                    <div>
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Customer detail</p>
+                                        <h3 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">{{ selectedCustomer.name }}</h3>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 hover:text-slate-950"
+                                        @click="closeCustomerDetail"
+                                    >
+                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m6 6 12 12M18 6 6 18"/>
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div class="grid gap-4 px-6 py-6 md:grid-cols-2">
+                                    <article class="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Account</p>
+                                        <dl class="mt-4 space-y-3 text-sm">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <dt class="text-slate-500">Name</dt>
+                                                <dd class="text-right font-semibold text-slate-950">{{ selectedCustomer.name }}</dd>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-4">
+                                                <dt class="text-slate-500">Email</dt>
+                                                <dd class="text-right font-semibold text-slate-950">{{ selectedCustomer.email }}</dd>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-4">
+                                                <dt class="text-slate-500">Role</dt>
+                                                <dd class="text-right font-semibold uppercase text-slate-950">{{ selectedCustomer.role }}</dd>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-4">
+                                                <dt class="text-slate-500">Joined</dt>
+                                                <dd class="text-right font-semibold text-slate-950">{{ selectedCustomer.joined_at }}</dd>
+                                            </div>
+                                        </dl>
+                                    </article>
+
+                                    <article class="rounded-[24px] border border-slate-200 bg-slate-50 px-5 py-5">
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Order activity</p>
+                                        <dl class="mt-4 space-y-3 text-sm">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <dt class="text-slate-500">Orders placed</dt>
+                                                <dd class="text-right font-semibold text-slate-950">{{ selectedCustomer.orders_count ?? 0 }}</dd>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-4">
+                                                <dt class="text-slate-500">Username</dt>
+                                                <dd class="text-right font-semibold text-slate-950">@{{ String(selectedCustomer.email ?? '').split('@')[0] }}</dd>
+                                            </div>
+                                            <div class="flex items-start justify-between gap-4">
+                                                <dt class="text-slate-500">Source</dt>
+                                                <dd class="text-right font-semibold text-slate-950">Frontend registration</dd>
+                                            </div>
+                                        </dl>
+                                    </article>
+                                </div>
+                            </div>
                         </div>
                     </template>
                 </main>
@@ -253,7 +355,7 @@ import AdminHeader from './layout/AdminHeader.vue';
 import AdminSidebar from './layout/AdminSidebar.vue';
 
 const screen = normalizeScreen(window.__APP_CONTEXT__?.screen);
-const endpoint = window.__APP_CONTEXT__?.endpoint ?? (screen === 'merchants' ? '/admin/merchants' : '/admin/users');
+const endpoint = window.__APP_CONTEXT__?.endpoint ?? defaultEndpoint(screen);
 const currentUserId = currentSignedInUserId();
 const formSection = ref(null);
 const dashboard = ref(initialDashboard(screen));
@@ -262,6 +364,7 @@ const isLoading = ref(true);
 const isSaving = ref(false);
 const notice = ref(null);
 const openMenus = ref({});
+const selectedCustomer = ref(null);
 const form = reactive(initialForm(screen));
 const errors = reactive({});
 
@@ -270,11 +373,17 @@ const accountRows = computed(() => dashboard.value.accounts?.items ?? []);
 const roleLabel = computed(() => dashboard.value.form?.role_label ?? defaultRoleLabel(screen));
 const submitLabel = computed(() => dashboard.value.form?.submit_label ?? defaultSubmitLabel(screen));
 const summaryCards = computed(() => dashboard.value.accounts?.summary ?? []);
+const isCustomerScreen = computed(() => ['customers', 'customer-details', 'purchase-history'].includes(screen));
 const switchLinks = computed(() => [
     {
         screen: 'users',
         label: 'Admin users',
         href: dashboard.value.meta?.links?.admin_users ?? '/admin/users',
+    },
+    {
+        screen: 'customers',
+        label: 'Customers',
+        href: dashboard.value.meta?.links?.admin_customers ?? '/admin/customers',
     },
     {
         screen: 'merchants',
@@ -377,6 +486,10 @@ async function submitLogout() {
 }
 
 async function submitAccount() {
+    if (isCustomerScreen.value) {
+        return;
+    }
+
     isSaving.value = true;
     clearErrors();
     notice.value = null;
@@ -454,7 +567,19 @@ async function deleteAccount(account) {
     }
 }
 
+function openCustomerDetail(account) {
+    selectedCustomer.value = account;
+}
+
+function closeCustomerDetail() {
+    selectedCustomer.value = null;
+}
+
 function scrollToForm() {
+    if (isCustomerScreen.value) {
+        return;
+    }
+
     formSection.value?.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
@@ -500,19 +625,67 @@ function resetForm() {
 }
 
 function normalizeScreen(value) {
-    return value === 'merchants' ? 'merchants' : 'users';
+    if (value === 'merchants' || value === 'customers' || value === 'customer-details' || value === 'purchase-history') {
+        return value;
+    }
+
+    return 'users';
 }
 
 function defaultRole(currentScreen) {
-    return currentScreen === 'merchants' ? 'merchant' : 'admin';
+    if (currentScreen === 'merchants') {
+        return 'merchant';
+    }
+
+    if (currentScreen === 'customers' || currentScreen === 'customer-details' || currentScreen === 'purchase-history') {
+        return 'customer';
+    }
+
+    return 'admin';
 }
 
 function defaultRoleLabel(currentScreen) {
-    return currentScreen === 'merchants' ? 'Merchant' : 'Admin user';
+    if (currentScreen === 'merchants') {
+        return 'Merchant';
+    }
+
+    if (currentScreen === 'customers' || currentScreen === 'customer-details' || currentScreen === 'purchase-history') {
+        return 'Customer';
+    }
+
+    return 'Admin user';
 }
 
 function defaultSubmitLabel(currentScreen) {
-    return currentScreen === 'merchants' ? 'Create merchant' : 'Create admin user';
+    if (currentScreen === 'merchants') {
+        return 'Create merchant';
+    }
+
+    if (currentScreen === 'customers' || currentScreen === 'customer-details' || currentScreen === 'purchase-history') {
+        return 'Create customer';
+    }
+
+    return 'Create admin user';
+}
+
+function defaultEndpoint(currentScreen) {
+    if (currentScreen === 'merchants') {
+        return '/admin/merchants';
+    }
+
+    if (currentScreen === 'purchase-history') {
+        return '/admin/customers/purchase-history';
+    }
+
+    if (currentScreen === 'customer-details') {
+        return '/admin/customers/details';
+    }
+
+    if (currentScreen === 'customers') {
+        return '/admin/customers';
+    }
+
+    return '/admin/users';
 }
 
 function initialForm(currentScreen) {
@@ -533,20 +706,22 @@ function currentSignedInUserId() {
 
 function initialDashboard(currentScreen) {
     const isMerchantScreen = currentScreen === 'merchants';
+    const isCustomerDirectory = ['customers', 'customer-details', 'purchase-history'].includes(currentScreen);
 
     return {
         screen: currentScreen,
         meta: {
             brand: 'Spodut',
-            page_title: isMerchantScreen ? 'Merchants' : 'Admin Users',
-            kicker: isMerchantScreen ? 'Seller management' : 'Admin access',
+            page_title: isMerchantScreen ? 'Merchants' : (isCustomerDirectory ? 'Customers' : 'Admin Users'),
+            kicker: isMerchantScreen ? 'Seller management' : (isCustomerDirectory ? 'Customer accounts' : 'Admin access'),
             subheadline: isMerchantScreen
                 ? 'Loading merchant accounts...'
-                : 'Loading admin accounts...',
+                : (isCustomerDirectory ? 'Loading customer accounts...' : 'Loading admin accounts...'),
             links: {
                 frontend: '/frontend',
                 admin_users: '/admin/users',
                 admin_merchants: '/admin/merchants',
+                admin_customers: '/admin/customers',
                 logout: '/auth/logout',
             },
         },

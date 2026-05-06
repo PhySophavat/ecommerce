@@ -1,6 +1,6 @@
 <template>
     <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
+        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[1800px] overflow-x-clip rounded-[36px]">
             <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
@@ -47,7 +47,7 @@
                             <DashboardOverview :products="dashboard.products.items" @open-add-product="scrollToAddProduct" @open-products="openProductsView()" />
                         </template>
 
-                        <template v-else-if="screen === 'products' || screen === 'featured-products'">
+                        <template v-else-if="productListScreens.includes(screen)">
                             <ProductsTable
                                 :categories="dashboard.form.categories"
                                 :deleting-product-id="isDeletingProductId"
@@ -95,6 +95,10 @@ import SummaryCardsGrid from './sections/SummaryCardsGrid.vue';
 import { useProductDashboard } from './state/useProductDashboard.js';
 
 const addProductSection = ref(null);
+const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'admin';
+const productListScreens = ['products', 'featured-products', 'merchant-pending-products', 'merchant-approved-products', 'merchant-rejected-products'];
+const productsIndexPath = roleScope === 'merchant' ? '/merchant/products' : '/admin/products';
+const productCreatePath = roleScope === 'merchant' ? '/merchant/products/create' : '/admin/products/create';
 
 const {
     dashboard,
@@ -215,13 +219,7 @@ function handlePrimaryAction() {
         return;
     }
 
-    if (screen === 'products') {
-        scrollToAddProduct();
-
-        return;
-    }
-
-    if (screen === 'featured-products') {
+    if (productListScreens.includes(screen)) {
         scrollToAddProduct();
 
         return;
@@ -237,7 +235,7 @@ async function openProductEditor(product) {
         return;
     }
 
-    const targetUrl = `/admin/products/create?edit=${productId}`;
+    const targetUrl = `${productCreatePath}?edit=${productId}`;
 
     if (screen !== 'add-product') {
         window.location.href = targetUrl;
@@ -252,7 +250,7 @@ async function openProductEditor(product) {
 
 function scrollToAddProduct(shouldFocus = true) {
     if (screen !== 'add-product') {
-        window.location.href = '/admin/products/create';
+        window.location.href = productCreatePath;
 
         return;
     }
@@ -264,7 +262,7 @@ function scrollToSection(target, shouldFocus = false) {
     const element = typeof target === 'string' ? document.querySelector(target) : target;
 
     if (!element) {
-        if (typeof target === 'string' && screen !== 'products') {
+        if (typeof target === 'string' && !productListScreens.includes(screen)) {
             openProductsView(target);
         }
 
@@ -288,6 +286,6 @@ function scrollToSection(target, shouldFocus = false) {
 }
 
 function openProductsView(hash = '') {
-    window.location.href = `/admin/products${hash}`;
+    window.location.href = `${productsIndexPath}${hash}`;
 }
 </script>

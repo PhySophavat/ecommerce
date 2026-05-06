@@ -16,7 +16,7 @@ return new class extends Migration
 
         Schema::create('merchant_bank_accounts', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('merchant_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('merchant_id')->constrained()->cascadeOnDelete()->name('merchant_bank_accounts_v2_merchant_id_foreign');
             $table->string('bank_name');
             $table->string('account_holder_name');
             $table->string('account_number');
@@ -63,8 +63,8 @@ return new class extends Migration
 
         Schema::create('withdrawals', function (Blueprint $table): void {
             $table->id();
-            $table->foreignId('merchant_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('bank_account_id')->constrained('merchant_bank_accounts')->restrictOnDelete();
+            $table->foreignId('merchant_id')->constrained()->cascadeOnDelete()->name('withdrawals_v2_merchant_id_foreign');
+            $table->foreignId('bank_account_id')->constrained('merchant_bank_accounts')->restrictOnDelete()->name('withdrawals_v2_bank_account_id_foreign');
             $table->decimal('amount', 12, 2);
             $table->string('currency', 3)->default('USD');
             $table->decimal('fee_amount', 12, 2)->default(0);

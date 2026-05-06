@@ -13,7 +13,9 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'merchant_id',
         'product_name',
+        'product_image',
         'product_sku',
         'theme',
         'unit_price',
@@ -37,5 +39,10 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function merchant(): BelongsTo
+    {
+        return $this->belongsTo(Merchant::class);
     }
 }
