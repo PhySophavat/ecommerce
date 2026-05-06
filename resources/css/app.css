@@ -20,25 +20,29 @@
         monospace;
 
     /* Brand Colors */
-    --color-primary: #A25F88;
-    --color-primary-hover: #8B4E73;
-    --color-primary-light: #F3E8F1;
-    
+    --color-primary: #1495E8;
+    --color-primary-hover: #0D86D6;
+    --color-primary-light: #F3F9FD;
+    --color-primary-soft: #EFF7FD;
+
     /* Background & Layout */
-    --color-background: #F8FAFC;
+    --color-background: #F8FBFE;
     --color-card: #FFFFFF;
-    --color-border: #E5E7EB;
-    
+    --color-border: #D8E7F4;
+    --color-border-soft: #E8EEF5;
+
     /* Text Colors */
     --color-text-main: #111827;
-    --color-text-secondary: #6B7280;
-    --color-text-muted: #9CA3AF;
-    
+    --color-text-secondary: #374151;
+    --color-text-muted: #6B7280;
+    --color-placeholder: #94A3B8;
+
     /* Status Colors */
-    --color-info: #3B82F6;
+    --color-info: #1495E8;
     --color-success: #10B981;
     --color-error: #EF4444;
     --color-warning: #F59E0B;
+    --color-footer: #0F172A;
 }
 
 html {
@@ -52,10 +56,10 @@ body {
 
 body[data-app='frontend'] {
     background:
-        radial-gradient(circle at top left, rgba(162, 95, 136, 0.15), transparent 28%),
-        radial-gradient(circle at top right, rgba(139, 78, 115, 0.1), transparent 24%),
-        linear-gradient(180deg, #F8FAFC 0%, #F3E8F1 100%);
-    color: #111827;
+        radial-gradient(circle at top left, rgba(20, 149, 232, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(13, 134, 214, 0.08), transparent 24%),
+        linear-gradient(180deg, #f8fbfe 0%, #eff7fd 100%);
+    color: var(--color-text-main);
 }
 
 body[data-app^='backend-'] {

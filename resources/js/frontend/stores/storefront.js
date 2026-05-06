@@ -24,6 +24,26 @@ function isApprovedProduct(product) {
     return Boolean(product?.is_orderable);
 }
 
+async function ensureCsrfToken(force = false) {
+    if (!force && window.__storefrontCsrfReady) {
+        return;
+    }
+
+    const response = await window.axios.get('/api/frontend/csrf-token');
+    const csrfToken = response.data?.csrf_token;
+
+    if (csrfToken) {
+        window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken;
+
+        const tokenMeta = document.head.querySelector('meta[name="csrf-token"]');
+        if (tokenMeta) {
+            tokenMeta.setAttribute('content', csrfToken);
+        }
+    }
+
+    window.__storefrontCsrfReady = true;
+}
+
 export const useStorefrontStore = defineStore('storefront', {
     state: () => ({
         initialized: false,
@@ -151,6 +171,7 @@ export const useStorefrontStore = defineStore('storefront', {
         },
 
         async login(payload) {
+            await ensureCsrfToken(true);
             const response = await window.axios.post('/api/frontend/login', payload);
             this.user = response.data.user;
             await this.fetchOrders();
@@ -158,6 +179,7 @@ export const useStorefrontStore = defineStore('storefront', {
         },
 
         async register(payload) {
+            await ensureCsrfToken(true);
             const response = await window.axios.post('/api/frontend/register', payload);
             this.user = response.data.user;
             this.orders = [];
@@ -165,6 +187,7 @@ export const useStorefrontStore = defineStore('storefront', {
         },
 
         async logout() {
+            await ensureCsrfToken(true);
             await window.axios.post('/api/frontend/logout');
             this.user = null;
             this.orders = [];
@@ -172,6 +195,7 @@ export const useStorefrontStore = defineStore('storefront', {
         },
 
         async updateProfile(payload) {
+            await ensureCsrfToken(true);
             const response = await window.axios.put('/api/frontend/profile', payload);
             this.user = response.data.user;
             return response.data;
@@ -295,6 +319,7 @@ export const useStorefrontStore = defineStore('storefront', {
         },
 
         async checkout(payload) {
+            await ensureCsrfToken(true);
             const response = await window.axios.post('/api/frontend/checkout', {
                 ...payload,
                 items: this.cartItems.map((item) => ({

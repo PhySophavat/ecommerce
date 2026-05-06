@@ -1,5 +1,5 @@
 <template>
-    <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+    <div :class="gridClass">
         <ProductCard
             v-for="product in products"
             :key="product.id"
@@ -12,9 +12,10 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import ProductCard from './ProductCard.vue';
 
-defineProps({
+const props = defineProps({
     products: {
         type: Array,
         default: () => [],
@@ -23,7 +24,17 @@ defineProps({
         type: Array,
         default: () => [],
     },
+    columns: {
+        type: Number,
+        default: 4,
+    },
 });
 
 defineEmits(['add-to-cart', 'toggle-wishlist']);
+
+const gridClass = computed(() => (
+    props.columns === 3
+        ? 'grid gap-6 sm:grid-cols-2 xl:grid-cols-3'
+        : 'grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+));
 </script>

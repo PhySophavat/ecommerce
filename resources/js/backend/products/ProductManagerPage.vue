@@ -13,6 +13,7 @@
 
             <div class="flex min-w-0 flex-1 flex-col">
                 <AdminHeader
+                    v-if="showHeader"
                     :dashboard="dashboard"
                     :is-menu-open="isMenuOpen"
                     :screen="screen"
@@ -123,6 +124,8 @@ const {
     submitProduct,
     toggleMenu,
 } = useProductDashboard();
+
+const showHeader = !(roleScope === 'merchant' && screen === 'dashboard');
 
 onMounted(async () => {
     await loadDashboard();

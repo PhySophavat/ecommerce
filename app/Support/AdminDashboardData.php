@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\AdminMenu;
 use App\Models\Category;
+use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\PlatformFeeSetting;
 use App\Models\Product;
@@ -424,6 +425,7 @@ class AdminDashboardData
     private static function merchantProductsIndex(string $screen, User $user): array
     {
         $screen = in_array($screen, ['dashboard', 'products', 'add-product', 'merchant-pending-products', 'merchant-approved-products', 'merchant-rejected-products'], true) ? $screen : 'products';
+        $merchant = $user->merchant()->first();
         $products = Product::query()
             ->where('merchant_id', $user->id)
             ->with('category')
@@ -441,6 +443,18 @@ class AdminDashboardData
         $approvedCount = $products->where('status', 'approved')->count();
         $rejectedCount = $products->where('status', 'rejected')->count();
         $lowStockCount = $products->where('inventory', '<=', 60)->count();
+        $balanceUsd = (float) ($merchant?->balance_total ?? 0);
+        $balanceKhr = $balanceUsd * 4100;
+        $walletTransactions = $merchant?->walletTransactions()->get() ?? collect();
+        $transactionIn = (float) $walletTransactions
+            ->where('direction', 'credit')
+            ->sum(fn ($transaction) => (float) $transaction->amount);
+        $transactionOut = (float) $walletTransactions
+            ->where('direction', 'debit')
+            ->sum(fn ($transaction) => (float) $transaction->amount);
+        $availableUsd = (float) ($merchant?->available_balance ?? 0);
+        $pendingUsd = (float) ($merchant?->pending_balance ?? 0);
+        $recentMovement = $walletTransactions->take(5)->count();
 
         return [
             'screen' => $screen,
@@ -497,35 +511,39 @@ class AdminDashboardData
             ],
             'summary' => [
                 [
-                    'label' => 'My products',
-                    'value' => (string) $products->count(),
-                    'detail' => 'Products owned by your merchant account',
+                    'label' => 'Total balance USD',
+                    'value' => self::currency($balanceUsd),
+                    'detail' => 'Current merchant wallet total balance',
                     'tone' => 'blue',
                 ],
                 [
-                    'label' => 'Pending review',
-                    'value' => (string) $pendingCount,
-                    'detail' => 'Products waiting for admin approval',
+                    'label' => 'Balance KHR',
+                    'value' => self::khrCurrency($balanceKhr),
+                    'detail' => 'Estimated using 4,100 KHR per USD',
                     'tone' => 'slate',
                 ],
                 [
-                    'label' => 'Approved',
-                    'value' => (string) $approvedCount,
-                    'detail' => 'Products currently visible to customers',
+                    'label' => 'Transaction in',
+                    'value' => self::currency($transactionIn),
+                    'detail' => 'Total credited into merchant wallet',
                     'tone' => 'emerald',
                 ],
                 [
-                    'label' => 'Rejected / low stock',
-                    'value' => (string) ($rejectedCount + $lowStockCount),
-                    'detail' => $rejectedCount.' rejected, '.$lowStockCount.' low stock',
+                    'label' => 'Transaction out',
+                    'value' => self::currency($transactionOut),
+                    'detail' => 'Total debited from merchant wallet',
                     'tone' => 'amber',
                 ],
             ],
             'highlights' => [
-                ['label' => 'Categories', 'value' => (string) $products->pluck('category_id')->filter()->unique()->count()],
+                ['label' => 'Available USD', 'value' => self::currency($availableUsd)],
+                ['label' => 'Pending USD', 'value' => self::currency($pendingUsd)],
+                ['label' => 'Products', 'value' => (string) $products->count()],
+                ['label' => 'Recent txns', 'value' => (string) $recentMovement],
                 ['label' => 'Approved', 'value' => (string) $approvedCount],
                 ['label' => 'Pending', 'value' => (string) $pendingCount],
                 ['label' => 'Rejected', 'value' => (string) $rejectedCount],
+                ['label' => 'Low stock', 'value' => (string) $lowStockCount],
             ],
             'menu' => $menu,
             'products' => [
@@ -1181,6 +1199,11 @@ class AdminDashboardData
     private static function currency(float $value): string
     {
         return '$'.number_format($value, 2);
+    }
+
+    private static function khrCurrency(float $value): string
+    {
+        return 'KHR '.number_format($value, 0);
     }
 
     private static function categoryOrder(string $slug): int

@@ -352,7 +352,7 @@ export function useProductDashboard() {
 }
 
 function normalizeScreen(screen) {
-    return ['dashboard', 'products', 'add-product', 'featured-products'].includes(screen) ? screen : 'products';
+    return ['dashboard', 'products', 'add-product', 'featured-products', 'merchant-pending-products', 'merchant-approved-products', 'merchant-rejected-products'].includes(screen) ? screen : 'products';
 }
 
 function initialProductForm() {
@@ -609,6 +609,21 @@ function initialDashboard() {
             page_title: 'Add Product',
             kicker: 'Catalog creation',
             subheadline: 'Loading add product form...',
+        },
+        'merchant-pending-products': {
+            page_title: 'Pending Products',
+            kicker: 'Merchant catalog',
+            subheadline: 'Loading pending products...',
+        },
+        'merchant-approved-products': {
+            page_title: 'Approved Products',
+            kicker: 'Merchant catalog',
+            subheadline: 'Loading approved products...',
+        },
+        'merchant-rejected-products': {
+            page_title: 'Rejected Products',
+            kicker: 'Merchant catalog',
+            subheadline: 'Loading rejected products...',
         },
     }[currentScreen];
 

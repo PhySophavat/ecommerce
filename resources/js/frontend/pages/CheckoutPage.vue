@@ -7,7 +7,7 @@
 
         <div class="grid gap-8 xl:grid-cols-[1fr_360px]">
             <section class="space-y-6">
-                <div class="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+                <div class="rounded-[32px] border border-[#D8E7F4] bg-white p-6 shadow-sm">
                     <h2 class="text-xl font-black tracking-[-0.03em] text-[#111827]">Shipping address</h2>
                     <div class="mt-5 grid gap-4 sm:grid-cols-2">
                         <input v-model.trim="form.customer_name" type="text" placeholder="Full name" class="field-input">
@@ -21,11 +21,11 @@
                     </div>
                 </div>
 
-                <div class="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+                <div class="rounded-[32px] border border-[#D8E7F4] bg-white p-6 shadow-sm">
                     <h2 class="text-xl font-black tracking-[-0.03em] text-[#111827]">Payment method</h2>
                     <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                        <label v-for="method in paymentMethods" :key="method.value" class="flex cursor-pointer items-start gap-3 rounded-[24px] border p-4 transition" :class="paymentMethod === method.value ? 'border-[#A25F88] bg-[#F3E8F1]' : 'border-[#E5E7EB] bg-[#F8FAFC]'">
-                            <input v-model="paymentMethod" :value="method.value" type="radio" class="mt-1 h-4 w-4 accent-[#A25F88]">
+                        <label v-for="method in paymentMethods" :key="method.value" class="flex cursor-pointer items-start gap-3 rounded-[24px] border p-4 transition" :class="paymentMethod === method.value ? 'border-[#1495E8] bg-[#F3F9FD]' : 'border-[#D8E7F4] bg-[#F8FBFE]'">
+                            <input v-model="paymentMethod" :value="method.value" type="radio" class="mt-1 h-4 w-4 accent-[#1495E8]">
                             <div>
                                 <div class="font-semibold text-[#111827]">{{ method.label }}</div>
                                 <div class="mt-1 text-sm text-[#6B7280]">{{ method.text }}</div>
@@ -33,7 +33,7 @@
                         </label>
                     </div>
 
-                    <div class="mt-5 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5">
+                    <div class="mt-5 rounded-[24px] border border-[#D8E7F4] bg-[#F8FBFE] p-5">
                         <div class="text-sm font-semibold text-[#111827]">{{ selectedPaymentCopy.title }}</div>
                         <div class="mt-2 text-sm leading-7 text-[#6B7280]">{{ selectedPaymentCopy.description }}</div>
 
@@ -55,10 +55,10 @@
                     </div>
                 </div>
 
-                <div class="rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+                <div class="rounded-[32px] border border-[#D8E7F4] bg-white p-6 shadow-sm">
                     <h2 class="text-xl font-black tracking-[-0.03em] text-[#111827]">Order review</h2>
                     <div class="mt-5 space-y-4">
-                        <div v-for="item in store.cartItems" :key="`${item.id}-${item.variant}`" class="flex items-center justify-between gap-4 rounded-[24px] bg-[#F8FAFC] px-4 py-4">
+                        <div v-for="item in store.cartItems" :key="`${item.id}-${item.variant}`" class="flex items-center justify-between gap-4 rounded-[24px] bg-[#F8FBFE] px-4 py-4">
                             <div>
                                 <div class="font-semibold text-[#111827]">{{ item.name }}</div>
                                 <div class="mt-1 text-sm text-[#6B7280]">{{ item.merchant_name }} • {{ item.quantity }} qty</div>
@@ -179,8 +179,8 @@ async function placeOrder() {
 .field-input {
     width: 100%;
     border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    background: #f8fafc;
+    border: 1px solid #d8e7f4;
+    background: #f8fbfe;
     padding: 0.9rem 1rem;
     color: #111827;
     outline: none;
@@ -188,7 +188,7 @@ async function placeOrder() {
 }
 
 .field-input:focus {
-    border-color: #a25f88;
-    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.1);
+    border-color: #1495e8;
+    box-shadow: 0 0 0 4px rgba(20, 149, 232, 0.1);
 }
 </style>

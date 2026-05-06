@@ -29,7 +29,7 @@
                     <span>Responsive product grid</span>
                 </div>
 
-                <ProductGrid :products="filteredProducts" :wishlist-ids="store.wishlist" @add-to-cart="store.addToCart($event)" @toggle-wishlist="store.toggleWishlist($event)" />
+                <ProductGrid :products="filteredProducts" :wishlist-ids="store.wishlist" :columns="3" @add-to-cart="store.addToCart($event)" @toggle-wishlist="store.toggleWishlist($event)" />
             </div>
         </div>
 
@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import Button from '../components/Button.vue';
 import FilterSidebar from '../components/FilterSidebar.vue';
@@ -62,11 +62,16 @@ const filters = ref(defaultFilters());
 
 onMounted(async () => {
     await store.initialize();
-    const category = route.query.category;
-    if (typeof category === 'string') {
-        filters.value.category = category;
-    }
+    syncRouteFilters();
 });
+
+watch(
+    () => route.query,
+    () => {
+        syncRouteFilters();
+    },
+    { deep: true }
+);
 
 const filteredProducts = computed(() => {
     let items = [...store.products];
@@ -133,5 +138,13 @@ function defaultFilters() {
 
 function resetFilters() {
     filters.value = defaultFilters();
+}
+
+function syncRouteFilters() {
+    const category = route.query.category;
+    const routeSearch = route.query.search;
+
+    filters.value.category = typeof category === 'string' ? category : '';
+    search.value = typeof routeSearch === 'string' ? routeSearch : '';
 }
 </script>

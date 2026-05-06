@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Frontend\OrderController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/home', HomeController::class)->name('home');
+Route::get('/csrf-token', [AuthController::class, 'csrfToken'])->name('csrf-token');
 Route::get('/session', [AuthController::class, 'session'])->name('session');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register'])->name('register');

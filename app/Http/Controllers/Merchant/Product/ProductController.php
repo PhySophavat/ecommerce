@@ -191,8 +191,8 @@ class ProductController extends Controller
             'context' => [
                 'app' => 'backend-products',
                 'screen' => $screen,
-                'endpoint' => '/api/admin/products',
-                'resource_base' => '/api/admin/products',
+                'endpoint' => '/api/merchant/products',
+                'resource_base' => '/api/merchant/products',
                 'role_scope' => 'merchant',
             ],
         ]);

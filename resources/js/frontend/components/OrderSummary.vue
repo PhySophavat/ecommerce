@@ -1,5 +1,5 @@
 <template>
-    <section class="rounded-[30px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+    <section class="rounded-[30px] border border-[#D8E7F4] bg-white p-6 shadow-sm">
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">Order summary</p>
         <h3 class="mt-1 text-xl font-black tracking-[-0.03em] text-[#111827]">{{ title }}</h3>
 
@@ -16,9 +16,9 @@
                 <span>Tax</span>
                 <span class="font-semibold text-[#111827]">{{ lines.tax }}</span>
             </div>
-            <div class="flex items-center justify-between border-t border-[#E5E7EB] pt-4 text-base">
+            <div class="flex items-center justify-between border-t border-[#E8EEF5] pt-4 text-base">
                 <span class="font-semibold text-[#111827]">Total</span>
-                <span class="text-2xl font-black tracking-[-0.03em] text-[#111827]">{{ lines.total }}</span>
+                <span class="text-2xl font-black tracking-[-0.03em] text-[#1495E8]">{{ lines.total }}</span>
             </div>
         </div>
 

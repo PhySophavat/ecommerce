@@ -3,11 +3,18 @@
 use App\Http\Controllers\Api\Merchant\BankAccountController;
 use App\Http\Controllers\Api\Merchant\DepositController;
 use App\Http\Controllers\Api\Merchant\OrderController;
+use App\Http\Controllers\Api\Merchant\ProductController;
 use App\Http\Controllers\Api\Merchant\WalletController;
 use App\Http\Controllers\Api\Merchant\WithdrawalController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:merchant', 'merchant.approved'])->group(function () {
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+
     Route::get('/wallet', [WalletController::class, 'show'])->name('wallet.show');
     Route::get('/wallet/transactions', [WalletController::class, 'transactions'])->name('wallet.transactions');
     Route::get('/bank-accounts', [BankAccountController::class, 'index'])->name('bank-accounts.index');

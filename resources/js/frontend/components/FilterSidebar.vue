@@ -1,11 +1,11 @@
 <template>
-    <aside class="space-y-6 rounded-[30px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+    <aside class="space-y-6 rounded-[30px] border border-[#D8E7F4] bg-white p-6 shadow-sm">
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">Filters</p>
                 <h3 class="mt-1 text-xl font-black tracking-[-0.03em] text-[#111827]">Refine products</h3>
             </div>
-            <button type="button" class="text-sm font-semibold text-[#A25F88]" @click="$emit('reset')">Reset</button>
+            <button type="button" class="text-sm font-semibold text-[#1495E8]" @click="$emit('reset')">Reset</button>
         </div>
 
         <div class="space-y-5 text-sm">
@@ -13,7 +13,7 @@
                 <h4 class="font-semibold text-[#111827]">Category</h4>
                 <div class="mt-3 space-y-2">
                     <label v-for="category in categories" :key="category.id" class="flex items-center gap-3 text-[#6B7280]">
-                        <input :checked="modelValue.category === category.slug" type="radio" class="h-4 w-4 accent-[#A25F88]" @change="update('category', category.slug)">
+                        <input :checked="modelValue.category === category.slug" type="radio" class="h-4 w-4 accent-[#1495E8]" @change="update('category', category.slug)">
                         <span>{{ category.name }}</span>
                     </label>
                 </div>
@@ -39,7 +39,7 @@
             <section>
                 <h4 class="font-semibold text-[#111827]">Color</h4>
                 <div class="mt-3 flex flex-wrap gap-2">
-                    <button v-for="color in colors" :key="color" type="button" class="rounded-full border px-3 py-2 text-xs font-semibold transition" :class="modelValue.color === color ? 'border-[#A25F88] bg-[#F3E8F1] text-[#A25F88]' : 'border-[#E5E7EB] text-[#6B7280] hover:border-[#A25F88]'" @click="update('color', modelValue.color === color ? '' : color)">
+                    <button v-for="color in colors" :key="color" type="button" class="rounded-full border px-3 py-2 text-xs font-semibold transition" :class="modelValue.color === color ? 'border-[#1495E8] bg-[#F3F9FD] text-[#1495E8]' : 'border-[#D8E7F4] text-[#6B7280] hover:border-[#1495E8]'" @click="update('color', modelValue.color === color ? '' : color)">
                         {{ color }}
                     </button>
                 </div>
@@ -48,7 +48,7 @@
             <section>
                 <h4 class="font-semibold text-[#111827]">Size</h4>
                 <div class="mt-3 flex flex-wrap gap-2">
-                    <button v-for="size in sizes" :key="size" type="button" class="rounded-full border px-3 py-2 text-xs font-semibold transition" :class="modelValue.size === size ? 'border-[#A25F88] bg-[#F3E8F1] text-[#A25F88]' : 'border-[#E5E7EB] text-[#6B7280] hover:border-[#A25F88]'" @click="update('size', modelValue.size === size ? '' : size)">
+                    <button v-for="size in sizes" :key="size" type="button" class="rounded-full border px-3 py-2 text-xs font-semibold transition" :class="modelValue.size === size ? 'border-[#1495E8] bg-[#F3F9FD] text-[#1495E8]' : 'border-[#D8E7F4] text-[#6B7280] hover:border-[#1495E8]'" @click="update('size', modelValue.size === size ? '' : size)">
                         {{ size }}
                     </button>
                 </div>
@@ -103,8 +103,8 @@ function update(key, value) {
 .filter-input {
     width: 100%;
     border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    background: #fff;
+    border: 1px solid #d8e7f4;
+    background: #f8fbfe;
     padding: 0.8rem 1rem;
     color: #111827;
     outline: none;
@@ -112,7 +112,7 @@ function update(key, value) {
 }
 
 .filter-input:focus {
-    border-color: #a25f88;
-    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.1);
+    border-color: #1495e8;
+    box-shadow: 0 0 0 4px rgba(20, 149, 232, 0.1);
 }
 </style>

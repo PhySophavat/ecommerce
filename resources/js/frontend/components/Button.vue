@@ -45,10 +45,10 @@ const buttonAttrs = computed(() => ({
 const classes = computed(() => {
     const base = 'inline-flex items-center justify-center gap-2 rounded-full font-semibold transition duration-200 focus:outline-none focus:ring-4';
     const variant = {
-        primary: 'bg-[#A25F88] text-white shadow-[0_14px_34px_rgba(162,95,136,0.22)] hover:bg-[#8B4E73] focus:ring-[#A25F88]/20',
-        secondary: 'bg-white text-[#111827] border border-[#E5E7EB] hover:border-[#A25F88] hover:text-[#A25F88] focus:ring-[#A25F88]/12',
-        ghost: 'bg-[#F3E8F1] text-[#A25F88] hover:bg-[#ead9e4] focus:ring-[#A25F88]/12',
-        dark: 'bg-[#111827] text-white hover:bg-[#1f2937] focus:ring-slate-900/15',
+        primary: 'bg-[#1495E8] text-white shadow-[0_14px_34px_rgba(20,149,232,0.22)] hover:bg-[#0D86D6] focus:ring-[#1495E8]/20',
+        secondary: 'bg-[#F3F9FD] text-[#1495E8] border border-[#D8E7F4] hover:bg-[#EFF7FD] hover:border-[#1495E8] focus:ring-[#1495E8]/12',
+        ghost: 'bg-white text-[#374151] border border-[#D8E7F4] hover:bg-[#F3F9FD] hover:text-[#1495E8] focus:ring-[#1495E8]/12',
+        dark: 'bg-[#0F172A] text-white hover:bg-[#111827] focus:ring-slate-900/15',
     }[props.variant];
     const size = {
         sm: 'px-4 py-2 text-sm',

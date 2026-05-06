@@ -11,6 +11,13 @@ use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
+    public function csrfToken(Request $request): JsonResponse
+    {
+        return response()->json([
+            'csrf_token' => csrf_token(),
+        ]);
+    }
+
     public function session(Request $request): JsonResponse
     {
         $user = $request->user();

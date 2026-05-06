@@ -1,7 +1,7 @@
 <template>
-    <div class="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4 py-10">
+    <div class="flex min-h-screen items-center justify-center bg-[#F8FBFE] px-4 py-10">
         <div class="grid w-full max-w-6xl gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-            <section class="rounded-[36px] border border-[#E5E7EB] bg-white p-8 shadow-sm">
+            <section class="rounded-[36px] border border-[#D8E7F4] bg-white p-8 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">Register page</p>
                 <h1 class="mt-2 text-3xl font-black tracking-[-0.05em] text-[#111827]">Create your customer account</h1>
                 <form class="mt-8 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
@@ -17,7 +17,7 @@
                 </form>
             </section>
 
-            <section class="rounded-[36px] bg-[linear-gradient(145deg,#A25F88,#8B4E73)] p-8 text-white shadow-[0_28px_70px_rgba(162,95,136,0.24)]">
+            <section class="rounded-[36px] border border-[#D8E7F4] bg-[linear-gradient(145deg,#1495E8,#0F172A)] p-8 text-white shadow-[0_28px_70px_rgba(20,149,232,0.2)]">
                 <p class="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">Join the storefront</p>
                 <h2 class="mt-3 text-4xl font-black tracking-[-0.05em]">Save favorites, track orders, and checkout faster.</h2>
                 <p class="mt-4 max-w-md text-sm leading-7 text-white/80">
@@ -67,14 +67,14 @@ async function submit() {
 .field-input {
     width: 100%;
     border-radius: 1rem;
-    border: 1px solid #e5e7eb;
-    background: #f8fafc;
+    border: 1px solid #d8e7f4;
+    background: #f8fbfe;
     padding: 0.95rem 1rem;
     outline: none;
 }
 
 .field-input:focus {
-    border-color: #a25f88;
-    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.1);
+    border-color: #1495e8;
+    box-shadow: 0 0 0 4px rgba(20, 149, 232, 0.1);
 }
 </style>
