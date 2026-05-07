@@ -1,6 +1,6 @@
 <template>
-    <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[1800px] overflow-x-clip rounded-[36px]">
+    <div class="chatgpt-admin min-h-screen px-2 py-2 sm:px-4 lg:px-5 lg:py-5">
+        <div class="admin-panel flex min-h-[calc(100vh-1rem)] w-full overflow-x-clip rounded-[36px]">
             <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
@@ -43,9 +43,17 @@
 
                     <template v-else>
                         <template v-if="screen === 'dashboard'">
-                            <SummaryCardsGrid :cards="dashboard.summary" />
-                            <MenuHighlights :highlights="dashboard.highlights" />
-                            <DashboardOverview :products="dashboard.products.items" @open-add-product="scrollToAddProduct" @open-products="openProductsView()" />
+                            <MerchantDashboardContent
+                                v-if="roleScope === 'merchant'"
+                                :merchant-dashboard="dashboard.merchant_dashboard"
+                                @open-balance="openMerchantBalance"
+                                @open-products="openProductsView()"
+                            />
+                            <template v-else>
+                                <SummaryCardsGrid :cards="dashboard.summary" />
+                                <MenuHighlights :highlights="dashboard.highlights" />
+                                <DashboardOverview :order-analytics="dashboard.order_analytics" :payment-metrics="dashboard.payment_metrics" :products="dashboard.products.items" @open-add-product="scrollToAddProduct" @open-products="openProductsView()" />
+                            </template>
                         </template>
 
                         <template v-else-if="productListScreens.includes(screen)">
@@ -62,7 +70,7 @@
                             />
                         </template>
 
-                        <section v-else id="add-product" ref="addProductSection" class="mx-auto w-full max-w-[980px]">
+                        <section v-else id="add-product" ref="addProductSection" class="mx-auto w-full max-w-[1280px]">
                             <AddProductForm
                                 :dashboard="dashboard"
                                 :editor-actions="editorActions"
@@ -91,6 +99,7 @@ import AdminHeader from '../layout/AdminHeader.vue';
 import AdminSidebar from '../layout/AdminSidebar.vue';
 import DashboardOverview from './sections/DashboardOverview.vue';
 import MenuHighlights from './sections/MenuHighlights.vue';
+import MerchantDashboardContent from './sections/MerchantDashboardContent.vue';
 import ProductsTable from './sections/ProductsTable.vue';
 import SummaryCardsGrid from './sections/SummaryCardsGrid.vue';
 import { useProductDashboard } from './state/useProductDashboard.js';
@@ -100,6 +109,7 @@ const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'admin';
 const productListScreens = ['products', 'featured-products', 'merchant-pending-products', 'merchant-approved-products', 'merchant-rejected-products'];
 const productsIndexPath = roleScope === 'merchant' ? '/merchant/products' : '/admin/products';
 const productCreatePath = roleScope === 'merchant' ? '/merchant/products/create' : '/admin/products/create';
+const merchantBalancePath = '/merchant/qr-codes';
 
 const {
     dashboard,
@@ -126,7 +136,6 @@ const {
 } = useProductDashboard();
 
 const showHeader = !(roleScope === 'merchant' && screen === 'dashboard');
-
 onMounted(async () => {
     await loadDashboard();
 
@@ -290,5 +299,9 @@ function scrollToSection(target, shouldFocus = false) {
 
 function openProductsView(hash = '') {
     window.location.href = `${productsIndexPath}${hash}`;
+}
+
+function openMerchantBalance() {
+    window.location.href = merchantBalancePath;
 }
 </script>

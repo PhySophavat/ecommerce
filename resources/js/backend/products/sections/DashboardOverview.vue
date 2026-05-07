@@ -53,6 +53,145 @@
         </article>
 
         <div class="space-y-6">
+            <article v-if="paymentMetrics" class="admin-card rounded-[32px] px-6 py-6">
+                <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Payment mix</p>
+                <h3 class="chatgpt-title mt-2 text-2xl text-slate-950">{{ paymentMetrics.label }}</h3>
+                <p class="mt-2 text-sm text-slate-500">{{ paymentMetrics.bank_methods }}</p>
+
+                <div class="mt-6 grid gap-5 xl:grid-cols-[220px_minmax(0,1fr)] xl:items-center">
+                    <div class="group relative mx-auto flex h-48 w-48 items-center justify-center xl:mx-0">
+                        <svg class="h-48 w-48 -rotate-90" viewBox="0 0 160 160">
+                            <circle cx="80" cy="80" r="62" fill="none" stroke="#edf1fb" stroke-width="16" />
+                            <circle
+                                cx="80"
+                                cy="80"
+                                r="62"
+                                fill="none"
+                                stroke="url(#bankPaymentGradient)"
+                                stroke-linecap="round"
+                                stroke-width="16"
+                                :stroke-dasharray="circleDasharray"
+                            />
+                            <defs>
+                                <linearGradient id="bankPaymentGradient" x1="0%" x2="100%" y1="0%" y2="100%">
+                                    <stop offset="0%" stop-color="#5a67f2" />
+                                    <stop offset="100%" stop-color="#21b889" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="absolute text-center">
+                            <p class="text-5xl font-bold tracking-[-0.05em] text-slate-950">{{ paymentMetrics.bank_percent }}%</p>
+                            <p class="mt-2 text-xs uppercase tracking-[0.22em] text-slate-400">Bank pay</p>
+                        </div>
+                        <div class="pointer-events-none absolute left-1/2 top-full z-10 mt-3 w-52 -translate-x-1/2 rounded-[18px] bg-slate-950 px-4 py-3 text-left text-white opacity-0 shadow-[0_18px_40px_rgba(15,23,42,0.28)] transition duration-200 group-hover:opacity-100">
+                            <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">Payment count</p>
+                            <p class="mt-2 text-sm font-semibold">Bank: {{ paymentMetrics.bank_orders }}</p>
+                            <p class="mt-1 text-sm font-semibold">Cash: {{ paymentMetrics.cash_orders }}</p>
+                            <p class="mt-1 text-sm font-semibold">Total: {{ paymentMetrics.total_orders }}</p>
+                        </div>
+                    </div>
+
+                    <div class="min-w-0 space-y-4">
+                        <div class="grid gap-3 sm:grid-cols-3">
+                            <div class="rounded-[24px] border border-[#dbe6ff] bg-[linear-gradient(180deg,#f8fbff_0%,#edf4ff_100%)] px-5 py-4">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Bank orders</p>
+                                <p class="mt-2 text-2xl font-bold tracking-[-0.04em] text-slate-950">{{ paymentMetrics.bank_orders }}</p>
+                                <p class="mt-2 text-sm text-slate-500">Customers paid using bank methods.</p>
+                            </div>
+                            <div class="rounded-[24px] border border-[#d8f0e6] bg-[linear-gradient(180deg,#f8fffb_0%,#ebfaf3_100%)] px-5 py-4">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Cash orders</p>
+                                <p class="mt-2 text-2xl font-bold tracking-[-0.04em] text-slate-950">{{ paymentMetrics.cash_orders }}</p>
+                                <p class="mt-2 text-sm text-slate-500">Orders paid with cash or manual settlement.</p>
+                            </div>
+                            <div class="rounded-[24px] border border-[#f3e1b8] bg-[linear-gradient(180deg,#fffdf8_0%,#fff6e3_100%)] px-5 py-4">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Total orders</p>
+                                <p class="mt-2 text-2xl font-bold tracking-[-0.04em] text-slate-950">{{ paymentMetrics.total_orders }}</p>
+                                <p class="mt-2 text-sm text-slate-500">All customer orders tied to this merchant.</p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-[24px] border border-[#e4e9f8] bg-[#f8faff] px-5 py-4">
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Bank payment performance</p>
+                                    <p class="mt-2 text-lg font-bold tracking-[-0.03em] text-slate-950">
+                                        {{ paymentMetrics.bank_percent }}% of customer orders used bank payment
+                                    </p>
+                                </div>
+                                <div class="h-3 w-40 overflow-hidden rounded-full bg-[#e7ecfb]">
+                                    <div class="h-full rounded-full bg-[linear-gradient(90deg,#5a67f2,#21b889)]" :style="{ width: `${paymentMetrics.bank_percent}%` }"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article v-if="orderAnalytics" class="admin-card rounded-[32px] px-6 py-6">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Trade analyst</p>
+                        <h3 class="chatgpt-title mt-2 text-2xl text-slate-950">{{ orderAnalytics.label }}</h3>
+                        <p class="mt-2 text-sm text-slate-500">Track customer orders using a quick timeframe filter.</p>
+                    </div>
+
+                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                        <span>Filter</span>
+                        <select
+                            v-model="selectedOrderFilter"
+                            class="rounded-2xl border border-[#d8e7f4] bg-[#f8fbff] px-4 py-2.5 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#1495e8]"
+                        >
+                            <option
+                                v-for="option in orderAnalytics.options"
+                                :key="`order-filter-${option.value}`"
+                                :value="option.value"
+                            >
+                                {{ option.label }}
+                            </option>
+                        </select>
+                    </label>
+                </div>
+
+                <div class="mt-6 grid gap-4 sm:grid-cols-3">
+                    <div class="rounded-[24px] border border-[#dbe6ff] bg-[linear-gradient(180deg,#f8fbff_0%,#edf4ff_100%)] px-5 py-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Orders</p>
+                        <p class="mt-2 text-3xl font-bold tracking-[-0.04em] text-slate-950">{{ activeOrderDataset.total }}</p>
+                        <p class="mt-2 text-sm text-slate-500">Customer orders in the selected range.</p>
+                    </div>
+                    <div class="rounded-[24px] border border-[#d8f0e6] bg-[linear-gradient(180deg,#f8fffb_0%,#ebfaf3_100%)] px-5 py-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Highest bucket</p>
+                        <p class="mt-2 text-3xl font-bold tracking-[-0.04em] text-slate-950">{{ highestOrderBar.value }}</p>
+                        <p class="mt-2 text-sm text-slate-500">{{ highestOrderBar.label }} has the strongest order activity.</p>
+                    </div>
+                    <div class="rounded-[24px] border border-[#f3e1b8] bg-[linear-gradient(180deg,#fffdf8_0%,#fff6e3_100%)] px-5 py-4">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Average bucket</p>
+                        <p class="mt-2 text-3xl font-bold tracking-[-0.04em] text-slate-950">{{ averageOrderValue }}</p>
+                        <p class="mt-2 text-sm text-slate-500">Average orders across the visible buckets.</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 rounded-[28px] border border-[#e4edf7] bg-[#fbfdff] px-5 py-5">
+                    <div class="grid grid-cols-4 gap-3 sm:gap-4">
+                        <div
+                            v-for="bar in activeOrderDataset.bars"
+                            :key="`order-bar-${selectedOrderFilter}-${bar.label}`"
+                            class="flex min-w-0 flex-col items-center gap-3"
+                        >
+                            <div class="flex h-44 w-full items-end rounded-[22px] bg-[linear-gradient(180deg,#f3f9fd_0%,#eef5ff_100%)] px-3 py-3">
+                                <div
+                                    class="w-full rounded-[18px] bg-[linear-gradient(180deg,#1495e8_0%,#0d86d6_100%)] transition-all duration-200"
+                                    :style="{ height: `${barHeight(bar.value)}%` }"
+                                ></div>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-base font-bold text-slate-950">{{ bar.value }}</p>
+                                <p class="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">{{ bar.label }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
             <article class="admin-card rounded-[32px] px-6 py-6">
                 <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Quick stats</p>
                 <h3 class="chatgpt-title mt-2 text-2xl text-slate-950">Operational signals</h3>
@@ -101,16 +240,26 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 defineEmits(['open-add-product', 'open-products']);
 
 const props = defineProps({
+    orderAnalytics: {
+        type: Object,
+        default: null,
+    },
+    paymentMetrics: {
+        type: Object,
+        default: null,
+    },
     products: {
         type: Array,
         required: true,
     },
 });
+
+const selectedOrderFilter = ref(props.orderAnalytics?.selected ?? 'today');
 
 const totalProducts = computed(() => props.products.length || 1);
 const recentProducts = computed(() => props.products.slice(0, 5));
@@ -214,12 +363,60 @@ const categoryMix = computed(() => {
         .slice(0, 4);
 });
 
+const circleDasharray = computed(() => {
+    const radius = 62;
+    const circumference = 2 * Math.PI * radius;
+    const percent = Math.max(0, Math.min(100, Number(props.paymentMetrics?.bank_percent ?? 0)));
+    const filled = (percent / 100) * circumference;
+
+    return `${filled} ${circumference}`;
+});
+
+const activeOrderDataset = computed(() => {
+    const fallback = { total: 0, bars: [] };
+
+    return props.orderAnalytics?.datasets?.[selectedOrderFilter.value] ?? fallback;
+});
+
+const highestOrderBar = computed(() => {
+    const bars = activeOrderDataset.value.bars ?? [];
+
+    if (!bars.length) {
+        return { label: '-', value: 0 };
+    }
+
+    return bars.reduce((winner, current) => current.value > winner.value ? current : winner, bars[0]);
+});
+
+const averageOrderValue = computed(() => {
+    const bars = activeOrderDataset.value.bars ?? [];
+
+    if (!bars.length) {
+        return '0';
+    }
+
+    const total = bars.reduce((sum, bar) => sum + Number(bar.value || 0), 0);
+
+    return (total / bars.length).toFixed(1);
+});
+
 function ratio(value) {
     if (value <= 0) {
         return 0;
     }
 
     return Math.max(8, Math.min(100, Math.round((value / totalProducts.value) * 100)));
+}
+
+function barHeight(value) {
+    const bars = activeOrderDataset.value.bars ?? [];
+    const max = Math.max(...bars.map((bar) => Number(bar.value || 0)), 1);
+
+    if (max <= 0) {
+        return 12;
+    }
+
+    return Math.max(12, Math.round((Number(value || 0) / max) * 100));
 }
 
 function activityBadgeClass(tone) {

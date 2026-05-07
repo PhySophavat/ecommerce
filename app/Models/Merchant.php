@@ -90,6 +90,11 @@ class Merchant extends Model
         return $this->hasMany(Withdrawal::class);
     }
 
+    public function balance(): HasOne
+    {
+        return $this->hasOne(MerchantBalance::class);
+    }
+
     public function deposits(): HasMany
     {
         return $this->hasMany(MerchantDeposit::class);
@@ -103,6 +108,21 @@ class Merchant extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function financeTransactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    public function withdrawRequests(): HasMany
+    {
+        return $this->hasMany(WithdrawRequest::class);
     }
 
     /**

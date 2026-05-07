@@ -51,7 +51,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order): JsonResponse
     {
         $validated = $request->validate([
-            'status' => ['required', 'in:pending,paid,processing,shipped,delivered,cancelled,refunded'],
+            'status' => ['required', 'in:pending,paid,processing,completed,shipped,delivered,cancelled,payment_failed,failed,refunded'],
         ]);
 
         $order = $this->orderService->updateOrderStatus($order, $validated['status']);

@@ -183,6 +183,7 @@ const paymentStatuses = ['unpaid', 'paid', 'failed', 'refunded'];
 const orderStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
 const paymentMethods = [
     { value: 'aba_qr', label: 'ABA QR' },
+    { value: 'acleda', label: 'ACLEDA' },
     { value: 'wing', label: 'Wing' },
     { value: 'card', label: 'Card' },
     { value: 'cash', label: 'Cash' },

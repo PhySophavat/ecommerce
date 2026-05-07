@@ -1,6 +1,6 @@
 <template>
     <header class="sticky top-0 z-50 border-b border-[#E5E7EB]/80 bg-white/90 backdrop-blur-md">
-        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div class="mx-auto w-full lg:w-[80%] px-4 py-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between">
                 <!-- Brand Logo -->
                 <a href="/frontend" class="flex items-center gap-3">

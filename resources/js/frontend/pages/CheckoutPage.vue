@@ -1,5 +1,5 @@
 <template>
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto w-full lg:w-[80%] px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-8">
             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">Checkout page</p>
             <h1 class="mt-2 text-3xl font-black tracking-[-0.05em] text-[#111827]">Complete shipping and payment</h1>
@@ -96,6 +96,7 @@ const paymentMethod = ref('cash');
 const paymentMethods = [
     { value: 'cash', label: 'Cash', text: 'Cash on delivery or manual settlement.' },
     { value: 'aba_qr', label: 'ABA QR', text: 'Customer pays with ABA QR transfer.' },
+    { value: 'acleda', label: 'ACLEDA', text: 'Customer pays with ACLEDA transfer.' },
     { value: 'wing', label: 'Wing', text: 'Customer pays with Wing wallet.' },
     { value: 'card', label: 'Card', text: 'Card payment is available when enabled.' },
 ];
@@ -124,6 +125,12 @@ const selectedPaymentCopy = computed(() => ({
         title: 'ABA QR transfer',
         description: 'Complete the ABA payment, then enter the transfer reference so admin can verify it from the order dashboard.',
         referencePlaceholder: 'ABA transfer reference',
+        notesPlaceholder: 'Optional payment note or sender name',
+    },
+    acleda: {
+        title: 'ACLEDA transfer',
+        description: 'Complete the ACLEDA payment and provide the transfer reference for verification.',
+        referencePlaceholder: 'ACLEDA transfer reference',
         notesPlaceholder: 'Optional payment note or sender name',
     },
     wing: {

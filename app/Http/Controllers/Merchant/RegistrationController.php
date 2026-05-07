@@ -7,6 +7,7 @@ use App\Models\Merchant;
 use App\Models\MerchantLocation;
 use App\Models\User;
 use App\Support\AdminDashboardData;
+use App\Support\DashboardAccess;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -219,12 +220,8 @@ class RegistrationController extends Controller
             return redirect()->route('merchant.register.step1');
         }
 
-        if ($merchant->isApproved()) {
-            return redirect()->route('admin.dashboard');
-        }
-
         return view('merchant.status', [
-            'title' => 'Merchant Registration Status',
+            'title' => 'Merchant | Profile',
             'context' => [
                 'app' => 'merchant-status',
                 'screen' => 'merchant-status',
@@ -246,52 +243,14 @@ class RegistrationController extends Controller
                 ],
                 'meta' => [
                     'brand' => 'E-commerce',
-                    'page_title' => 'Merchant Status',
-                    'kicker' => 'Merchant review',
-                    'subheadline' => 'Track your merchant registration status before full merchant access is granted.',
+                    'page_title' => 'Merchant Profile',
+                    'kicker' => 'Profile',
+                    'subheadline' => 'View your merchant profile information.',
                 ],
-                'menu' => [
-                    [
-                        'label' => 'Merchant',
-                        'slug' => 'merchant-home',
-                        'icon' => 'dashboard',
-                        'path' => null,
-                        'is_enabled' => false,
-                        'is_active' => false,
-                        'is_expanded' => false,
-                        'children' => [],
-                    ],
-                    [
-                        'label' => 'Status',
-                        'slug' => 'merchant-status',
-                        'icon' => 'notifications',
-                        'path' => route('merchant.status'),
-                        'is_enabled' => true,
-                        'is_active' => true,
-                        'is_expanded' => false,
-                        'children' => [],
-                    ],
-                    [
-                        'label' => 'Wallet',
-                        'slug' => 'merchant-wallet',
-                        'icon' => 'wallet',
-                        'path' => null,
-                        'is_enabled' => false,
-                        'is_active' => false,
-                        'is_expanded' => false,
-                        'children' => [],
-                    ],
-                    [
-                        'label' => 'Withdrawals',
-                        'slug' => 'merchant-withdrawals',
-                        'icon' => 'payments',
-                        'path' => null,
-                        'is_enabled' => false,
-                        'is_active' => false,
-                        'is_expanded' => false,
-                        'children' => [],
-                    ],
-                ],
+                'menu' => DashboardAccess::menuTreeForRole(
+                    $request->user()?->role ?? 'merchant',
+                    DashboardAccess::activeSlugsForScreen('merchant-status')
+                ),
             ],
         ]);
     }

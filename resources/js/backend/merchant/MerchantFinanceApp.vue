@@ -1,6 +1,6 @@
 <template>
     <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
+        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[1800px] overflow-x-clip rounded-[36px]">
             <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
@@ -11,6 +11,7 @@
 
             <div class="flex min-w-0 flex-1 flex-col">
                 <AdminHeader
+                    v-if="!['wallet', 'bank-accounts', 'deposit', 'withdraw'].includes(screen)"
                     :dashboard="dashboard"
                     :is-menu-open="isMenuOpen"
                     :screen="screen"
@@ -23,27 +24,27 @@
                 <main class="flex-1 p-4 sm:p-6 lg:p-7">
                     <section
                         v-if="notice"
-                        class="mb-6 rounded-3xl border px-4 py-4 text-sm"
-                        :class="notice.type === 'error' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'"
+                        class="admin-frosted mb-6 rounded-[26px] px-5 py-4 text-sm"
+                        :class="notice.type === 'error' ? 'border-rose-200 text-rose-700' : 'border-emerald-200 text-emerald-700'"
                     >
                         {{ notice.text }}
                     </section>
 
-                    <div class="mb-6 rounded-[30px] border border-slate-200 bg-white px-6 py-5 shadow-sm">
+                    <div v-if="!['wallet', 'bank-accounts', 'deposit', 'withdraw'].includes(screen)" class="admin-card mb-6 rounded-[30px] px-5 py-5">
                         <nav class="flex flex-wrap gap-3">
                             <a
                                 v-for="item in navItems"
                                 :key="item.key"
                                 :href="item.href"
-                                class="rounded-full px-4 py-2 text-sm font-semibold transition"
-                                :class="screen === item.key ? 'bg-[#A25F88] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+                                class="rounded-full px-4 py-2.5 text-sm font-semibold transition"
+                                :class="screen === item.key ? 'bg-[#A25F88] text-white shadow-[0_12px_26px_rgba(162,95,136,0.22)]' : 'bg-[#EFF3F9] text-slate-600 hover:bg-[#E5EBF4]'"
                             >
                                 {{ item.label }}
                             </a>
                         </nav>
                     </div>
 
-                    <div v-if="isLoading" class="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-12 text-center text-sm text-slate-500">
+                    <div v-if="isLoading" class="admin-card rounded-[30px] px-6 py-14 text-center text-sm text-slate-500">
                         Loading wallet data...
                     </div>
 
@@ -123,7 +124,7 @@ import MerchantWithdraw from './MerchantWithdraw.vue';
 
 const screen = window.__APP_CONTEXT__?.screen ?? 'wallet';
 const navItems = [
-    { key: 'wallet', label: 'Wallet', href: '/merchant/wallet' },
+    { key: 'wallet', label: 'QR Codes', href: '/merchant/qr-codes' },
     { key: 'deposit', label: 'Deposit', href: '/merchant/deposits' },
     { key: 'withdraw', label: 'Withdraw', href: '/merchant/withdrawals' },
     { key: 'transactions', label: 'Transactions', href: '/merchant/wallet/transactions' },
@@ -162,15 +163,22 @@ const dashboard = computed(() => ({
     meta: {
         brand: 'E-commerce',
         page_title: ({
-            wallet: 'Merchant Wallet',
+            wallet: 'Merchant QR Codes',
             deposit: 'Merchant Deposit',
             withdraw: 'Merchant Withdrawals',
             transactions: 'Merchant Transactions',
             'bank-accounts': 'Merchant Bank Accounts',
-        })[screen] ?? 'Merchant Wallet',
+        })[screen] ?? 'Merchant QR Codes',
         kicker: 'Merchant finance',
         subheadline: 'Track wallet balances, top up via KHQR, request payouts, and review your full wallet ledger.',
-    },
+        primary_action_label: ({
+            wallet: 'Refresh QR codes',
+            deposit: 'Refresh deposits',
+            withdraw: 'Refresh withdrawals',
+            transactions: 'Refresh transactions',
+            'bank-accounts': 'Refresh accounts',
+        })[screen] ?? 'Refresh',
+        },
     menu: menuItems.value,
 }));
 

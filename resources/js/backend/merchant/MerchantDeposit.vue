@@ -1,76 +1,8 @@
 <template>
-    <div class="space-y-6">
-        <div class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-            <section class="rounded-2xl border border-[#ead9e3] bg-[linear-gradient(180deg,#fff6fb_0%,#ffffff_100%)] p-5 shadow-[0_18px_48px_rgba(162,95,136,0.12)] sm:p-6">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#A25F88]">KHQR Preview</p>
-                <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Dynamic merchant top-up QR</h2>
-                <p class="mt-2 text-sm leading-7 text-slate-600">
-                    Switch bank provider or amount on the right and this KHQR preview updates instantly for manual proof verification.
-                </p>
-
-                <div class="mt-6 rounded-2xl border border-[#f0d9e6] bg-white p-5 shadow-sm">
-                    <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
-                        <div class="mx-auto w-full max-w-[260px] rounded-[28px] bg-[#fcf7fa] p-4">
-                            <img
-                                :src="preview.imageUrl"
-                                alt="KHQR preview"
-                                class="mx-auto h-[228px] w-[228px] rounded-[24px] border border-[#f0d9e6] bg-white object-cover"
-                            >
-                        </div>
-
-                        <div class="min-w-0 flex-1 space-y-4">
-                            <div class="grid gap-3 sm:grid-cols-2">
-                                <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5">
-                                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Selected Bank</p>
-                                    <p class="mt-2 text-sm font-bold text-slate-950">{{ preview.bankName }}</p>
-                                </article>
-                                <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5">
-                                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Merchant / Shop</p>
-                                    <p class="mt-2 text-sm font-bold text-slate-950">{{ preview.shopName }}</p>
-                                </article>
-                                <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5">
-                                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Deposit Amount</p>
-                                    <p class="mt-2 text-sm font-bold text-slate-950">{{ currency(preview.amount) }}</p>
-                                </article>
-                                <article class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5">
-                                    <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Receiver Account</p>
-                                    <p class="mt-2 text-sm font-bold text-slate-950">{{ preview.provider.account_name }}</p>
-                                    <p class="mt-1 text-xs text-slate-500">{{ preview.provider.account_number }}</p>
-                                </article>
-                            </div>
-
-                            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4">
-                                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">KHQR Code Text</p>
-                                <p class="mt-2 break-all text-sm leading-6 text-slate-700">{{ preview.khqrCode }}</p>
-                            </div>
-
-                            <div class="flex flex-wrap gap-3">
-                                <button
-                                    type="button"
-                                    class="rounded-2xl bg-[#A25F88] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                                    @click="copyKhqr"
-                                >
-                                    Copy KHQR Code
-                                </button>
-                                <button
-                                    type="button"
-                                    class="rounded-2xl border border-[#dcb8cc] bg-white px-4 py-3 text-sm font-semibold text-[#A25F88] transition hover:bg-[#fcf7fa]"
-                                    @click="downloadQr"
-                                >
-                                    Download QR Image
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] sm:p-6">
-                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#A25F88]">Deposit Form</p>
-                <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Submit manual deposit proof</h2>
-                <p class="mt-2 text-sm leading-7 text-slate-600">
-                    Fill in your sending account details, upload the payment screenshot, and the request will be created with pending status for admin review.
-                </p>
+    <div class="space-y-8">
+        <section class="mx-auto w-full max-w-[760px] rounded-[30px] border border-slate-200 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.08)] sm:p-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Deposit Form</p>
+                <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Add deposit</h2>
 
                 <form class="mt-6 space-y-4" @submit.prevent="submit">
                     <label class="block space-y-2">
@@ -79,7 +11,7 @@
                     </label>
 
                     <label class="block space-y-2">
-                        <span class="text-sm font-semibold text-slate-700">Bank / Payment Provider</span>
+                        <span class="text-sm font-semibold text-slate-700">Bank</span>
                         <select v-model="form.bank_name" class="field-input">
                             <option v-for="provider in providers" :key="provider.bank_name" :value="provider.bank_name">
                                 {{ provider.bank_name }}
@@ -89,13 +21,13 @@
 
                     <div class="grid gap-4 md:grid-cols-2">
                         <label class="block space-y-2">
-                            <span class="text-sm font-semibold text-slate-700">Account Name</span>
-                            <input v-model="form.account_name" type="text" class="field-input" placeholder="Your bank account name">
+                        <span class="text-sm font-semibold text-slate-700">Account Name</span>
+                        <input v-model="form.account_name" type="text" class="field-input" placeholder="Account name">
                         </label>
 
                         <label class="block space-y-2">
-                            <span class="text-sm font-semibold text-slate-700">Account Number</span>
-                            <input v-model="form.account_number" type="text" class="field-input" placeholder="Your bank account number">
+                        <span class="text-sm font-semibold text-slate-700">Account Number</span>
+                        <input v-model="form.account_number" type="text" class="field-input" placeholder="Account number">
                         </label>
                     </div>
 
@@ -105,25 +37,24 @@
                     </label>
 
                     <label class="block space-y-2">
-                        <span class="text-sm font-semibold text-slate-700">Upload Payment Screenshot</span>
+                        <span class="text-sm font-semibold text-slate-700">Upload Proof</span>
                         <input type="file" accept="image/*" class="field-input file:mr-4 file:rounded-xl file:border-0 file:bg-[#A25F88] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" @change="handleFileChange">
                     </label>
 
                     <label class="block space-y-2">
-                        <span class="text-sm font-semibold text-slate-700">Optional Note</span>
-                        <textarea v-model="form.note" rows="4" class="field-input resize-none" placeholder="Reference or payment note"></textarea>
+                        <span class="text-sm font-semibold text-slate-700">Note</span>
+                        <textarea v-model="form.note" rows="4" class="field-input resize-none" placeholder="Optional note"></textarea>
                     </label>
 
                     <button type="submit" class="w-full rounded-2xl bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60" :disabled="isSubmitting || !form.file">
-                        {{ isSubmitting ? 'Submitting deposit...' : 'Submit Deposit Request' }}
+                        {{ isSubmitting ? 'Submitting...' : 'Submit' }}
                     </button>
                 </form>
-            </section>
-        </div>
+        </section>
 
         <section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-200 px-5 py-4">
-                <h3 class="text-lg font-bold text-slate-950">Deposit History</h3>
+                <h3 class="text-lg font-bold text-slate-950">History</h3>
             </div>
             <div v-if="deposits.length === 0" class="px-5 py-8 text-center text-sm text-slate-500">No deposit requests yet.</div>
             <div v-else class="overflow-x-auto">

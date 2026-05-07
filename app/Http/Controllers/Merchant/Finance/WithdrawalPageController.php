@@ -9,7 +9,19 @@ class WithdrawalPageController extends Controller
 {
     public function wallet(): View
     {
-        return $this->page('wallet', 'Merchant | Wallet');
+        return $this->page('wallet', 'Merchant | QR Codes');
+    }
+
+    public function overview(): View
+    {
+        return view('merchant.finance-overview.index', [
+            'title' => 'Merchant | Finance Overview',
+            'context' => [
+                'app' => 'merchant-finance-overview',
+                'screen' => 'finance-overview',
+                'endpoint' => route('api.merchant.finance-overview'),
+            ],
+        ]);
     }
 
     public function deposit(): View

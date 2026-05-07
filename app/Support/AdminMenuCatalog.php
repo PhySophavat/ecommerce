@@ -63,6 +63,14 @@ class AdminMenuCatalog
                 ],
             ],
             [
+                'label' => 'Finance Overview',
+                'slug' => 'finance-overview',
+                'icon' => 'wallet',
+                'path' => '/admin/finance-overview',
+                'is_enabled' => true,
+                'children' => [],
+            ],
+            [
                 'label' => 'Merchant Balance',
                 'slug' => 'merchant-balance',
                 'icon' => 'wallet',

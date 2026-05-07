@@ -7,7 +7,7 @@
             @update:current-slide="currentSlide = $event"
         />
 
-        <div class="mx-auto mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto mt-8 w-full lg:w-[80%] px-4 sm:px-6 lg:px-8">
             <section class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
                 <div class="overflow-hidden rounded-[36px] border border-[#D8E7F4] bg-white p-8 shadow-[0_24px_60px_rgba(20,149,232,0.08)] sm:p-10">
                     <p class="text-xs font-semibold uppercase tracking-[0.28em] text-[#1495E8]">{{ store.meta?.eyebrow || 'Clean modern storefront' }}</p>

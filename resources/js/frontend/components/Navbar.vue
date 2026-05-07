@@ -1,7 +1,7 @@
 <template>
     <header class="border-b border-[#D9E6F2] bg-white">
         <div class="border-b border-[#E8EEF5] bg-[#F8FBFE] text-[#6B7280]">
-            <div class="mx-auto flex max-w-[1240px] items-center justify-between gap-3 px-4 py-2 text-xs sm:px-6 lg:px-8">
+            <div class="mx-auto flex w-full lg:w-[80%] items-center justify-between gap-3 px-4 py-2 text-xs sm:px-6 lg:px-8">
                 <p class="truncate font-medium">Welcome to worldwide {{ brandName }}!</p>
                 <div class="hidden items-center gap-5 md:flex">
                     <RouterLink
@@ -18,7 +18,7 @@
         </div>
 
         <div class="sticky top-0 z-50 border-b border-[#E8EEF5] bg-white/95 shadow-[0_8px_30px_rgba(15,23,42,0.04)] backdrop-blur-md">
-            <div class="mx-auto max-w-[1240px] px-4 sm:px-6 lg:px-8">
+            <div class="mx-auto w-full lg:w-[80%] px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-3 py-4 lg:gap-5">
                     <button
                         type="button"
@@ -115,7 +115,7 @@
             </div>
         </div>
 
-        <div class="mx-auto hidden max-w-[1240px] items-center gap-3 overflow-x-auto px-4 py-3 sm:px-6 lg:flex lg:px-8">
+        <div class="mx-auto hidden w-full lg:w-[80%] items-center gap-3 overflow-x-auto px-4 py-3 sm:px-6 lg:flex lg:px-8">
             <RouterLink
                 v-for="category in categoryLinks"
                 :key="category.slug"
@@ -131,7 +131,7 @@
         </div>
 
         <div v-if="openMobile" class="border-t border-[#E8EEF5] bg-white px-4 py-4 shadow-sm lg:hidden">
-            <div class="mx-auto max-w-[1240px]">
+            <div class="mx-auto w-full lg:w-[80%]">
                 <nav class="grid gap-2">
                     <RouterLink
                         v-for="category in categoryLinks"

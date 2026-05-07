@@ -24,9 +24,9 @@
                     <section class="rounded-[30px] border border-slate-200 bg-white px-6 py-6 shadow-sm">
                         <div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                             <div>
-                                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Merchant Review</p>
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Profile</p>
                                 <h2 class="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-slate-950">{{ merchant.shop_name }}</h2>
-                                <p class="mt-2 text-sm text-slate-500">Your merchant registration is being reviewed before full access is enabled.</p>
+                                <p class="mt-2 text-sm text-slate-500">Merchant information.</p>
                             </div>
 
                             <div class="flex flex-wrap gap-3">
@@ -48,15 +48,15 @@
                             </article>
 
                             <article class="rounded-[26px] border border-slate-200 bg-slate-50 px-5 py-5">
-                                <p class="text-sm font-semibold text-slate-400">Verification</p>
-                                <p class="mt-3 text-2xl font-bold tracking-[-0.03em] text-slate-950">{{ merchant.verification_status || '-' }}</p>
+                                <p class="text-sm font-semibold text-slate-400">Shop</p>
+                                <p class="mt-3 text-2xl font-bold tracking-[-0.03em] text-slate-950">{{ merchant.status || '-' }}</p>
                                 <p class="mt-2 text-slate-600">{{ merchant.location.province_city || '-' }}</p>
                                 <p class="text-slate-600">{{ merchant.location.full_address || '-' }}</p>
                             </article>
                         </div>
 
                         <article class="mt-6 rounded-[26px] border border-slate-200 bg-slate-50 px-5 py-5">
-                            <p class="text-sm font-semibold text-slate-400">Status Message</p>
+                            <p class="text-sm font-semibold text-slate-400">Information</p>
                             <p class="mt-4 text-lg leading-8 text-slate-800">{{ statusMessage }}</p>
 
                             <div
@@ -91,9 +91,9 @@ const merchant = computed(() => context.merchant ?? {
 const dashboard = computed(() => ({
     meta: context.meta ?? {
         brand: 'E-commerce',
-        page_title: 'Merchant Status',
-        kicker: 'Merchant review',
-        subheadline: 'Track your merchant registration status before full merchant access is granted.',
+        page_title: 'Merchant Profile',
+        kicker: 'Profile',
+        subheadline: 'View your merchant profile information.',
     },
     menu: context.menu ?? [],
 }));
@@ -101,14 +101,14 @@ const openMenus = ref({});
 
 const statusMessage = computed(() => {
     if (merchant.value.status === 'Rejected') {
-        return 'Your registration was rejected. Review the reason below and contact admin before reapplying.';
+        return 'Your merchant profile is rejected. Review the note below.';
     }
 
     if (merchant.value.status === 'Suspended') {
-        return 'Your merchant account is temporarily suspended. Please contact admin for the next step.';
+        return 'Your merchant profile is suspended.';
     }
 
-    return 'Your registration has been submitted. Admin approval is required before you can access the full merchant dashboard.';
+    return 'Your merchant profile information is shown here.';
 });
 
 function toggleMenu(slug) {

@@ -1,59 +1,32 @@
 <template>
-    <div class="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-        <section class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#A25F88]">Wallet Summary</p>
-            <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Available balance</h2>
-
-            <div class="mt-6 grid gap-4 sm:grid-cols-2">
-                <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Available Balance</p>
-                    <p class="mt-2 text-3xl font-extrabold text-slate-950">{{ currency(wallet.available_balance) }}</p>
-                </article>
-                <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Available to Withdraw</p>
-                    <p class="mt-2 text-3xl font-extrabold text-slate-950">{{ currency(wallet.available_to_withdraw) }}</p>
-                </article>
-                <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pending Balance</p>
-                    <p class="mt-2 text-3xl font-extrabold text-amber-600">{{ currency(wallet.pending_balance) }}</p>
-                </article>
-                <article class="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Withdrawal Fee</p>
-                    <p class="mt-2 text-3xl font-extrabold text-slate-950">{{ currency(withdrawFee, form.currency) }}</p>
-                </article>
-            </div>
-
-            <div class="mt-6 rounded-3xl border border-dashed border-[#A25F88]/30 bg-[#fff7fb] px-4 py-4 text-sm text-slate-600">
-                Minimum withdrawal: <strong>{{ currency(minimumAmount, form.currency) }}</strong>
-            </div>
-
-            <div class="mt-4 rounded-3xl border border-slate-200 bg-slate-950 px-5 py-5 text-white">
-                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Live preview</p>
-                <p class="mt-3 text-3xl font-extrabold tracking-[-0.04em]">{{ currency(previewAmount, form.currency) }}</p>
-                <p class="mt-2 text-sm text-white/70">Net payout after fee: {{ currency(netAmount, form.currency) }}</p>
-            </div>
-        </section>
-
-        <section class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Withdrawal Request</p>
+    <div class="space-y-8">
+        <section class="mx-auto w-full max-w-[760px] rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Withdraw</p>
             <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Request withdrawal</h2>
-            <p class="mt-2 text-sm text-slate-500">Choose your payout currency, amount, and destination account.</p>
+
+            <div class="mt-5 grid gap-4 sm:grid-cols-3">
+                <article class="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Available</p>
+                    <p class="mt-2 text-2xl font-extrabold text-slate-950">{{ currency(wallet.available_to_withdraw, form.currency) }}</p>
+                </article>
+                <article class="rounded-[24px] border border-amber-200 bg-amber-50/80 p-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-600">Pending</p>
+                    <p class="mt-2 text-2xl font-extrabold text-amber-700">{{ currency(wallet.pending_balance, form.currency) }}</p>
+                </article>
+                <article class="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Fee</p>
+                    <p class="mt-2 text-2xl font-extrabold text-slate-950">{{ currency(withdrawFee, form.currency) }}</p>
+                </article>
+            </div>
 
             <div v-if="bankAccounts.length === 0" class="mt-6 rounded-3xl border border-amber-200 bg-amber-50 px-5 py-5 text-sm text-amber-700">
                 <p class="font-semibold text-amber-800">No approved payout account yet.</p>
-                <p class="mt-2">Create a bank account first, then wait for admin approval before requesting a withdrawal.</p>
                 <div class="mt-4 flex flex-wrap gap-3">
                     <a
                         href="/merchant/bank-accounts"
                         class="rounded-2xl bg-[#A25F88] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
                     >
                         Create Bank Account
-                    </a>
-                    <a
-                        href="/merchant/wallet"
-                        class="rounded-2xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
-                        Back to Wallet
                     </a>
                 </div>
             </div>
@@ -71,7 +44,6 @@
                             @click="form.currency = 'USD'"
                         >
                             <p class="text-sm font-bold text-slate-950">USD</p>
-                            <p class="mt-1 text-xs text-slate-500">Dollar $</p>
                         </button>
                         <button
                             type="button"
@@ -82,7 +54,6 @@
                             @click="form.currency = 'KHR'"
                         >
                             <p class="text-sm font-bold text-slate-950">KHR</p>
-                            <p class="mt-1 text-xs text-slate-500">Khmer Riel ៛</p>
                         </button>
                     </div>
                 </label>
@@ -91,7 +62,7 @@
                     <span class="mb-2 block text-sm font-semibold text-slate-700">Amount</span>
                     <div class="relative">
                         <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">
-                            {{ form.currency === 'KHR' ? '៛' : '$' }}
+                            {{ form.currency === 'KHR' ? 'R' : '$' }}
                         </span>
                         <input
                             v-model="form.amount"
@@ -104,14 +75,10 @@
                             @input="normalizeAmount"
                         >
                     </div>
-                    <p class="mt-2 text-xs text-slate-500">
-                        {{ form.currency === 'KHR' ? 'KHR accepts whole numbers only.' : 'USD accepts decimal amounts like 10.50.' }}
-                    </p>
                 </label>
 
                 <div v-if="filteredAccounts.length === 0" class="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-5 text-sm text-amber-700">
-                    <p class="font-semibold text-amber-800">No approved {{ form.currency }} payout account is available.</p>
-                    <p class="mt-2">Add a matching {{ form.currency }} bank account on the bank accounts page, then wait for admin approval.</p>
+                    <p class="font-semibold text-amber-800">No approved {{ form.currency }} account.</p>
                     <div class="mt-4 flex flex-wrap gap-3">
                         <a
                             href="/merchant/bank-accounts"
@@ -123,7 +90,7 @@
                 </div>
 
                 <label class="block">
-                    <span class="mb-2 block text-sm font-semibold text-slate-700">Bank Account</span>
+                    <span class="mb-2 block text-sm font-semibold text-slate-700">Account</span>
                     <select
                         v-model="form.bank_account_id"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#A25F88]"
@@ -136,27 +103,32 @@
                 </label>
 
                 <label class="block">
-                    <span class="mb-2 block text-sm font-semibold text-slate-700">Note (optional)</span>
+                    <span class="mb-2 block text-sm font-semibold text-slate-700">Note</span>
                     <textarea
                         v-model="form.note"
-                        rows="4"
+                        rows="3"
                         class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#A25F88]"
+                        placeholder="Optional note"
                     />
                 </label>
 
                 <div class="grid gap-3 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-slate-600 sm:grid-cols-2">
                     <div>
-                        <p class="font-semibold text-slate-900">Preview</p>
+                        <p class="font-semibold text-slate-900">Amount</p>
                         <p class="mt-1">{{ currency(previewAmount, form.currency) }}</p>
                     </div>
                     <div>
-                        <p class="font-semibold text-slate-900">Available balance</p>
+                        <p class="font-semibold text-slate-900">Net</p>
+                        <p class="mt-1">{{ currency(netAmount, form.currency) }}</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Minimum</p>
+                        <p class="mt-1">{{ currency(minimumAmount, form.currency) }}</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-slate-900">Available</p>
                         <p class="mt-1">{{ currency(wallet.available_to_withdraw, form.currency) }}</p>
                     </div>
-                </div>
-
-                <div class="rounded-3xl border border-dashed border-[#A25F88]/30 bg-[#fff7fb] px-4 py-4 text-sm text-slate-600">
-                    After you request withdrawal, it will appear in the admin withdrawals table with <strong class="text-slate-900">pending</strong> status until admin approves or rejects it.
                 </div>
 
                 <button
@@ -164,9 +136,48 @@
                     class="w-full rounded-2xl bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                     :disabled="isSubmitting || !canSubmit"
                 >
-                    Request Withdrawal
+                    {{ isSubmitting ? 'Submitting...' : 'Submit' }}
                 </button>
             </form>
+        </section>
+
+        <section class="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <h2 class="text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Payout accounts</h2>
+                <div class="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600">{{ filteredAccounts.length }} accounts</div>
+            </div>
+
+            <div v-if="filteredAccounts.length === 0" class="mt-6 rounded-[28px] border border-dashed border-slate-300 bg-slate-50 px-6 py-12 text-center text-sm text-slate-500">
+                No accounts found.
+            </div>
+
+            <div v-else class="mt-6 overflow-x-auto rounded-[28px] border border-slate-200">
+                <table class="min-w-[900px] w-full text-sm">
+                    <thead class="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                        <tr>
+                            <th class="px-4 py-4">Bank</th>
+                            <th class="px-4 py-4">Holder</th>
+                            <th class="px-4 py-4">Number</th>
+                            <th class="px-4 py-4">Phone</th>
+                            <th class="px-4 py-4">Currency</th>
+                            <th class="px-4 py-4">Default</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="account in filteredAccounts" :key="account.id" class="border-t border-slate-200 bg-white">
+                            <td class="px-4 py-4 font-semibold text-slate-950">{{ account.bank_name }}</td>
+                            <td class="px-4 py-4 text-slate-700">{{ account.account_holder_name }}</td>
+                            <td class="px-4 py-4 text-slate-700">{{ account.account_number }}</td>
+                            <td class="px-4 py-4 text-slate-600">{{ account.phone_number || '-' }}</td>
+                            <td class="px-4 py-4"><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">{{ account.currency }}</span></td>
+                            <td class="px-4 py-4">
+                                <span v-if="account.is_default" class="rounded-full bg-[#A25F88] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white">Default</span>
+                                <span v-else class="text-xs text-slate-400">-</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
     </div>
 </template>

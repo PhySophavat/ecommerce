@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Category;
 use App\Models\Merchant;
+use App\Models\MerchantBalance;
 use App\Models\Order;
+use App\Models\Payment;
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -233,5 +236,77 @@ class OrderManagementTest extends TestCase
             'payment_status' => 'paid',
             'status' => 'paid',
         ]);
+
+        $this->assertDatabaseHas('payments', [
+            'order_id' => $order->id,
+            'merchant_id' => $merchantA->id,
+            'payment_method' => 'Cash',
+            'status' => 'success',
+        ]);
+
+        $this->assertDatabaseHas('transactions', [
+            'order_id' => $order->id,
+            'merchant_id' => $merchantA->id,
+            'type' => 'IN',
+            'status' => 'success',
+        ]);
+
+        $this->assertSame('10.00', MerchantBalance::query()->where('merchant_id', $merchantA->id)->value('total_balance'));
+    }
+
+    public function test_finance_overview_is_scoped_for_admin_and_merchant(): void
+    {
+        $customer = User::factory()->create(['role' => 'customer']);
+        $merchantUser = User::factory()->create(['role' => 'merchant']);
+        $merchant = Merchant::query()->create([
+            'user_id' => $merchantUser->id,
+            'shop_name' => 'Finance Shop',
+            'status' => 'Approved',
+        ]);
+
+        $order = Order::query()->create([
+            'customer_id' => $customer->id,
+            'number' => 'ORD-FIN-001',
+            'status' => 'paid',
+            'payment_method' => 'acleda',
+            'payment_status' => 'paid',
+            'customer_name' => 'Customer One',
+            'email' => 'customer@example.com',
+            'phone' => '012345678',
+            'address_line1' => 'Street 1',
+            'city' => 'Phnom Penh',
+            'postal_code' => '12000',
+            'subtotal_amount' => 30,
+            'shipping_amount' => 0,
+            'total_amount' => 30,
+            'placed_at' => now(),
+            'paid_at' => now(),
+        ]);
+
+        $order->items()->create([
+            'merchant_id' => $merchant->id,
+            'product_name' => 'Finance Product',
+            'product_sku' => 'FIN-1',
+            'unit_price' => 30,
+            'quantity' => 1,
+            'line_total' => 30,
+        ]);
+
+        app(\App\Services\FinanceReportingService::class)->rebuildSnapshots();
+
+        $admin = $this->signInAsAdmin();
+
+        $this->actingAs($admin)
+            ->getJson('/api/admin/finance-overview')
+            ->assertOk()
+            ->assertJsonPath('cards.total_balance', 30)
+            ->assertJsonPath('charts.payments_by_bank.1.label', 'ACLEDA');
+
+        $this->actingAs($merchantUser)
+            ->getJson('/api/merchant/finance-overview')
+            ->assertOk()
+            ->assertJsonPath('scope', 'merchant')
+            ->assertJsonPath('cards.successful_payments', 1)
+            ->assertJsonPath('cards.total_in', 30);
     }
 }

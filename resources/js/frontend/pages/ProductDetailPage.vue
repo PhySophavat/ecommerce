@@ -1,5 +1,5 @@
 <template>
-    <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div class="mx-auto w-full lg:w-[80%] px-4 py-8 sm:px-6 lg:px-8">
         <div v-if="product" class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
             <section class="space-y-4">
                 <div class="overflow-hidden rounded-[34px] border border-[#D8E7F4] bg-white shadow-sm">

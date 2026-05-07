@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class PlatformFeeService
 {
-    public function __construct(private readonly WalletTransactionService $walletTransactionService)
+    public function __construct(
+        private readonly WalletTransactionService $walletTransactionService,
+        private readonly FinanceReportingService $financeReportingService,
+    )
     {
     }
 
@@ -33,11 +36,11 @@ class PlatformFeeService
             return false;
         }
 
-        $order->loadMissing('items.product.merchant.merchant');
+        $order->loadMissing(['items.merchant', 'items.product.merchant.merchant']);
 
         $merchantGroups = $order->items
-            ->filter(fn ($item) => $item->product?->merchant?->merchant !== null)
-            ->groupBy(fn ($item) => $item->product->merchant->merchant->getKey());
+            ->filter(fn ($item) => $item->merchant_id !== null)
+            ->groupBy('merchant_id');
 
         if ($merchantGroups->isEmpty()) {
             return false;
@@ -126,6 +129,13 @@ class PlatformFeeService
                 sprintf('Platform fee debited for order %s.', $order->number),
             );
         }
+
+        $merchant->loadMissing('transactions');
+        $merchant->transactions()->where('order_id', $order->getKey())->get()
+            ->each(fn (MerchantTransaction $transaction) => $this->financeReportingService->syncMerchantTransaction(
+                $transaction,
+                $order->payment_method,
+            ));
     }
 
     private function calculateFee(float $merchantOrderTotal, PlatformFeeSetting $setting): float

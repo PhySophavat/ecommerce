@@ -19,6 +19,18 @@ class WithdrawalPageController extends Controller
         ]);
     }
 
+    public function financeOverview(): View
+    {
+        return view('backend.finance-overview.index', [
+            'title' => 'Admin | Finance Overview',
+            'context' => [
+                'app' => 'backend-finance-overview',
+                'screen' => 'finance-overview',
+                'endpoint' => route('api.admin.finance-overview'),
+            ],
+        ]);
+    }
+
     public function paymentRecords(): View
     {
         return view('backend.payment-records.index', [

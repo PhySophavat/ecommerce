@@ -26,7 +26,7 @@ class CheckoutController extends Controller
             'city' => ['required', 'string', 'max:80'],
             'postal_code' => ['required', 'string', 'max:20'],
             'notes' => ['nullable', 'string'],
-            'payment_method' => ['required', 'in:cash,aba_qr,wing,card'],
+            'payment_method' => ['required', 'in:cash,aba_qr,acleda,wing,card'],
             'payment_reference' => [
                 'nullable',
                 'string',

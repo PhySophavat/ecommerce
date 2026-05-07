@@ -1,114 +1,79 @@
 <template>
-    <div class="space-y-6">
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <article v-for="card in cards" :key="card.label" class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">{{ card.label }}</p>
-                <p class="mt-3 text-3xl font-extrabold tracking-[-0.05em]" :class="card.tone">{{ currency(card.value) }}</p>
-            </article>
-        </section>
-
-        <section class="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-            <div class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div class="flex items-center justify-between gap-4">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#A25F88]">Recent activity</p>
-                        <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Latest wallet transactions</h2>
-                    </div>
-                    <a href="/merchant/wallet/transactions" class="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">
-                        View all
-                    </a>
+    <section class="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <section class="rounded-[30px] border border-[#ead9e3] bg-[linear-gradient(180deg,#fff6fb_0%,#ffffff_100%)] px-6 py-6 shadow-sm">
+            <div class="rounded-[28px] bg-white p-5 shadow-sm">
+                <div class="mx-auto flex w-full max-w-[260px] items-center justify-center rounded-[28px] bg-[#fcf7fa] p-4">
+                    <img
+                        v-if="paymentScreenshotPreview"
+                        :src="paymentScreenshotPreview"
+                        alt="KHQR preview"
+                        class="mx-auto h-auto w-full rounded-[24px] border border-[#f0d9e6] bg-white object-contain"
+                    >
+                    <img
+                        v-else
+                        :src="preview.imageUrl"
+                        alt="KHQR preview"
+                        class="mx-auto h-auto w-full rounded-[24px] border border-[#f0d9e6] bg-white object-contain"
+                    >
                 </div>
-
-                <div v-if="recentTransactions.length === 0" class="mt-6 rounded-3xl border border-dashed border-slate-300 bg-slate-50 px-5 py-10 text-center text-sm text-slate-500">
-                    No wallet activity yet.
-                </div>
-
-                <div v-else class="mt-6 overflow-x-auto rounded-3xl border border-slate-200">
-                    <table class="min-w-full text-sm">
-                        <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-                            <tr>
-                                <th class="px-4 py-4">Type</th>
-                                <th class="px-4 py-4">Amount</th>
-                                <th class="px-4 py-4">Balance After</th>
-                                <th class="px-4 py-4">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="item in recentTransactions" :key="item.id" class="border-t border-slate-200">
-                                <td class="px-4 py-4">
-                                    <p class="font-semibold capitalize text-slate-900">{{ item.type.replace('_', ' ') }}</p>
-                                    <p class="text-slate-500">{{ item.description || '-' }}</p>
-                                </td>
-                                <td class="px-4 py-4 font-bold" :class="item.direction === 'credit' ? 'text-emerald-600' : 'text-rose-600'">
-                                    {{ item.direction === 'credit' ? '+' : '-' }}{{ currency(item.amount) }}
-                                </td>
-                                <td class="px-4 py-4 text-slate-600">{{ currency(item.balance_after) }}</td>
-                                <td class="px-4 py-4 text-slate-600">{{ formatDate(item.created_at) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div class="mt-4 flex justify-center">
+                    <button type="button" class="rounded-2xl bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90" @click="copyKhqr">
+                        Copy Link
+                    </button>
                 </div>
             </div>
+        </section>
 
-            <div class="space-y-6">
-                <section class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#A25F88]">Quick actions</p>
-                    <div class="mt-6 grid gap-3">
-                        <button type="button" class="rounded-2xl bg-[#A25F88] px-5 py-4 text-sm font-semibold text-white transition hover:opacity-90" @click="scrollToDeposit">
-                            Create deposit request
-                        </button>
-                        <a href="/merchant/withdrawals" class="rounded-2xl bg-slate-950 px-5 py-4 text-sm font-semibold text-white transition hover:bg-slate-800">
-                            Request withdrawal
-                        </a>
-                        <a href="/merchant/bank-accounts" class="rounded-2xl bg-slate-100 px-5 py-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-200">
-                            Manage bank accounts
-                        </a>
-                    </div>
-                </section>
+        <section class="rounded-[30px] border border-slate-200 bg-white px-6 py-6 shadow-sm">
+            <div class="space-y-4">
+                <label class="block space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">Amount</span>
+                    <input v-model="form.amount" type="number" step="0.01" min="0.01" class="field-input" placeholder="25.00">
+                </label>
 
-                <section class="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#fff7fb_0%,#ffffff_100%)] p-5 shadow-sm sm:p-6">
-                    <p class="text-xs font-semibold uppercase tracking-[0.24em] text-[#A25F88]">Available to withdraw</p>
-                    <p class="mt-3 text-4xl font-extrabold tracking-[-0.06em] text-slate-950">{{ currency(wallet.available_to_withdraw) }}</p>
-                    <p class="mt-3 text-sm text-slate-600">
-                        Pending withdrawal requests remain reserved until admin marks them as paid.
-                    </p>
-                </section>
+                <label class="block space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">Bank / Payment Provider</span>
+                    <select v-model="form.bank_name" class="field-input">
+                        <option v-for="provider in providers" :key="provider.bank_name" :value="provider.bank_name">
+                            {{ provider.bank_name }}
+                        </option>
+                    </select>
+                </label>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block space-y-2">
+                        <span class="text-sm font-semibold text-slate-700">Account Name</span>
+                        <input v-model="form.account_name" type="text" class="field-input" placeholder="Merchant sender name">
+                    </label>
+                    <label class="block space-y-2">
+                        <span class="text-sm font-semibold text-slate-700">Account Number</span>
+                        <input v-model="form.account_number" type="text" class="field-input" placeholder="Merchant sender number">
+                    </label>
+                </div>
+
+                <label class="block space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">Phone Number</span>
+                    <input v-model="form.phone_number" type="text" class="field-input" placeholder="088 123 4567">
+                </label>
+
+                <label class="block space-y-2">
+                    <span class="text-sm font-semibold text-slate-700">Upload Payment</span>
+                    <input type="file" accept="image/*" class="field-input file:mr-4 file:rounded-xl file:border-0 file:bg-[#A25F88] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" @change="handleScreenshotChange">
+                </label>
+
+                <div v-if="paymentScreenshotName" class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                    Selected file: <span class="font-semibold text-slate-900">{{ paymentScreenshotName }}</span>
+                </div>
             </div>
         </section>
-
-        <section id="wallet-deposit" ref="depositSection">
-            <MerchantDeposit
-                :merchant="merchant"
-                :providers="providers"
-                :deposits="deposits"
-                :is-submitting="isSubmitting"
-                @submit="$emit('submit-deposit', $event)"
-                @copied="$emit('copied-khqr')"
-                @downloaded="$emit('downloaded-khqr')"
-            />
-        </section>
-
-        <section id="wallet-withdrawal">
-            <MerchantWithdraw
-                :bank-accounts="bankAccounts"
-                :wallet="wallet"
-                :minimum-amount="minimumAmount"
-                :withdraw-fee="withdrawFee"
-                :is-submitting="isSubmitting"
-                :success-token="successToken"
-                @submit="$emit('submit-withdrawal', $event)"
-            />
-        </section>
-    </div>
+    </section>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
-import MerchantDeposit from './MerchantDeposit.vue';
-import MerchantWithdraw from './MerchantWithdraw.vue';
+import { computed, reactive, ref, watch } from 'vue';
 
 const props = defineProps({
-    wallet: { type: Object, required: true },
+    wallet: { type: Object, default: () => ({}) },
     recentTransactions: { type: Array, default: () => [] },
     merchant: { type: Object, required: true },
     providers: { type: Array, default: () => [] },
@@ -120,32 +85,203 @@ const props = defineProps({
     successToken: { type: Number, default: 0 },
 });
 
-defineEmits(['submit-deposit', 'submit-withdrawal', 'copied-khqr', 'downloaded-khqr']);
+const emit = defineEmits(['copied-khqr', 'downloaded-khqr', 'submit-deposit', 'submit-withdrawal']);
 
-const depositSection = ref(null);
+const paymentScreenshotName = ref('');
+const paymentScreenshotPreview = ref('');
+const form = reactive({
+    amount: '25.00',
+    bank_name: props.providers[0]?.bank_name ?? 'ABA',
+    account_name: '',
+    account_number: '',
+    phone_number: '',
+});
 
-const cards = computed(() => [
-    { label: 'Available', value: props.wallet.available_balance, tone: 'text-slate-950' },
-    { label: 'Pending', value: props.wallet.pending_balance, tone: 'text-amber-600' },
-    { label: 'Withdrawn', value: props.wallet.total_withdrawn, tone: 'text-slate-950' },
-    { label: 'Deposited', value: props.wallet.total_deposited, tone: 'text-emerald-600' },
-    { label: 'Platform Fees', value: props.wallet.total_platform_fee_paid, tone: 'text-rose-600' },
-]);
+watch(
+    () => props.providers,
+    (providers) => {
+        if (!providers.length) {
+            return;
+        }
 
-function currency(value) {
-    const amount = Number.parseFloat(value ?? 0);
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number.isNaN(amount) ? 0 : amount);
+        const exists = providers.some((provider) => provider.bank_name === form.bank_name);
+        if (!exists) {
+            form.bank_name = providers[0]?.bank_name ?? 'ABA';
+        }
+    },
+    { immediate: true },
+);
+
+const selectedProvider = computed(() => {
+    return props.providers.find((provider) => provider.bank_name === form.bank_name) ?? props.providers[0] ?? {
+        bank_name: 'ABA',
+        account_name: 'E-commerce KHQR Collection',
+        account_number: '001 248 555',
+        phone_number: '010 248 555',
+        khqr_prefix: 'KHQR-ABA',
+    };
+});
+
+const preview = computed(() => {
+    const amount = Number.parseFloat(form.amount || '0');
+    const safeAmount = Number.isFinite(amount) && amount > 0 ? amount : 0;
+    const provider = selectedProvider.value;
+    const shopName = props.merchant?.shop_name || props.merchant?.owner_name || 'Merchant Shop';
+    const khqrCode = [
+        provider.khqr_prefix,
+        `BANK:${provider.bank_name}`,
+        `MERCHANT:${shopName}`,
+        `ACCOUNT:${provider.account_number}`,
+        `AMOUNT:${safeAmount.toFixed(2)}`,
+        'COUNTRY:KH',
+    ].join('|');
+
+    return {
+        bankName: provider.bank_name,
+        shopName,
+        amount: safeAmount.toFixed(2),
+        provider,
+        khqrCode,
+        imageUrl: buildDynamicQr(shopName, provider.bank_name, safeAmount.toFixed(2), khqrCode),
+    };
+});
+
+async function copyKhqr() {
+    await window.navigator.clipboard.writeText(buildPreviewLink());
+    window.alert('KHQR link copied.');
+    emit('copied-khqr');
 }
 
-function formatDate(value) {
-    if (!value) return '-';
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
+function handleScreenshotChange(event) {
+    const file = event.target.files?.[0] ?? null;
+
+    if (!file) {
+        paymentScreenshotName.value = '';
+        paymentScreenshotPreview.value = '';
+        return;
+    }
+
+    paymentScreenshotName.value = file.name;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+        paymentScreenshotPreview.value = typeof reader.result === 'string' ? reader.result : '';
+    };
+    reader.readAsDataURL(file);
 }
 
-function scrollToDeposit() {
-    depositSection.value?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-    });
+function buildPreviewLink() {
+    const url = new URL('/khqr-preview', window.location.origin);
+    url.searchParams.set('bank', preview.value.bankName);
+    url.searchParams.set('amount', preview.value.amount);
+    url.searchParams.set('merchant', preview.value.shopName);
+    url.searchParams.set('receiver', preview.value.provider.account_name ?? '');
+    url.searchParams.set('code', preview.value.khqrCode);
+    const token = persistPreviewImage();
+    if (token) {
+        url.searchParams.set('image_token', token);
+    }
+
+    return url.toString();
+}
+
+function persistPreviewImage() {
+    if (!paymentScreenshotPreview.value) {
+        return '';
+    }
+
+    const token = `merchant-wallet-${Date.now()}`;
+    window.localStorage.setItem(`khqr_preview:${token}`, paymentScreenshotPreview.value);
+
+    return token;
+}
+
+function buildDynamicQr(shopName, bankName, amount, qrText) {
+    const modules = [];
+    const size = 29;
+
+    for (let y = 0; y < size; y += 1) {
+        for (let x = 0; x < size; x += 1) {
+            const seed = `${qrText}-${x}-${y}`;
+            const active = isFinderZone(x, y, size) || hash(seed) % 2 === 0;
+
+            if (active) {
+                modules.push(`<rect x="${x * 10}" y="${x === 0 && y === 0 ? 0 : y * 10}" width="10" height="10" fill="#111111" />`);
+            }
+        }
+    }
+
+    const safeShop = escapeXml(String(shopName).slice(0, 22));
+    const safeAmount = escapeXml(amount);
+    const safeBank = escapeXml(bankName);
+
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="520" height="760" viewBox="0 0 520 760">
+            <rect width="520" height="760" rx="36" fill="#ffffff"/>
+            <rect x="54" y="48" width="412" height="74" rx="24" fill="#ee1717"/>
+            <text x="260" y="93" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="800" fill="#ffffff">KHQR</text>
+            <text x="92" y="176" font-family="Arial, sans-serif" font-size="20" font-weight="800" fill="#111111">${safeShop}</text>
+            <text x="92" y="230" font-family="Arial, sans-serif" font-size="54" font-weight="900" fill="#111111">$${safeAmount}</text>
+            <line x1="54" y1="266" x2="466" y2="266" stroke="#cbd5e1" stroke-dasharray="8 8" stroke-width="2"/>
+            <rect x="80" y="292" width="360" height="360" rx="18" fill="#ffffff"/>
+            <g transform="translate(115 327)">
+                ${modules.join('')}
+            </g>
+            <circle cx="260" cy="507" r="34" fill="#ef2020"/>
+            <circle cx="260" cy="507" r="22" fill="#ffffff"/>
+            <circle cx="260" cy="507" r="16" fill="#ef2020"/>
+            <text x="260" y="708" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#64748b">${safeBank}</text>
+        </svg>
+    `.trim();
+
+    return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
+function isFinderZone(x, y, size) {
+    const topLeft = x < 7 && y < 7;
+    const topRight = x >= size - 7 && y < 7;
+    const bottomLeft = x < 7 && y >= size - 7;
+
+    return topLeft || topRight || bottomLeft;
+}
+
+function hash(value) {
+    let result = 0;
+
+    for (let index = 0; index < value.length; index += 1) {
+        result = ((result << 5) - result) + value.charCodeAt(index);
+        result |= 0;
+    }
+
+    return Math.abs(result);
+}
+
+function escapeXml(value) {
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&apos;');
 }
 </script>
+
+<style scoped>
+.field-input {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.field-input:focus {
+    border-color: #a25f88;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.14);
+}
+</style>

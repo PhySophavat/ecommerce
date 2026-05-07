@@ -225,6 +225,7 @@ const paymentStatuses = ['unpaid', 'paid', 'failed', 'refunded'];
 const paymentMethods = [
     { value: 'cash', label: 'Cash' },
     { value: 'aba_qr', label: 'ABA QR' },
+    { value: 'acleda', label: 'ACLEDA' },
     { value: 'wing', label: 'Wing' },
     { value: 'card', label: 'Card' },
 ];

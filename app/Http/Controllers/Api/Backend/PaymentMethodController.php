@@ -27,6 +27,13 @@ class PaymentMethodController extends Controller
                 'verification' => 'Admin verifies transfer reference',
             ],
             [
+                'code' => 'acleda',
+                'label' => 'ACLEDA',
+                'customer_text' => 'Customer pays with ACLEDA transfer.',
+                'requires_reference' => true,
+                'verification' => 'Admin verifies transfer reference',
+            ],
+            [
                 'code' => 'wing',
                 'label' => 'Wing',
                 'customer_text' => 'Customer pays with Wing wallet.',

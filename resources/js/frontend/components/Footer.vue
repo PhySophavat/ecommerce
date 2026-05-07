@@ -1,6 +1,6 @@
 <template>
     <footer class="mt-16 border-t border-[#8B4E73] bg-[#A25F88]">
-        <div class="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.3fr_repeat(3,1fr)] lg:px-8">
+        <div class="mx-auto grid w-full lg:w-[80%] gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1.3fr_repeat(3,1fr)] lg:px-8">
             <div>
                 <div class="text-2xl font-black tracking-[-0.04em] text-white">{{ store.meta?.brand || 'E-commerce' }}</div>
                 <p class="mt-4 max-w-sm text-sm leading-7 text-[#CBD5E1]">

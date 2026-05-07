@@ -1,318 +1,307 @@
+const PERMISSIONS_BY_ROLE = {
+    admin: [
+        'dashboard.view',
+        'products.view',
+        'products.manage',
+        'products.approve',
+        'orders.view',
+        'orders.manage',
+        'customers.manage',
+        'merchants.manage',
+        'wallet.view',
+        'wallet.manage',
+        'payments.view',
+        'withdrawals.review',
+        'reports.view',
+        'settings.manage',
+        'content.manage',
+        'users.manage',
+    ],
+    merchant: [
+        'dashboard.view',
+        'products.view',
+        'products.manage',
+        'orders.view',
+        'orders.manage',
+        'wallet.view',
+        'wallet.manage',
+        'payments.view',
+        'withdrawals.request',
+        'reports.view',
+        'shop-settings.manage',
+    ],
+};
+
 const MENU_ITEMS = [
     {
         label: 'Dashboard',
         slug: 'dashboard',
         icon: 'dashboard',
-        path: '/admin/dashboard',
-        is_enabled: true,
+        permission: 'dashboard.view',
+        roles: ['admin', 'merchant'],
+        paths: { admin: '/admin/dashboard', merchant: '/merchant/dashboard' },
         children: [],
     },
     {
         label: 'Products',
         slug: 'products',
         icon: 'products',
-        path: '/admin/products',
-        is_enabled: true,
+        permission: 'products.view',
+        roles: ['admin', 'merchant'],
+        paths: { admin: '/admin/products', merchant: '/merchant/products' },
         children: [
-            { label: 'All products', slug: 'all-products', path: '/admin/products', is_enabled: true },
-            { label: 'Add product', slug: 'add-product', path: '/admin/products/create', is_enabled: true },
-            { label: 'Categories', slug: 'categories', path: '/admin/products#categories', is_enabled: true },
-            { label: 'Brands', slug: 'brands', path: null, is_enabled: false },
-            { label: 'Product reviews', slug: 'product-reviews', path: null, is_enabled: false },
-            { label: 'Inventory / stock', slug: 'inventory-stock', path: '/admin/products#inventory', is_enabled: true },
+            { label: 'All products', slug: 'all-products', permission: 'products.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/products', merchant: '/merchant/products' } },
+            { label: 'Add product', slug: 'add-product', permission: 'products.manage', roles: ['admin', 'merchant'], paths: { admin: '/admin/products/create', merchant: '/merchant/products/create' } },
+            { label: 'Pending products', slug: 'pending-products', permission: 'products.view', roles: ['merchant'], paths: { merchant: '/merchant/products/pending' } },
+            { label: 'Approved products', slug: 'approved-products', permission: 'products.view', roles: ['merchant'], paths: { merchant: '/merchant/products/approved' } },
+            { label: 'Rejected products', slug: 'rejected-products', permission: 'products.view', roles: ['merchant'], paths: { merchant: '/merchant/products/rejected' } },
+            { label: 'Categories', slug: 'categories', permission: 'products.manage', roles: ['admin'], paths: { admin: '/admin/products#categories' } },
+            { label: 'Inventory / stock', slug: 'inventory-stock', permission: 'products.manage', roles: ['admin'], paths: { admin: '/admin/products#inventory' } },
         ],
     },
     {
         label: 'Orders',
         slug: 'orders',
         icon: 'orders',
-        path: '/admin/orders',
-        is_enabled: true,
+        permission: 'orders.view',
+        roles: ['admin', 'merchant'],
+        paths: { admin: '/admin/orders', merchant: '/merchant/orders' },
         children: [
-            { label: 'All orders', slug: 'all-orders', path: '/admin/orders', is_enabled: true },
-            { label: 'Pending orders', slug: 'pending-orders', path: '/admin/orders/pending', is_enabled: true },
-            { label: 'Processing orders', slug: 'processing-orders', path: '/admin/orders/processing', is_enabled: true },
-            { label: 'Shipped orders', slug: 'shipped-orders', path: '/admin/orders/shipped', is_enabled: true },
-            { label: 'Delivered orders', slug: 'delivered-orders', path: '/admin/orders/delivered', is_enabled: true },
-            { label: 'Cancelled orders', slug: 'cancelled-orders', path: '/admin/orders/cancelled', is_enabled: true },
-            { label: 'Returns / refunds', slug: 'returns-refunds', path: '/admin/orders/refunded', is_enabled: true },
+            { label: 'All orders', slug: 'all-orders', permission: 'orders.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/orders', merchant: '/merchant/orders' } },
+            { label: 'Pending orders', slug: 'pending-orders', permission: 'orders.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/orders/pending', merchant: '/merchant/orders/pending' } },
+            { label: 'Processing orders', slug: 'processing-orders', permission: 'orders.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/orders/processing', merchant: '/merchant/orders/processing' } },
+            { label: 'Shipped orders', slug: 'shipped-orders', permission: 'orders.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/orders/shipped', merchant: '/merchant/orders/shipped' } },
+            { label: 'Delivered orders', slug: 'delivered-orders', permission: 'orders.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/orders/delivered', merchant: '/merchant/orders/delivered' } },
+            { label: 'Cancelled orders', slug: 'cancelled-orders', permission: 'orders.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/orders/cancelled', merchant: '/merchant/orders/cancelled' } },
+            { label: 'Returns / refunds', slug: 'returns-refunds', permission: 'orders.view', roles: ['admin', 'merchant'], paths: { admin: '/admin/orders/refunded', merchant: '/merchant/orders/refunded' } },
         ],
     },
     {
         label: 'Customers',
         slug: 'customers',
         icon: 'customers',
-        path: '/admin/customers',
-        is_enabled: true,
+        permission: 'customers.manage',
+        roles: ['admin'],
+        paths: { admin: '/admin/customers' },
         children: [
-            { label: 'All customers', slug: 'all-customers', path: '/admin/customers', is_enabled: true },
-            { label: 'Customer details', slug: 'customer-details', path: '/admin/customers/details', is_enabled: true },
-            { label: 'Purchase history', slug: 'purchase-history', path: '/admin/customers/purchase-history', is_enabled: true },
-            { label: 'Customer messages', slug: 'customer-messages', path: null, is_enabled: false },
+            { label: 'All customers', slug: 'all-customers', permission: 'customers.manage', roles: ['admin'], paths: { admin: '/admin/customers' } },
+            { label: 'Customer details', slug: 'customer-details', permission: 'customers.manage', roles: ['admin'], paths: { admin: '/admin/customers/details' } },
+            { label: 'Purchase history', slug: 'purchase-history', permission: 'customers.manage', roles: ['admin'], paths: { admin: '/admin/customers/purchase-history' } },
         ],
+    },
+    {
+        label: 'Finance Overview',
+        slug: 'finance-overview',
+        icon: 'wallet',
+        permission: 'reports.view',
+        roles: ['admin', 'merchant'],
+        paths: { admin: '/admin/finance-overview', merchant: '/merchant/finance-overview' },
+        children: [],
     },
     {
         label: 'Merchant Balance',
         slug: 'merchant-balance',
         icon: 'wallet',
-        path: '/admin/merchant-balance',
-        is_enabled: true,
+        permission: 'wallet.view',
+        roles: ['admin'],
+        paths: { admin: '/admin/merchant-balance' },
         children: [],
     },
     {
         label: 'Wallet',
+        labels: { admin: 'QR Codes', merchant: 'QR Codes' },
         slug: 'wallet',
         icon: 'wallet',
-        path: '/admin/wallet',
-        is_enabled: true,
+        permission: 'wallet.view',
+        roles: ['admin', 'merchant'],
+        paths: { admin: '/admin/wallet', merchant: '/merchant/qr-codes' },
         children: [],
     },
     {
         label: 'Bank Accounts',
         slug: 'bank-accounts',
         icon: 'bank-accounts',
-        path: '/admin/bank-accounts',
-        is_enabled: true,
+        permission: 'wallet.manage',
+        roles: ['admin', 'merchant'],
+        paths: { admin: '/admin/bank-accounts', merchant: '/merchant/bank-accounts' },
         children: [],
     },
     {
         label: 'Payments',
         slug: 'payments',
         icon: 'payments',
-        path: null,
-        is_enabled: false,
+        permission: 'payments.view',
+        roles: ['admin', 'merchant'],
+        paths: { admin: '/admin/payment-records', merchant: '/merchant/finance-overview' },
         children: [
-            { label: 'Payment records', slug: 'payment-records', path: '/admin/payment-records', is_enabled: true },
-            { label: 'Payment methods', slug: 'payment-methods', path: '/admin/payment-methods', is_enabled: true },
-            { label: 'Deposits', slug: 'deposits', path: '/admin/deposits', is_enabled: true },
-            { label: 'Transaction history', slug: 'transaction-history', path: '/admin/merchant-balance', is_enabled: true },
-            { label: 'Withdrawals', slug: 'withdrawals', path: '/admin/withdrawals', is_enabled: true },
+            { label: 'Payment records', slug: 'payment-records', permission: 'payments.view', roles: ['admin'], paths: { admin: '/admin/payment-records' } },
+            { label: 'Payment methods', slug: 'payment-methods', permission: 'payments.view', roles: ['admin'], paths: { admin: '/admin/payment-methods' } },
+            { label: 'Deposits', slug: 'deposits', permission: 'payments.view', roles: ['admin'], paths: { admin: '/admin/deposits' } },
+            { label: 'Withdrawals', slug: 'withdrawals', permission: 'withdrawals.review', roles: ['admin'], paths: { admin: '/admin/withdrawals' } },
+            { label: 'Deposits', slug: 'deposits', permission: 'wallet.manage', roles: ['merchant'], paths: { merchant: '/merchant/deposits' } },
+            { label: 'Withdrawals', slug: 'withdrawals', permission: 'withdrawals.request', roles: ['merchant'], paths: { merchant: '/merchant/withdrawals' } },
+            { label: 'Transactions', slug: 'transactions', permission: 'wallet.view', roles: ['merchant'], paths: { merchant: '/merchant/wallet/transactions' } },
         ],
     },
     {
-        label: 'Promotions',
-        slug: 'promotions',
-        icon: 'promotions',
-        path: null,
-        is_enabled: false,
-        children: [],
-    },
-    {
-        label: 'Reports / Analytics',
-        slug: 'reports-analytics',
-        icon: 'reports',
-        path: null,
-        is_enabled: false,
-        children: [],
+        label: 'Shop Settings',
+        slug: 'shop-settings',
+        icon: 'settings',
+        permission: 'shop-settings.manage',
+        roles: ['merchant'],
+        paths: { merchant: '/merchant/status' },
+        children: [
+            { label: 'Profile', slug: 'profile-user', permission: 'shop-settings.manage', roles: ['merchant'], paths: { merchant: '/merchant/status' } },
+        ],
     },
     {
         label: 'Users / Admin Management',
         slug: 'users-admin-management',
         icon: 'users',
-        path: '/admin/users',
-        is_enabled: true,
+        permission: 'users.manage',
+        roles: ['admin'],
+        paths: { admin: '/admin/users' },
         children: [
-            { label: 'Admin users', slug: 'admin-users', path: '/admin/users', is_enabled: true },
-            { label: 'Merchants', slug: 'merchants', path: '/admin/merchants', is_enabled: true },
-            { label: 'Roles and permissions', slug: 'roles-and-permissions', path: null, is_enabled: false },
+            { label: 'Admin users', slug: 'admin-users', permission: 'users.manage', roles: ['admin'], paths: { admin: '/admin/users' } },
+            { label: 'Merchants', slug: 'merchants', permission: 'merchants.manage', roles: ['admin'], paths: { admin: '/admin/merchants' } },
         ],
     },
     {
         label: 'Content Management',
         slug: 'content-management',
         icon: 'content',
-        path: null,
-        is_enabled: false,
+        permission: 'content.manage',
+        roles: ['admin'],
+        paths: { admin: '/admin/sliders' },
         children: [
-            { label: 'Slides', slug: 'sliders', path: '/admin/sliders', is_enabled: true },
-            { label: 'Featured products', slug: 'featured-products', path: '/admin/products/featured', is_enabled: true },
+            { label: 'Slides', slug: 'sliders', permission: 'content.manage', roles: ['admin'], paths: { admin: '/admin/sliders' } },
+            { label: 'Featured products', slug: 'featured-products', permission: 'content.manage', roles: ['admin'], paths: { admin: '/admin/products/featured' } },
         ],
     },
     {
         label: 'Settings',
         slug: 'settings',
         icon: 'settings',
-        path: null,
-        is_enabled: false,
+        permission: 'settings.manage',
+        roles: ['admin'],
+        paths: { admin: '/admin/settings/platform-fee' },
         children: [
-            { label: 'Store settings', slug: 'store-settings', path: null, is_enabled: false },
-            { label: 'Shipping settings', slug: 'shipping-settings', path: null, is_enabled: false },
-            { label: 'Payment settings', slug: 'payment-settings', path: null, is_enabled: false },
-            { label: 'Platform Fee Settings', slug: 'platform-fee-settings', path: '/admin/settings/platform-fee', is_enabled: true },
-            { label: 'Email settings', slug: 'email-settings', path: null, is_enabled: false },
+            { label: 'Platform Fee Settings', slug: 'platform-fee-settings', permission: 'settings.manage', roles: ['admin'], paths: { admin: '/admin/settings/platform-fee' } },
         ],
-    },
-    {
-        label: 'Notifications',
-        slug: 'notifications',
-        icon: 'notifications',
-        path: null,
-        is_enabled: false,
-        children: [],
     },
     {
         label: 'Logout',
         slug: 'logout',
         icon: 'logout',
-        path: null,
-        is_enabled: false,
+        permission: null,
+        roles: ['admin', 'merchant'],
+        paths: { admin: null, merchant: null },
         children: [],
     },
 ];
 
+const ACTIVE_SLUGS_BY_SCREEN = {
+    dashboard: ['dashboard'],
+    sliders: ['content-management', 'sliders'],
+    products: ['products', 'all-products'],
+    'add-product': ['products', 'add-product'],
+    'featured-products': ['content-management', 'featured-products'],
+    'merchant-pending-products': ['products', 'pending-products'],
+    'merchant-approved-products': ['products', 'approved-products'],
+    'merchant-rejected-products': ['products', 'rejected-products'],
+    orders: ['orders', 'all-orders'],
+    'pending-orders': ['orders', 'pending-orders'],
+    'processing-orders': ['orders', 'processing-orders'],
+    'shipped-orders': ['orders', 'shipped-orders'],
+    'delivered-orders': ['orders', 'delivered-orders'],
+    'cancelled-orders': ['orders', 'cancelled-orders'],
+    'returns-refunds': ['orders', 'returns-refunds'],
+    'merchant-orders': ['orders', 'all-orders'],
+    'merchant-pending-orders': ['orders', 'pending-orders'],
+    'merchant-processing-orders': ['orders', 'processing-orders'],
+    'merchant-shipped-orders': ['orders', 'shipped-orders'],
+    'merchant-delivered-orders': ['orders', 'delivered-orders'],
+    'merchant-cancelled-orders': ['orders', 'cancelled-orders'],
+    'merchant-refunded-orders': ['orders', 'returns-refunds'],
+    customers: ['customers', 'all-customers'],
+    'customer-details': ['customers', 'customer-details'],
+    'purchase-history': ['customers', 'purchase-history'],
+    users: ['users-admin-management', 'admin-users'],
+    merchants: ['users-admin-management', 'merchants'],
+    'pending-merchants': ['users-admin-management', 'merchants'],
+    'merchant-details': ['users-admin-management', 'merchants'],
+    'finance-overview': ['finance-overview'],
+    'merchant-balance': ['merchant-balance'],
+    wallet: ['wallet'],
+    'payment-records': ['payments', 'payment-records'],
+    'payment-methods': ['payments', 'payment-methods'],
+    deposits: ['payments', 'deposits'],
+    withdrawals: ['payments', 'withdrawals'],
+    deposit: ['payments', 'deposits'],
+    withdraw: ['payments', 'withdrawals'],
+    transactions: ['payments', 'transactions'],
+    'bank-accounts': ['bank-accounts'],
+    'platform-fee-settings': ['settings', 'platform-fee-settings'],
+    'merchant-status': ['shop-settings', 'profile-user'],
+};
+
 function currentRole() {
-    return window.__APP_CONTEXT__?.currentUser?.role ?? 'admin';
+    return window.__APP_CONTEXT__?.currentUser?.role ?? window.__APP_CONTEXT__?.role_scope ?? 'admin';
 }
 
-function merchantMenu(screen) {
-    const activeSlugs = {
-        dashboard: ['dashboard'],
-        products: ['products', 'all-products'],
-        'add-product': ['products', 'add-product'],
-        'merchant-pending-products': ['products', 'pending-products'],
-        'merchant-approved-products': ['products', 'approved-products'],
-        'merchant-rejected-products': ['products', 'rejected-products'],
-        'merchant-orders': ['orders', 'all-orders'],
-        'merchant-pending-orders': ['orders', 'pending-orders'],
-        'merchant-processing-orders': ['orders', 'processing-orders'],
-        'merchant-shipped-orders': ['orders', 'shipped-orders'],
-        'merchant-delivered-orders': ['orders', 'delivered-orders'],
-        'merchant-cancelled-orders': ['orders', 'cancelled-orders'],
-        'merchant-refunded-orders': ['orders', 'returns-refunds'],
-        wallet: ['wallet', 'wallet-home'],
-        deposit: ['wallet', 'deposit'],
-        withdraw: ['wallet', 'withdraw'],
-        transactions: ['wallet', 'transactions'],
-        'bank-accounts': ['wallet', 'bank-accounts'],
-    }[screen] ?? ['dashboard'];
+function hasPermission(permission, role = currentRole()) {
+    if (!permission) {
+        return true;
+    }
 
-    const items = [
-        { slug: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: '/merchant/dashboard', is_enabled: true, children: [] },
-        {
-            slug: 'products',
-            label: 'Products',
-            icon: 'products',
-            path: '/merchant/products',
-            is_enabled: true,
-            children: [
-                { slug: 'all-products', label: 'All products', path: '/merchant/products', is_enabled: true },
-                { slug: 'add-product', label: 'Add product', path: '/merchant/products/create', is_enabled: true },
-                { slug: 'pending-products', label: 'Pending products', path: '/merchant/products/pending', is_enabled: true },
-                { slug: 'approved-products', label: 'Approved products', path: '/merchant/products/approved', is_enabled: true },
-                { slug: 'rejected-products', label: 'Rejected products', path: '/merchant/products/rejected', is_enabled: true },
-            ],
-        },
-        {
-            slug: 'orders',
-            label: 'Orders',
-            icon: 'orders',
-            path: '/merchant/orders',
-            is_enabled: true,
-            children: [
-                { slug: 'all-orders', label: 'All orders', path: '/merchant/orders', is_enabled: true },
-                { slug: 'pending-orders', label: 'Pending orders', path: '/merchant/orders/pending', is_enabled: true },
-                { slug: 'processing-orders', label: 'Processing orders', path: '/merchant/orders/processing', is_enabled: true },
-                { slug: 'shipped-orders', label: 'Shipped orders', path: '/merchant/orders/shipped', is_enabled: true },
-                { slug: 'delivered-orders', label: 'Delivered orders', path: '/merchant/orders/delivered', is_enabled: true },
-                { slug: 'cancelled-orders', label: 'Cancelled orders', path: '/merchant/orders/cancelled', is_enabled: true },
-                { slug: 'returns-refunds', label: 'Returns / refunds', path: '/merchant/orders/refunded', is_enabled: true },
-            ],
-        },
-        {
-            slug: 'wallet',
-            label: 'Wallet',
-            icon: 'wallet',
-            path: '/merchant/wallet',
-            is_enabled: true,
-            children: [
-                { slug: 'deposit', label: 'Deposit', path: '/merchant/deposits', is_enabled: true },
-                { slug: 'withdraw', label: 'Withdraw', path: '/merchant/withdrawals', is_enabled: true },
-                { slug: 'transactions', label: 'Transactions', path: '/merchant/wallet/transactions', is_enabled: true },
-                { slug: 'bank-accounts', label: 'Bank Accounts', path: '/merchant/bank-accounts', is_enabled: true },
-            ],
-        },
-        { slug: 'logout', label: 'Logout', icon: 'logout', path: null, is_enabled: true, children: [] },
-    ];
-
-    return items.map((item) => {
-        const children = (item.children ?? []).map((child) => ({
-            ...child,
-            children: [],
-            is_active: activeSlugs.includes(child.slug),
-            is_expanded: false,
-        }));
-        const childIsActive = children.some((child) => child.is_active);
-
-        return {
-            ...item,
-            children,
-            is_active: activeSlugs.includes(item.slug) || childIsActive,
-            is_expanded: (item.children ?? []).length > 0,
-        };
-    });
+    return (PERMISSIONS_BY_ROLE[role] ?? []).includes(permission);
 }
 
 function activeSlugsForScreen(screen) {
-    return {
-        dashboard: ['dashboard'],
-        sliders: ['sliders'],
-        products: ['products', 'all-products'],
-        'add-product': ['products', 'add-product'],
-        'featured-products': ['content-management', 'featured-products'],
-        orders: ['orders', 'all-orders'],
-        'pending-orders': ['orders', 'pending-orders'],
-        'processing-orders': ['orders', 'processing-orders'],
-        'shipped-orders': ['orders', 'shipped-orders'],
-        'delivered-orders': ['orders', 'delivered-orders'],
-        'cancelled-orders': ['orders', 'cancelled-orders'],
-        'returns-refunds': ['orders', 'returns-refunds'],
-        'merchant-orders': ['orders', 'all-orders'],
-        'merchant-pending-orders': ['orders', 'pending-orders'],
-        'merchant-processing-orders': ['orders', 'processing-orders'],
-        'merchant-shipped-orders': ['orders', 'shipped-orders'],
-        'merchant-delivered-orders': ['orders', 'delivered-orders'],
-        'merchant-cancelled-orders': ['orders', 'cancelled-orders'],
-        'merchant-refunded-orders': ['orders', 'returns-refunds'],
-        customers: ['customers', 'all-customers'],
-        'customer-details': ['customers', 'customer-details'],
-        'purchase-history': ['customers', 'purchase-history'],
-        users: ['users-admin-management', 'admin-users'],
-        merchants: ['users-admin-management', 'merchants'],
-        'merchant-balance': ['merchant-balance', 'payments', 'transaction-history'],
-        'payment-records': ['payments', 'payment-records'],
-        wallet: ['wallet'],
-        'payment-methods': ['payments', 'payment-methods'],
-        'bank-accounts': ['bank-accounts'],
-        'pending-merchants': ['users-admin-management', 'merchants'],
-        'merchant-details': ['users-admin-management', 'merchants'],
-        'platform-fee-settings': ['settings', 'platform-fee-settings'],
-        deposits: ['payments', 'deposits'],
-        withdrawals: ['payments', 'withdrawals'],
-    }[screen] ?? ['products', 'all-products'];
+    return ACTIVE_SLUGS_BY_SCREEN[screen] ?? ['dashboard'];
 }
 
-export function buildFallbackMenu(screen) {
-    const activeSlugs = activeSlugsForScreen(screen);
-    const isMerchant = currentRole() === 'merchant';
-
-    if (isMerchant) {
-        return merchantMenu(screen);
+function resolveMenuItem(item, role, activeSlugs) {
+    if (!(item.roles ?? []).includes(role)) {
+        return null;
     }
 
-    return MENU_ITEMS.map((item) => {
-        const children = (item.children ?? []).map((child) => ({
-            ...child,
-            children: [],
-            is_active: activeSlugs.includes(child.slug),
-            is_expanded: false,
-        }));
-        const childIsActive = children.some((child) => child.is_active);
+    if (!hasPermission(item.permission, role)) {
+        return null;
+    }
 
-        return {
-            ...item,
-            children,
-            is_active: activeSlugs.includes(item.slug) || childIsActive,
-            is_expanded: ['users-admin-management', 'payments'].includes(item.slug) || childIsActive,
-        };
-    });
+    const children = (item.children ?? [])
+        .map((child) => resolveMenuItem(child, role, activeSlugs))
+        .filter(Boolean);
+    const childIsActive = children.some((child) => child.is_active);
+    const path = item.paths?.[role] ?? null;
+    const isActive = activeSlugs.includes(item.slug) || childIsActive;
+
+    return {
+        id: item.slug,
+        label: item.labels?.[role] ?? item.label,
+        slug: item.slug,
+        icon: item.icon ?? null,
+        path,
+        permission: item.permission ?? null,
+        is_enabled: path !== null || children.length > 0 || item.slug === 'logout',
+        is_active: isActive,
+        is_expanded: childIsActive || ['users-admin-management', 'payments', 'wallet'].includes(item.slug),
+        children,
+    };
+}
+
+export function canAccessScreen(screen, role = currentRole()) {
+    const activeSlugs = activeSlugsForScreen(screen);
+    const menu = buildFallbackMenu(screen, role);
+
+    return menu.some((item) => activeSlugs.includes(item.slug) || (item.children ?? []).some((child) => activeSlugs.includes(child.slug)));
+}
+
+export function buildFallbackMenu(screen, role = currentRole()) {
+    const activeSlugs = activeSlugsForScreen(screen);
+
+    return MENU_ITEMS
+        .map((item) => resolveMenuItem(item, role, activeSlugs))
+        .filter(Boolean);
 }

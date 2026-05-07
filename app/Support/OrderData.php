@@ -131,6 +131,7 @@ class OrderData
     {
         return match ($value) {
             'aba_qr' => 'ABA QR',
+            'acleda' => 'ACLEDA',
             'wing' => 'Wing',
             'card' => 'Card',
             default => 'Cash',
@@ -141,6 +142,7 @@ class OrderData
     {
         return match ($value) {
             'aba_qr' => 'Use your ABA mobile app to complete the transfer, then keep the reference number for admin review.',
+            'acleda' => 'Complete the ACLEDA transfer and keep the payment reference for verification.',
             'wing' => 'Complete the Wing wallet transfer and keep the transaction reference for merchant or admin review.',
             'card' => 'Card payment is stored for manual verification in this demo flow before it is marked paid.',
             default => 'Cash payment stays unpaid until delivery or manual confirmation.',

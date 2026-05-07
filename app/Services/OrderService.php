@@ -12,6 +12,11 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    public function __construct(
+        private readonly FinanceReportingService $financeReportingService,
+    ) {
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      */
@@ -114,12 +119,16 @@ class OrderService
                 $product->decrement('inventory', $line['quantity']);
             }
 
-            return $order->fresh([
+            $order = $order->fresh([
                 'customer',
                 'items.merchant.user',
                 'items.product',
                 'merchantTransactions.merchant',
             ]);
+
+            $this->financeReportingService->syncOrder($order);
+
+            return $order;
         });
     }
 
@@ -144,7 +153,10 @@ class OrderService
 
         $order->save();
 
-        return $order->fresh(['customer', 'items.merchant.user', 'items.product']);
+        $order = $order->fresh(['customer', 'items.merchant.user', 'items.product']);
+        $this->financeReportingService->syncOrder($order);
+
+        return $order;
     }
 
     public function updatePaymentStatus(Order $order, string $paymentStatus): Order
@@ -172,7 +184,10 @@ class OrderService
 
         $order->save();
 
-        return $order->fresh(['customer', 'items.merchant.user', 'items.product']);
+        $order = $order->fresh(['customer', 'items.merchant.user', 'items.product']);
+        $this->financeReportingService->syncOrder($order);
+
+        return $order;
     }
 
     private function nextOrderNumber(): string

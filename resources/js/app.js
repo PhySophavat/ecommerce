@@ -9,6 +9,7 @@ import MerchantStatusApp from './backend/merchant/MerchantStatusApp.vue';
 import AdminDeposits from './backend/deposits/AdminDeposits.vue';
 import BankAccountsPage from './backend/bank-accounts/BankAccountsPage.vue';
 import MerchantBalancePage from './backend/merchant-balance/MerchantBalancePage.vue';
+import FinanceOverviewPage from './backend/finance/FinanceOverviewPage.vue';
 import AdminPaymentRecords from './backend/payments/AdminPaymentRecords.vue';
 import AdminPaymentMethods from './backend/payments/AdminPaymentMethods.vue';
 import AdminWallet from './backend/wallet/AdminWallet.vue';
@@ -29,6 +30,7 @@ const appMap = {
     'backend-deposits': AdminDeposits,
     'backend-bank-accounts': BankAccountsPage,
     'backend-merchant-balance': MerchantBalancePage,
+    'backend-finance-overview': FinanceOverviewPage,
     'backend-payment-records': AdminPaymentRecords,
     'backend-payment-methods': AdminPaymentMethods,
     'backend-wallet': AdminWallet,
@@ -37,6 +39,7 @@ const appMap = {
     'backend-platform-fee-settings': PlatformFeeSettingsPage,
     'backend-users': UserManagementApp,
     'merchant-withdrawals': MerchantFinanceApp,
+    'merchant-finance-overview': FinanceOverviewPage,
     'backend-orders': OrdersDashboard,
     frontend: StorefrontApp,
 };

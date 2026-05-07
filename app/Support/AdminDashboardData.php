@@ -6,10 +6,15 @@ use App\Models\AdminMenu;
 use App\Models\Category;
 use App\Models\Merchant;
 use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Payment;
 use App\Models\PlatformFeeSetting;
 use App\Models\Product;
 use App\Models\Slide;
+use App\Models\Transaction;
 use App\Models\User;
+use App\Models\WalletTransaction;
+use App\Models\WithdrawRequest;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
@@ -383,6 +388,23 @@ class AdminDashboardData
         ];
     }
 
+    public static function financeOverviewPage(): array
+    {
+        $meta = self::metaForScreen('finance-overview');
+
+        return [
+            'screen' => 'finance-overview',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('finance-overview')),
+        ];
+    }
+
     public static function merchantBalancePage(): array
     {
         $meta = self::metaForScreen('merchant-balance');
@@ -419,7 +441,7 @@ class AdminDashboardData
 
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet', 'bank-accounts', 'merchant-balance'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet', 'bank-accounts', 'merchant-balance', 'finance-overview'], true) ? $screen : 'products';
     }
 
     private static function merchantProductsIndex(string $screen, User $user): array
@@ -438,7 +460,7 @@ class AdminDashboardData
             default => $products->values(),
         };
 
-        $menu = self::merchantWorkspaceMenu($screen);
+        $menu = self::menuTree(self::activeSlugsForScreen($screen));
         $pendingCount = $products->where('status', 'pending')->count();
         $approvedCount = $products->where('status', 'approved')->count();
         $rejectedCount = $products->where('status', 'rejected')->count();
@@ -455,6 +477,38 @@ class AdminDashboardData
         $availableUsd = (float) ($merchant?->available_balance ?? 0);
         $pendingUsd = (float) ($merchant?->pending_balance ?? 0);
         $recentMovement = $walletTransactions->take(5)->count();
+        $merchantOrderIds = $merchant
+            ? OrderItem::query()
+                ->where('merchant_id', $merchant->id)
+                ->distinct()
+                ->pluck('order_id')
+            : collect();
+        $merchantOrders = $merchantOrderIds->isNotEmpty()
+            ? Order::query()->whereIn('id', $merchantOrderIds)->get()
+            : collect();
+        $bankPaymentCount = $merchantOrders
+            ->whereIn('payment_method', ['aba_qr', 'wing', 'card'])
+            ->count();
+        $cashPaymentCount = $merchantOrders
+            ->where('payment_method', 'cash')
+            ->count();
+        $totalPaymentOrders = $merchantOrders->count();
+        $bankPaymentPercent = $totalPaymentOrders > 0
+            ? (int) round(($bankPaymentCount / $totalPaymentOrders) * 100)
+            : 0;
+        $orderAnalytics = self::merchantOrderAnalytics($merchantOrders);
+        $merchantDashboard = self::merchantDashboardPayload(
+            $merchant,
+            $products,
+            $merchantOrders,
+            $walletTransactions,
+            $availableUsd,
+            $pendingUsd,
+            $balanceUsd,
+            $balanceKhr,
+            $transactionIn,
+            $transactionOut,
+        );
 
         return [
             'screen' => $screen,
@@ -545,6 +599,16 @@ class AdminDashboardData
                 ['label' => 'Rejected', 'value' => (string) $rejectedCount],
                 ['label' => 'Low stock', 'value' => (string) $lowStockCount],
             ],
+            'payment_metrics' => [
+                'bank_percent' => $bankPaymentPercent,
+                'bank_orders' => $bankPaymentCount,
+                'cash_orders' => $cashPaymentCount,
+                'total_orders' => $totalPaymentOrders,
+                'label' => 'Customer pay with bank',
+                'bank_methods' => 'ABA / Wing / Card',
+            ],
+            'order_analytics' => $orderAnalytics,
+            'merchant_dashboard' => $merchantDashboard,
             'menu' => $menu,
             'products' => [
                 'count' => $filteredProducts->count(),
@@ -558,6 +622,389 @@ class AdminDashboardData
                 ],
             ],
         ];
+    }
+
+    private static function merchantDashboardPayload(
+        ?Merchant $merchant,
+        Collection $products,
+        Collection $orders,
+        Collection $walletTransactions,
+        float $availableUsd,
+        float $pendingUsd,
+        float $balanceUsd,
+        float $balanceKhr,
+        float $transactionIn,
+        float $transactionOut,
+    ): array {
+        $merchantId = $merchant?->id;
+        $financeTransactions = $merchantId && Schema::hasTable('transactions')
+            ? Transaction::query()->where('merchant_id', $merchantId)->latest('created_at')->get()
+            : collect();
+        $payments = $merchantId && Schema::hasTable('payments')
+            ? Payment::query()->where('merchant_id', $merchantId)->latest('created_at')->get()
+            : collect();
+        $withdrawRequests = $merchantId && Schema::hasTable('withdraw_requests')
+            ? WithdrawRequest::query()->where('merchant_id', $merchantId)->latest('created_at')->get()
+            : collect();
+
+        $successfulOrders = $orders->whereIn('status', ['paid', 'processing', 'completed', 'shipped', 'delivered'])->count();
+        $failedOrders = $orders->whereIn('status', ['failed', 'payment_failed'])->count();
+        $successfulPayments = $payments->where('status', 'success')->count();
+        $failedPayments = $payments->where('status', 'failed')->count();
+        $totalTransactions = $financeTransactions->count() ?: $walletTransactions->count();
+        $recentOrdersCount = $orders->filter(fn (Order $order): bool => ($order->placed_at ?? $order->created_at)?->gte(now()->subDays(7)) ?? false)->count();
+        $recentFailedPayments = $payments->filter(fn (Payment $payment): bool => $payment->status === 'failed' && (($payment->created_at)?->gte(now()->subDays(7)) ?? false))->count();
+        $pendingWithdrawRequests = $withdrawRequests->where('status', 'pending')->count();
+
+        $summaryCards = [
+            [
+                'label' => 'Total Balance',
+                'value' => self::currency($balanceUsd),
+                'description' => 'Current merchant wallet total balance',
+                'icon' => 'wallet',
+                'tone' => 'primary',
+            ],
+            [
+                'label' => 'Balance KHR',
+                'value' => self::khrCurrency($balanceKhr),
+                'description' => 'Estimated using 4,100 KHR per USD',
+                'icon' => 'bank',
+                'tone' => 'slate',
+            ],
+            [
+                'label' => 'Transaction In',
+                'value' => self::currency($transactionIn),
+                'description' => 'Total credited into merchant wallet',
+                'icon' => 'arrow-down',
+                'tone' => 'success',
+            ],
+            [
+                'label' => 'Transaction Out',
+                'value' => self::currency($transactionOut),
+                'description' => 'Total debited from merchant wallet',
+                'icon' => 'arrow-up',
+                'tone' => 'warning',
+            ],
+            [
+                'label' => 'Total Transactions',
+                'value' => (string) $totalTransactions,
+                'description' => 'Combined finance ledger entries',
+                'icon' => 'activity',
+                'tone' => 'info',
+            ],
+            [
+                'label' => 'Successful Orders',
+                'value' => (string) $successfulOrders,
+                'description' => 'Paid and fulfilled order volume',
+                'icon' => 'check',
+                'tone' => 'success',
+            ],
+            [
+                'label' => 'Failed Orders',
+                'value' => (string) $failedOrders,
+                'description' => 'Failed or payment-failed orders',
+                'icon' => 'x',
+                'tone' => 'danger',
+            ],
+            [
+                'label' => 'Successful Payments',
+                'value' => (string) $successfulPayments,
+                'description' => 'Completed customer payments',
+                'icon' => 'credit-card',
+                'tone' => 'success',
+            ],
+            [
+                'label' => 'Failed Payments',
+                'value' => (string) $failedPayments,
+                'description' => 'Payments that did not clear',
+                'icon' => 'alert',
+                'tone' => 'danger',
+            ],
+        ];
+
+        return [
+            'hero' => [
+                'eyebrow' => 'MERCHANT FINANCE',
+                'title' => 'Quick balance access',
+                'description' => 'Open your wallet balance, scan commerce performance, and jump into product work from one merchant dashboard.',
+            ],
+            'date_ranges' => [
+                ['label' => 'Today', 'value' => 'today'],
+                ['label' => '7 days', 'value' => '7days'],
+                ['label' => '30 days', 'value' => '30days'],
+                ['label' => 'Custom range', 'value' => 'custom'],
+            ],
+            'selected_range' => '30days',
+            'summary_cards' => $summaryCards,
+            'datasets' => [
+                'today' => self::merchantDashboardDataset($orders, $products, $payments, $financeTransactions, $walletTransactions, $withdrawRequests, $availableUsd, $pendingUsd, 1),
+                '7days' => self::merchantDashboardDataset($orders, $products, $payments, $financeTransactions, $walletTransactions, $withdrawRequests, $availableUsd, $pendingUsd, 7),
+                '30days' => self::merchantDashboardDataset($orders, $products, $payments, $financeTransactions, $walletTransactions, $withdrawRequests, $availableUsd, $pendingUsd, 30),
+                'custom' => self::merchantDashboardDataset($orders, $products, $payments, $financeTransactions, $walletTransactions, $withdrawRequests, $availableUsd, $pendingUsd, 30),
+            ],
+            'links' => [
+                'balance' => '/merchant/qr-codes',
+                'products' => '/merchant/products',
+            ],
+        ];
+    }
+
+    private static function merchantDashboardDataset(
+        Collection $orders,
+        Collection $products,
+        Collection $payments,
+        Collection $financeTransactions,
+        Collection $walletTransactions,
+        Collection $withdrawRequests,
+        float $availableUsd,
+        float $pendingUsd,
+        int $days,
+    ): array {
+        $start = now()->copy()->subDays(max($days - 1, 0))->startOfDay();
+        $end = now()->copy()->endOfDay();
+        $periodDays = max($days, 1);
+        $labels = collect(range(0, $periodDays - 1))
+            ->map(fn (int $offset): string => $start->copy()->addDays($offset)->format('j M'))
+            ->values();
+
+        $ordersInRange = $orders->filter(function (Order $order) use ($start, $end): bool {
+            $date = $order->placed_at ?? $order->created_at;
+
+            return $date?->between($start, $end) ?? false;
+        })->values();
+
+        $paymentsInRange = $payments->filter(fn (Payment $payment): bool => $payment->created_at?->between($start, $end) ?? false)->values();
+        $financeTransactionsInRange = $financeTransactions->filter(fn (Transaction $transaction): bool => $transaction->created_at?->between($start, $end) ?? false)->values();
+        $fallbackTransactions = $walletTransactions->filter(fn (WalletTransaction $transaction): bool => $transaction->created_at?->between($start, $end) ?? false)->values();
+
+        $salesOverTime = $labels->map(function (string $label, int $offset) use ($start, $ordersInRange): array {
+            $day = $start->copy()->addDays($offset);
+            $dayOrders = $ordersInRange->filter(fn (Order $order): bool => (($order->placed_at ?? $order->created_at)?->isSameDay($day)) ?? false);
+
+            return [
+                'label' => $label,
+                'sales' => round((float) $dayOrders->sum('total_amount'), 2),
+                'orders' => $dayOrders->count(),
+            ];
+        })->values()->all();
+
+        $runningTotal = 0;
+        $cumulativeSales = collect($salesOverTime)->map(function (array $point) use (&$runningTotal): array {
+            $runningTotal += (float) $point['sales'];
+
+            return [
+                'label' => $point['label'],
+                'sales' => round($runningTotal, 2),
+            ];
+        })->values()->all();
+
+        $orderStatusSummary = [
+            ['label' => 'Completed', 'value' => $ordersInRange->whereIn('status', ['completed', 'delivered'])->count(), 'color' => '#A25F88'],
+            ['label' => 'Cancelled', 'value' => $ordersInRange->where('status', 'cancelled')->count(), 'color' => '#D16D82'],
+            ['label' => 'Refunded', 'value' => $ordersInRange->whereIn('status', ['refunded'])->count(), 'color' => '#E7B6D1'],
+            ['label' => 'Failed', 'value' => $ordersInRange->whereIn('status', ['failed', 'payment_failed'])->count(), 'color' => '#F59E0B'],
+        ];
+
+        $paymentCountByBank = collect([
+            'ABA' => ['aba_qr', 'ABA'],
+            'ACLEDA' => ['acleda', 'ACLEDA'],
+            'Wing' => ['wing', 'Wing'],
+            'Cash' => ['cash', 'Cash'],
+            'Card' => ['card', 'Card'],
+        ])->map(function (array $aliases, string $label) use ($paymentsInRange, $ordersInRange): array {
+            $paymentCount = $paymentsInRange->whereIn('payment_method', $aliases)->count();
+            $fallbackCount = $ordersInRange->whereIn('payment_method', $aliases)->count();
+
+            return [
+                'label' => $label,
+                'value' => $paymentCount > 0 ? $paymentCount : $fallbackCount,
+                'color' => [
+                    'ABA' => '#A25F88',
+                    'ACLEDA' => '#B97097',
+                    'Wing' => '#CF8AAD',
+                    'Cash' => '#E5B9CF',
+                    'Card' => '#F1D9E6',
+                ][$label],
+            ];
+        })->values()->all();
+
+        $transactionsForRange = $financeTransactionsInRange->isNotEmpty()
+            ? $financeTransactionsInRange
+            : $fallbackTransactions;
+
+        $transactionFlow = [
+            ['label' => 'IN', 'value' => round((float) $transactionsForRange->where('type', 'IN')->sum('amount') ?: (float) $transactionsForRange->where('direction', 'credit')->sum('amount'), 2), 'color' => '#A25F88'],
+            ['label' => 'OUT', 'value' => round((float) $transactionsForRange->where('type', 'OUT')->sum('amount') ?: (float) $transactionsForRange->where('direction', 'debit')->sum('amount'), 2), 'color' => '#E8C4D7'],
+        ];
+
+        $topProductSales = OrderItem::query()
+            ->selectRaw('product_name, SUM(quantity) as sold_quantity, SUM(line_total) as total_sales')
+            ->whereIn('order_id', $ordersInRange->pluck('id'))
+            ->groupBy('product_name')
+            ->orderByDesc('total_sales')
+            ->limit(5)
+            ->get()
+            ->map(fn ($item): array => [
+                'product_name' => $item->product_name,
+                'sold_quantity' => (int) $item->sold_quantity,
+                'total_sales' => self::currency((float) $item->total_sales),
+            ])
+            ->values()
+            ->all();
+
+        if ($topProductSales === []) {
+            $topProductSales = $products->take(5)->map(fn (Product $product, int $index): array => [
+                'product_name' => $product->name,
+                'sold_quantity' => max(0, 18 - ($index * 3)),
+                'total_sales' => self::currency((18 - ($index * 3)) * (float) $product->price),
+            ])->values()->all();
+        }
+
+        $recentTransactions = ($financeTransactionsInRange->isNotEmpty() ? $financeTransactionsInRange : $fallbackTransactions)
+            ->sortByDesc('created_at')
+            ->take(8)
+            ->map(function ($transaction): array {
+                $status = $transaction->status ?? (isset($transaction->direction) ? 'success' : 'pending');
+                $type = $transaction->type ?? (($transaction->direction ?? 'credit') === 'credit' ? 'IN' : 'OUT');
+
+                return [
+                    'transaction_id' => $transaction->transaction_code ?? ('WTX-'.$transaction->id),
+                    'order_id' => $transaction->order_id ? 'ORD-'.$transaction->order_id : '-',
+                    'type' => $type,
+                    'amount' => self::currency((float) abs((float) $transaction->amount)),
+                    'currency' => $transaction->currency ?? 'USD',
+                    'payment_method' => $transaction->method ?? 'Wallet',
+                    'status' => Str::headline((string) $status),
+                    'date' => $transaction->created_at?->format('d M Y') ?? '-',
+                ];
+            })
+            ->values()
+            ->all();
+
+        $extraCards = [
+            ['label' => 'Available USD', 'value' => self::currency($availableUsd)],
+            ['label' => 'Pending USD', 'value' => self::currency($pendingUsd)],
+            ['label' => 'Recent Orders Count', 'value' => (string) $ordersInRange->count()],
+            ['label' => 'Recent Failed Payments', 'value' => (string) $paymentsInRange->where('status', 'failed')->count()],
+            ['label' => 'Pending Withdraw Requests', 'value' => (string) $withdrawRequests->where('status', 'pending')->count()],
+        ];
+
+        return [
+            'sales_over_time' => $salesOverTime,
+            'order_status_summary' => $orderStatusSummary,
+            'payment_count_by_bank' => $paymentCountByBank,
+            'transaction_flow' => $transactionFlow,
+            'top_product_sales' => $topProductSales,
+            'cumulative_sales' => $cumulativeSales,
+            'recent_transactions' => $recentTransactions,
+            'extra_cards' => $extraCards,
+        ];
+    }
+
+    private static function merchantOrderAnalytics(Collection $orders): array
+    {
+        $todayStart = now()->startOfDay();
+        $todayEnd = now()->endOfDay();
+        $weekStart = now()->startOfWeek();
+        $weekEnd = now()->endOfWeek();
+        $monthStart = now()->startOfMonth();
+        $monthEnd = now()->endOfMonth();
+
+        return [
+            'label' => 'Customer order trend',
+            'options' => [
+                ['value' => 'today', 'label' => 'Today'],
+                ['value' => 'week', 'label' => 'Week'],
+                ['value' => 'month', 'label' => 'Month'],
+            ],
+            'selected' => 'today',
+            'datasets' => [
+                'today' => [
+                    'total' => (int) self::ordersInRange($orders, $todayStart, $todayEnd)->count(),
+                    'bars' => self::buildTodayOrderBars($orders, $todayStart, $todayEnd),
+                ],
+                'week' => [
+                    'total' => (int) self::ordersInRange($orders, $weekStart, $weekEnd)->count(),
+                    'bars' => self::buildWeekOrderBars($orders, $weekStart, $weekEnd),
+                ],
+                'month' => [
+                    'total' => (int) self::ordersInRange($orders, $monthStart, $monthEnd)->count(),
+                    'bars' => self::buildMonthOrderBars($orders, $monthStart, $monthEnd),
+                ],
+            ],
+        ];
+    }
+
+    private static function ordersInRange(Collection $orders, $start, $end): Collection
+    {
+        return $orders->filter(function (Order $order) use ($start, $end): bool {
+            $placedAt = $order->placed_at ?? $order->created_at;
+
+            if (!$placedAt) {
+                return false;
+            }
+
+            return $placedAt->between($start, $end);
+        })->values();
+    }
+
+    private static function buildTodayOrderBars(Collection $orders, $start, $end): array
+    {
+        $filtered = self::ordersInRange($orders, $start, $end);
+        $buckets = [
+            ['label' => '00-05', 'start' => 0, 'end' => 5],
+            ['label' => '06-11', 'start' => 6, 'end' => 11],
+            ['label' => '12-17', 'start' => 12, 'end' => 17],
+            ['label' => '18-23', 'start' => 18, 'end' => 23],
+        ];
+
+        return collect($buckets)->map(function (array $bucket) use ($filtered): array {
+            $count = $filtered->filter(function (Order $order) use ($bucket): bool {
+                $hour = (int) ($order->placed_at ?? $order->created_at)?->format('G');
+
+                return $hour >= $bucket['start'] && $hour <= $bucket['end'];
+            })->count();
+
+            return ['label' => $bucket['label'], 'value' => $count];
+        })->all();
+    }
+
+    private static function buildWeekOrderBars(Collection $orders, $start, $end): array
+    {
+        $filtered = self::ordersInRange($orders, $start, $end);
+        $labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+        return collect(range(0, 6))->map(function (int $offset) use ($filtered, $start, $labels): array {
+            $day = $start->copy()->addDays($offset);
+            $count = $filtered->filter(function (Order $order) use ($day): bool {
+                $placedAt = $order->placed_at ?? $order->created_at;
+
+                return $placedAt?->isSameDay($day) ?? false;
+            })->count();
+
+            return ['label' => $labels[$offset], 'value' => $count];
+        })->all();
+    }
+
+    private static function buildMonthOrderBars(Collection $orders, $start, $end): array
+    {
+        $filtered = self::ordersInRange($orders, $start, $end);
+        $segments = [
+            ['label' => 'Week 1', 'start' => 1, 'end' => 7],
+            ['label' => 'Week 2', 'start' => 8, 'end' => 14],
+            ['label' => 'Week 3', 'start' => 15, 'end' => 21],
+            ['label' => 'Week 4+', 'start' => 22, 'end' => 31],
+        ];
+
+        return collect($segments)->map(function (array $segment) use ($filtered): array {
+            $count = $filtered->filter(function (Order $order) use ($segment): bool {
+                $day = (int) ($order->placed_at ?? $order->created_at)?->format('j');
+
+                return $day >= $segment['start'] && $day <= $segment['end'];
+            })->count();
+
+            return ['label' => $segment['label'], 'value' => $count];
+        })->all();
     }
 
     /**
@@ -616,6 +1063,11 @@ class AdminDashboardData
                 'kicker' => 'Finance overview',
                 'subheadline' => 'Review merchant deposit and withdrawal activity from a single admin wallet overview.',
             ],
+            'finance-overview' => [
+                'page_title' => 'Finance Overview',
+                'kicker' => 'Finance analytics',
+                'subheadline' => 'Review balances, payment mix, transaction flow, and order outcomes across the marketplace.',
+            ],
             'merchant-balance' => [
                 'page_title' => 'Merchant Balance',
                 'kicker' => 'Merchant finance',
@@ -654,26 +1106,7 @@ class AdminDashboardData
      */
     private static function activeSlugsForScreen(string $screen): array
     {
-        return match ($screen) {
-            'dashboard' => ['dashboard'],
-            'sliders' => ['sliders'],
-            'add-product' => ['products', 'add-product'],
-            'featured-products' => ['content-management', 'featured-products'],
-            'customers' => ['customers', 'all-customers'],
-            'customer-details' => ['customers', 'customer-details'],
-            'purchase-history' => ['customers', 'purchase-history'],
-            'users' => ['users-admin-management', 'admin-users'],
-            'merchants' => ['users-admin-management', 'merchants'],
-            'merchant-balance' => ['merchant-balance', 'payments', 'transaction-history'],
-            'payment-records' => ['payments', 'payment-records'],
-            'payment-methods' => ['payments', 'payment-methods'],
-            'wallet' => ['wallet'],
-            'bank-accounts' => ['bank-accounts'],
-            'platform-fee-settings' => ['settings', 'platform-fee-settings'],
-            'deposits' => ['payments', 'deposits'],
-            'withdrawals' => ['payments', 'withdrawals'],
-            default => ['products', 'all-products'],
-        };
+        return DashboardAccess::activeSlugsForScreen($screen);
     }
 
     /**
@@ -682,35 +1115,7 @@ class AdminDashboardData
      */
     private static function menuTree(array $activeSlugs): array
     {
-        $catalogMenu = self::defaultMenuTree($activeSlugs);
-
-        if (!Schema::hasTable('admin_menus')) {
-            return self::normalizeMenuTree($catalogMenu, $activeSlugs);
-        }
-
-        $menus = AdminMenu::query()
-            ->whereNull('parent_id')
-            ->with('children')
-            ->orderBy('sort_order')
-            ->get();
-
-        if ($menus->isEmpty()) {
-            return self::normalizeMenuTree($catalogMenu, $activeSlugs);
-        }
-
-        $databaseMenu = $menus
-            ->map(fn (AdminMenu $menu): array => self::menuItem($menu, $activeSlugs))
-            ->values()
-            ->all();
-
-        return self::normalizeMenuTree(
-            self::mergeMenuDefinitions(
-                self::applyRoleMenuOverrides($databaseMenu),
-                self::applyRoleMenuOverrides($catalogMenu),
-                $activeSlugs
-            ),
-            $activeSlugs,
-        );
+        return DashboardAccess::menuTreeForRole(auth()->user()?->role ?? 'admin', $activeSlugs);
     }
 
     /**
@@ -1078,18 +1483,39 @@ class AdminDashboardData
             ],
             [
                 'id' => 'wallet',
-                'label' => 'Wallet',
+                'label' => 'QR Codes',
                 'slug' => 'wallet',
                 'icon' => 'wallet',
-                'path' => '/merchant/wallet',
+                'path' => '/merchant/qr-codes',
+                'is_enabled' => true,
+                'is_active' => false,
+                'is_expanded' => false,
+                'children' => [],
+            ],
+            [
+                'id' => 'bank-accounts',
+                'label' => 'Bank Accounts',
+                'slug' => 'bank-accounts',
+                'icon' => 'bank-accounts',
+                'path' => '/merchant/bank-accounts',
+                'is_enabled' => true,
+                'is_active' => false,
+                'is_expanded' => false,
+                'children' => [],
+            ],
+            [
+                'id' => 'payments',
+                'label' => 'Payments',
+                'slug' => 'payments',
+                'icon' => 'payments',
+                'path' => '/merchant/deposits',
                 'is_enabled' => true,
                 'is_active' => false,
                 'is_expanded' => true,
                 'children' => [
-                    ['id' => 'deposit', 'label' => 'Deposit', 'slug' => 'deposit', 'path' => '/merchant/deposits', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
-                    ['id' => 'withdraw', 'label' => 'Withdraw', 'slug' => 'withdraw', 'path' => '/merchant/withdrawals', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'deposits', 'label' => 'Deposits', 'slug' => 'deposits', 'path' => '/merchant/deposits', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
+                    ['id' => 'withdrawals', 'label' => 'Withdrawals', 'slug' => 'withdrawals', 'path' => '/merchant/withdrawals', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
                     ['id' => 'transactions', 'label' => 'Transactions', 'slug' => 'transactions', 'path' => '/merchant/wallet/transactions', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
-                    ['id' => 'bank-accounts', 'label' => 'Bank Accounts', 'slug' => 'bank-accounts', 'path' => '/merchant/bank-accounts', 'is_enabled' => true, 'icon' => null, 'is_active' => false, 'is_expanded' => false, 'children' => []],
                 ],
             ],
             [

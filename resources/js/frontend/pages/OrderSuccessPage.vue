@@ -1,5 +1,5 @@
 <template>
-    <div class="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
+    <div class="mx-auto w-full lg:w-[80%] max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
         <div class="rounded-[36px] border border-[#E5E7EB] bg-white p-8 shadow-sm">
             <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">Order success</p>
             <h1 class="mt-2 text-4xl font-black tracking-[-0.05em] text-[#111827]">Your order has been placed.</h1>

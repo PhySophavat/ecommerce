@@ -203,6 +203,16 @@ class MerchantWithdrawalSystemTest extends TestCase
         $this->assertSame('180.00', $merchant->available_balance);
         $this->assertSame('0.00', $merchant->pending_balance);
         $this->assertSame('paid', Withdrawal::query()->findOrFail($withdrawalId)->status);
+        $this->assertDatabaseHas('withdraw_requests', [
+            'withdrawal_id' => $withdrawalId,
+            'merchant_id' => $merchant->id,
+            'status' => 'success',
+        ]);
+        $this->assertDatabaseHas('transactions', [
+            'merchant_id' => $merchant->id,
+            'type' => 'OUT',
+            'status' => 'success',
+        ]);
     }
 
     public function test_admin_bank_accounts_index_includes_merchant_submission(): void
@@ -263,6 +273,11 @@ class MerchantWithdrawalSystemTest extends TestCase
         $this->assertSame('125.00', $merchant->available_balance);
         $this->assertSame('75.00', $merchant->total_deposited);
         $this->assertSame('approved', MerchantDeposit::query()->findOrFail($depositId)->status);
+        $this->assertDatabaseHas('transactions', [
+            'merchant_id' => $merchant->id,
+            'type' => 'IN',
+            'status' => 'success',
+        ]);
     }
 
     public function test_merchant_deposit_requires_bank_sender_fields_and_returns_provider_metadata(): void

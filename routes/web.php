@@ -13,6 +13,7 @@ Route::get('/khqr-preview', function (Request $request) {
     return view('khqr-preview', [
         'title' => 'KHQR Preview',
         'mountVueApp' => false,
+        'context' => ['app' => 'backend-preview'],
         'bankName' => (string) $request->query('bank', 'ABA'),
         'amount' => number_format(max((float) $request->query('amount', 0), 0), 2, '.', ''),
         'merchantName' => (string) $request->query('merchant', 'Merchant Shop'),

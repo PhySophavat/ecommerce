@@ -12,7 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class DepositService
 {
-    public function __construct(private readonly WalletTransactionService $walletTransactionService)
+    public function __construct(
+        private readonly WalletTransactionService $walletTransactionService,
+        private readonly FinanceReportingService $financeReportingService,
+    )
     {
     }
 
@@ -80,7 +83,10 @@ class DepositService
                 sprintf('Deposit submitted via %s and credited automatically.', strtoupper((string) $provider['bank_name'])),
             );
 
-            return $deposit->fresh(['merchant.user']);
+            $deposit = $deposit->fresh(['merchant.user']);
+            $this->financeReportingService->syncDeposit($deposit);
+
+            return $deposit;
         });
     }
 
@@ -120,7 +126,10 @@ class DepositService
                 sprintf('Deposit approved via %s.', strtoupper((string) ($deposit->bank_name ?: $deposit->payment_method))),
             );
 
-            return $deposit->fresh(['merchant.user']);
+            $deposit = $deposit->fresh(['merchant.user']);
+            $this->financeReportingService->syncDeposit($deposit);
+
+            return $deposit;
         });
     }
 
@@ -144,7 +153,10 @@ class DepositService
                 'admin_note' => $this->mergedNote($deposit->admin_note, $adminNote),
             ])->save();
 
-            return $deposit->fresh(['merchant.user']);
+            $deposit = $deposit->fresh(['merchant.user']);
+            $this->financeReportingService->syncDeposit($deposit);
+
+            return $deposit;
         });
     }
 

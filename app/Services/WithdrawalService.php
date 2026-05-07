@@ -11,7 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class WithdrawalService
 {
-    public function __construct(private readonly WalletTransactionService $walletTransactionService)
+    public function __construct(
+        private readonly WalletTransactionService $walletTransactionService,
+        private readonly FinanceReportingService $financeReportingService,
+    )
     {
     }
 
@@ -54,7 +57,7 @@ class WithdrawalService
 
             $merchant->increment('pending_balance', $amount);
 
-            return Withdrawal::query()->create([
+            $withdrawal = Withdrawal::query()->create([
                 'merchant_id' => $merchant->getKey(),
                 'bank_account_id' => $bankAccount->getKey(),
                 'amount' => $amount,
@@ -66,6 +69,10 @@ class WithdrawalService
                 'status' => 'pending',
                 'note' => $this->nullableString($note),
             ])->load(['merchant.user', 'bankAccount']);
+
+            $this->financeReportingService->syncWithdrawal($withdrawal);
+
+            return $withdrawal;
         });
     }
 
@@ -98,7 +105,10 @@ class WithdrawalService
                 'note' => $this->mergedNote($withdrawal->note, $note),
             ])->save();
 
-            return $withdrawal->fresh(['merchant.user', 'bankAccount']);
+            $withdrawal = $withdrawal->fresh(['merchant.user', 'bankAccount']);
+            $this->financeReportingService->syncWithdrawal($withdrawal);
+
+            return $withdrawal;
         });
     }
 
@@ -125,7 +135,10 @@ class WithdrawalService
                 'note' => $this->mergedNote($withdrawal->note, $note),
             ])->save();
 
-            return $withdrawal->fresh(['merchant.user', 'bankAccount']);
+            $withdrawal = $withdrawal->fresh(['merchant.user', 'bankAccount']);
+            $this->financeReportingService->syncWithdrawal($withdrawal);
+
+            return $withdrawal;
         });
     }
 
@@ -191,7 +204,10 @@ class WithdrawalService
                 ),
             );
 
-            return $withdrawal->fresh(['merchant.user', 'bankAccount']);
+            $withdrawal = $withdrawal->fresh(['merchant.user', 'bankAccount']);
+            $this->financeReportingService->syncWithdrawal($withdrawal);
+
+            return $withdrawal;
         });
     }
 

@@ -11,11 +11,11 @@ class Order extends Model
 {
     use HasFactory;
 
-    public const PAYMENT_METHODS = ['cash', 'aba_qr', 'wing', 'card'];
+    public const PAYMENT_METHODS = ['cash', 'aba_qr', 'acleda', 'wing', 'card'];
 
     public const PAYMENT_STATUSES = ['unpaid', 'paid', 'failed', 'refunded'];
 
-    public const ORDER_STATUSES = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+    public const ORDER_STATUSES = ['pending', 'paid', 'processing', 'completed', 'shipped', 'delivered', 'cancelled', 'payment_failed', 'failed', 'refunded'];
 
     protected $fillable = [
         'customer_id',
@@ -69,11 +69,21 @@ class Order extends Model
         return $this->hasMany(MerchantTransaction::class);
     }
 
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
     public function shouldApplyPlatformFeeForStage(string $stage): bool
     {
         return match ($stage) {
             'payment_success' => in_array($this->status, ['paid', 'payment_success'], true),
-            'order_completed' => in_array($this->status, ['completed', 'order_completed'], true),
+            'order_completed' => in_array($this->status, ['completed', 'delivered', 'order_completed'], true),
             default => false,
         };
     }
