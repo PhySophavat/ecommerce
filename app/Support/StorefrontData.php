@@ -40,6 +40,7 @@ class StorefrontData
         $primaryImage = $product->images->sortBy('sort_order')->first();
         $merchantUser = $product->merchant;
         $merchantProfile = $merchantUser?->merchant;
+        $isStorefrontVisible = in_array($product->status, ['approved', 'active'], true);
 
         return [
             'id' => $product->id,
@@ -56,12 +57,13 @@ class StorefrontData
             'status' => $product->status,
             'theme' => $product->theme,
             'is_featured' => (bool) $product->is_featured,
+            'is_admin_owned' => $product->merchant_id === null,
             'rating' => $product->rating ? number_format((float) $product->rating, 2) : null,
             'reviews_count' => (int) $product->reviews_count,
             'inventory' => (int) $product->inventory,
-            'is_orderable' => $product->isApproved() && (int) $product->inventory > 0,
+            'is_orderable' => $isStorefrontVisible && (int) $product->inventory > 0,
             'merchant_id' => $merchantProfile?->id,
-            'merchant_name' => $merchantProfile?->shop_name ?: ($merchantUser?->name ?: 'Merchant shop'),
+            'merchant_name' => $merchantProfile?->shop_name ?: ($merchantUser?->name ?: 'Admin Store'),
             'merchant_owner' => $merchantUser?->name ?: Str::before((string) $merchantUser?->email, '@'),
             'image_url' => $primaryImage?->path ? Storage::disk('public')->url($primaryImage->path) : null,
         ];

@@ -14,6 +14,7 @@ class SlideController extends Controller
             'context' => [
                 'app' => 'backend-slides',
                 'screen' => 'sliders',
+                'role_scope' => 'admin',
             ],
         ]);
     }

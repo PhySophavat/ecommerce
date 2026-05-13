@@ -90,9 +90,11 @@ class DashboardAccess
             'merchant-details' => ['users-admin-management', 'merchants'],
             'finance-overview' => ['finance-overview'],
             'merchant-balance' => ['merchant-balance'],
+            'qr-codes' => ['qr-codes'],
             'wallet' => ['wallet'],
             'payment-records' => ['payments', 'payment-records'],
             'payment-methods' => ['payments', 'payment-methods'],
+            'payment-fees' => ['payments', 'payment-fees'],
             'deposits' => ['payments', 'deposits'],
             'withdrawals' => ['payments', 'withdrawals'],
             'deposit' => ['payments', 'deposits'],
@@ -239,8 +241,17 @@ class DashboardAccess
                 'children' => [],
             ],
             [
+                'label' => 'QR Codes',
+                'slug' => 'qr-codes',
+                'icon' => 'qr-codes',
+                'permission' => 'wallet.view',
+                'roles' => ['admin'],
+                'paths' => ['admin' => '/admin/qr-codes'],
+                'children' => [],
+            ],
+            [
                 'label' => 'Wallet',
-                'labels' => ['admin' => 'QR Codes', 'merchant' => 'QR Codes'],
+                'labels' => ['admin' => 'Wallet', 'merchant' => 'QR Codes'],
                 'slug' => 'wallet',
                 'icon' => 'wallet',
                 'permission' => 'wallet.view',
@@ -267,6 +278,7 @@ class DashboardAccess
                 'children' => [
                     ['label' => 'Payment records', 'slug' => 'payment-records', 'permission' => 'payments.view', 'roles' => ['admin'], 'paths' => ['admin' => '/admin/payment-records']],
                     ['label' => 'Payment methods', 'slug' => 'payment-methods', 'permission' => 'payments.view', 'roles' => ['admin'], 'paths' => ['admin' => '/admin/payment-methods']],
+                    ['label' => 'Platform Fee', 'slug' => 'payment-fees', 'permission' => 'payments.view', 'roles' => ['admin'], 'paths' => ['admin' => '/admin/payment-fees']],
                     ['label' => 'Deposits', 'slug' => 'deposits', 'permission' => 'payments.view', 'roles' => ['admin'], 'paths' => ['admin' => '/admin/deposits']],
                     ['label' => 'Withdrawals', 'slug' => 'withdrawals', 'permission' => 'withdrawals.review', 'roles' => ['admin'], 'paths' => ['admin' => '/admin/withdrawals']],
                     ['label' => 'Deposits', 'slug' => 'deposits', 'permission' => 'wallet.manage', 'roles' => ['merchant'], 'paths' => ['merchant' => '/merchant/deposits']],
@@ -367,8 +379,13 @@ class DashboardAccess
             'permission' => $item['permission'] ?? null,
             'is_enabled' => $path !== null || !empty($children) || $slug === 'logout',
             'is_active' => $isActive,
-            'is_expanded' => $childIsActive || in_array($slug, ['users-admin-management', 'payments', 'wallet'], true),
+            'is_expanded' => $childIsActive || self::shouldAlwaysExpandMenu($slug),
             'children' => $children,
         ];
+    }
+
+    private static function shouldAlwaysExpandMenu(string $slug): bool
+    {
+        return in_array($slug, ['users-admin-management', 'payments', 'wallet', 'content-management'], true);
     }
 }

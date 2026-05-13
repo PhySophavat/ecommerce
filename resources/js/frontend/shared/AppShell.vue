@@ -1,5 +1,5 @@
 <template>
-    <div class="min-h-screen bg-[#F8FAFC]">
+    <div class="storefront-shell min-h-screen bg-[#F8FAFC]">
         <Navbar />
         <main>
             <RouterView />

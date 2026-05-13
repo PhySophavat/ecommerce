@@ -34,6 +34,7 @@ class ProductController extends Controller
             'context' => [
                 'app' => 'backend-products',
                 'screen' => $screen,
+                'role_scope' => 'admin',
             ],
         ]);
     }

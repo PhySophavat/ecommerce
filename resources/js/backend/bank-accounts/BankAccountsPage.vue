@@ -1,6 +1,6 @@
 <template>
     <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
+        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-x-clip rounded-[36px]">
             <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
@@ -41,78 +41,78 @@
                             </article>
                         </section>
 
-                        <section class="card overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm">
-                            <div class="card-header flex flex-col gap-4 px-6 py-6 lg:flex-row lg:items-end lg:justify-between">
-                                <div class="min-w-0">
-                                    <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Approval queue</p>
-                                    <h2 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Merchant payout accounts</h2>
+                        <section class="card rounded-2xl overflow-hidden">
+                            <div class="card-header px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="kicker">Approval Queue</p>
+                                    <h2 class="card-title mt-1">Merchant payout accounts</h2>
                                     <p class="mt-2 text-sm text-slate-500">Approve, reject, disable, or remove merchant payout accounts before they can be used on the withdrawal page.</p>
-                                </div>
-
-                                <div class="flex flex-wrap gap-2 lg:justify-end">
-                                    <button
-                                        v-for="filter in filters"
-                                        :key="filter.value"
-                                        type="button"
-                                        class="rounded-full px-4 py-2 text-sm font-semibold transition"
-                                        :class="selectedStatus === filter.value ? 'bg-[#A25F88] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
-                                        @click="changeStatus(filter.value)"
-                                    >
-                                        {{ filter.label }}
-                                    </button>
                                 </div>
                             </div>
 
-                            <div v-if="accounts.length === 0" class="mt-6 rounded-[24px] border border-dashed border-[#A25F88]/30 bg-[#fff7fb] px-5 py-10 text-center text-sm text-slate-500">
+                            <div class="toolbar px-6 py-3 flex flex-wrap gap-2">
+                                <button
+                                    v-for="filter in filters"
+                                    :key="filter.value"
+                                    type="button"
+                                    class="rounded-xl px-4 py-2 text-sm font-semibold transition"
+                                    :class="selectedStatus === filter.value ? 'bg-[#A25F88] text-white' : 'bg-white text-slate-600 hover:bg-slate-100'"
+                                    @click="changeStatus(filter.value)"
+                                >
+                                    {{ filter.label }}
+                                </button>
+                            </div>
+
+                            <div v-if="accounts.length === 0" class="px-6 py-10 text-center text-sm text-slate-400">
                                 No merchant bank accounts match this filter.
                             </div>
 
                             <div v-else class="table-wrap overflow-x-auto">
-                                <table class="w-full min-w-[1120px] text-sm">
+                                <table class="min-w-[1320px] w-full text-sm">
                                     <thead>
-                                        <tr class="table-head text-left">
-                                            <th class="w-[24%] px-5 py-4">Merchant</th>
-                                            <th class="w-[28%] px-4 py-4">Payout account</th>
-                                            <th class="w-[8%] px-4 py-4">Currency</th>
-                                            <th class="w-[11%] px-4 py-4">Type</th>
-                                            <th class="w-[10%] px-4 py-4">Status</th>
-                                            <th class="w-[8%] px-4 py-4">Default</th>
-                                            <th class="w-[11%] px-4 py-4">Submitted</th>
-                                            <th class="w-[20%] px-5 py-4 text-right">Actions</th>
+                                        <tr class="table-head">
+                                            <th class="w-[23%] px-6 py-3 text-left">Merchant</th>
+                                            <th class="w-[26%] px-4 py-3 text-left">Payout account</th>
+                                            <th class="w-[8%] px-4 py-3 text-left">Currency</th>
+                                            <th class="w-[10%] px-4 py-3 text-left">Type</th>
+                                            <th class="w-[10%] px-4 py-3 text-left">Status</th>
+                                            <th class="w-[8%] px-4 py-3 text-left">Default</th>
+                                            <th class="w-[11%] px-4 py-3 text-left">Submitted</th>
+                                            <th class="w-[18%] px-6 py-3 text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr v-for="item in accounts" :key="item.id" class="table-row align-top">
-                                            <td class="px-5 py-4">
+                                            <td class="px-6 py-3.5">
                                                 <p class="font-bold text-slate-950">{{ item.merchant?.shop_name }}</p>
                                                 <p class="text-slate-500">{{ item.merchant?.owner_name }} • {{ item.merchant?.email }}</p>
                                             </td>
-                                            <td class="px-4 py-4 text-slate-600">
+                                            <td class="px-4 py-3.5 text-slate-600">
                                                 <p class="font-semibold text-slate-900">{{ item.bank_name }}</p>
                                                 <p>{{ item.account_holder_name }} • {{ item.account_number }}</p>
                                                 <p class="mt-1 text-xs">{{ item.phone_number }}</p>
                                                 <p v-if="item.reject_reason" class="mt-2 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">{{ item.reject_reason }}</p>
                                             </td>
-                                            <td class="px-4 py-4 whitespace-nowrap font-semibold text-slate-900">{{ item.currency }}</td>
-                                            <td class="px-4 py-4 text-slate-600">
+                                            <td class="px-4 py-3.5 whitespace-nowrap font-semibold text-slate-900">{{ item.currency }}</td>
+                                            <td class="px-4 py-3.5 text-slate-600">
                                                 <span class="leading-6">{{ item.account_type === 'khqr' ? 'KHQR' : 'Bank Account' }}</span>
                                             </td>
-                                            <td class="px-4 py-4">
+                                            <td class="px-4 py-3.5">
                                                 <span class="badge" :class="statusClass(item.status)">
                                                     {{ item.status }}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-4">
+                                            <td class="px-4 py-3.5">
                                                 <span v-if="item.is_default" class="badge badge-accent">Default</span>
                                                 <span v-else class="text-slate-400">-</span>
                                             </td>
-                                            <td class="px-4 py-4 whitespace-nowrap text-slate-600">{{ formatDate(item.created_at) }}</td>
-                                            <td class="px-5 py-4 text-right">
-                                                <div class="flex flex-nowrap justify-end gap-2 whitespace-nowrap">
+                                            <td class="px-4 py-3.5 whitespace-nowrap text-slate-600">{{ formatDate(item.created_at) }}</td>
+                                            <td class="px-6 py-3.5 text-right">
+                                                <div class="flex flex-wrap justify-end gap-2">
                                                     <button
                                                         v-if="item.status === 'pending'"
                                                         type="button"
-                                                        class="rounded-full bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500"
+                                                        class="rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-500"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'approve')"
                                                     >
@@ -121,7 +121,7 @@
                                                     <button
                                                         v-if="item.status === 'pending'"
                                                         type="button"
-                                                        class="rounded-full bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-500"
+                                                        class="rounded-full bg-rose-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-500"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'reject')"
                                                     >
@@ -130,7 +130,7 @@
                                                     <button
                                                         v-if="item.status === 'approved'"
                                                         type="button"
-                                                        class="rounded-full bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                                                        class="rounded-full bg-slate-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'disable')"
                                                     >
@@ -138,7 +138,7 @@
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        class="rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                                                        class="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
                                                         :disabled="processingId === item.id"
                                                         @click="runDelete(item)"
                                                     >
@@ -149,8 +149,8 @@
                                         </tr>
                                     </tbody>
                                 </table>
-                                <div class="table-footer px-6 py-3 text-sm text-slate-400">
-                                    Showing {{ accounts.length }} bank account{{ accounts.length === 1 ? '' : 's' }}
+                                <div class="table-footer px-6 py-3 flex items-center justify-between">
+                                    <span class="text-xs text-slate-400">Showing {{ accounts.length }} bank account{{ accounts.length === 1 ? '' : 's' }}</span>
                                 </div>
                             </div>
                         </section>
@@ -478,87 +478,41 @@ function defaultCreateForm() {
 </script>
 
 <style scoped>
-.card {
-    background: #fff;
-}
-
-.card-header {
-    border-bottom: 0.5px solid #f1f5f9;
-}
-
-.table-wrap {
-    border-top: 0.5px solid #e2e8f0;
-}
-
-.table-head {
-    background: #f8fafc;
-}
-
+.card { background: #fff; border: 0.5px solid #e2e8f0; }
+.card-header { border-bottom: 0.5px solid #e2e8f0; }
+.kicker { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; }
+.card-title { font-size: 18px; font-weight: 700; color: #0f172a; }
+.toolbar { border-bottom: 0.5px solid #e2e8f0; background: #fafafa; }
+.table-wrap { border-top: 0.5px solid #e2e8f0; }
+.table-head { background: #f8fafc; }
 .table-head th {
-    border-bottom: 0.5px solid #e2e8f0;
-    color: #94a3b8;
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
+    font-weight: 500;
+    color: #94a3b8;
     text-transform: uppercase;
+    letter-spacing: .07em;
+    border-bottom: 0.5px solid #e2e8f0;
     white-space: nowrap;
 }
-
-.table-row {
-    border-bottom: 0.5px solid #f1f5f9;
-    transition: background 0.1s;
-}
-
-.table-row:hover {
-    background: #f8fafc;
-}
-
-.table-row:last-child {
-    border-bottom: none;
-}
-
+.table-row { border-bottom: 0.5px solid #f1f5f9; transition: background .1s; }
+.table-row:hover { background: #f8fafc; }
+.table-row:last-child { border-bottom: none; }
 .badge {
     display: inline-block;
-    border-radius: 9999px;
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    padding: 0.35rem 0.8rem;
+    font-weight: 500;
+    padding: 2px 9px;
+    border-radius: 20px;
     text-transform: uppercase;
     white-space: nowrap;
 }
-
-.badge-pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.badge-approved {
-    background: #d1fae5;
-    color: #065f46;
-}
-
-.badge-rejected {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
+.badge-pending { background: #fef3c7; color: #92400e; }
+.badge-approved { background: #d1fae5; color: #065f46; }
+.badge-rejected { background: #fee2e2; color: #991b1b; }
 .badge-disabled,
-.badge-default {
-    background: #f1f5f9;
-    color: #475569;
-}
-
-.badge-accent {
-    background: #a25f88;
-    color: #fff;
-}
-
-.table-footer {
-    border-top: 0.5px solid #e2e8f0;
-    background: #fafafa;
-}
-
+.badge-default { background: #f1f5f9; color: #475569; }
+.badge-accent { background: #a25f88; color: #fff; }
+.table-footer { border-top: 0.5px solid #e2e8f0; background: #fafafa; }
 .field-input {
     width: 100%;
     border-radius: 1rem;
@@ -570,7 +524,6 @@ function defaultCreateForm() {
     outline: none;
     transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
-
 .field-input:focus {
     border-color: #4f5de4;
     background: #ffffff;

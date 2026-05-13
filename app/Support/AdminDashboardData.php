@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\AdminMenu;
 use App\Models\Category;
 use App\Models\Merchant;
+use App\Models\MerchantTransaction;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
@@ -169,9 +170,14 @@ class AdminDashboardData
 
         $orders = Order::query()
             ->whereNotNull('customer_id')
+            ->with(['items.product.category', 'customer'])
             ->get();
         $customerCount = User::query()->where('role', 'customer')->count();
-        $lowStockCount = $catalogProducts->where('inventory', '<=', 60)->count();
+        $lowStockCount = $catalogProducts->where('inventory', '<', 10)->count();
+        $platformFeeTransactions = MerchantTransaction::query()
+            ->where('type', 'platform_fee')
+            ->latest('created_at')
+            ->get();
         $meta = self::metaForScreen($screen);
 
         return [
@@ -229,7 +235,7 @@ class AdminDashboardData
                 [
                     'label' => 'Low stock products',
                     'value' => (string) $lowStockCount,
-                    'detail' => 'Inventory at or below 60',
+                    'detail' => 'Inventory below 10',
                     'tone' => 'amber',
                 ],
             ],
@@ -251,6 +257,25 @@ class AdminDashboardData
                     'value' => (string) $catalogProducts->where('status', 'draft')->count(),
                 ],
             ],
+            'dashboard_workspace' => self::commerceDashboardWorkspacePayload(
+                orders: $orders,
+                products: $catalogProducts,
+                customerCount: $customerCount,
+                options: [
+                    'scope' => 'admin',
+                    'title' => 'Admin dashboard',
+                    'description' => 'Track platform revenue, order flow, customer growth, and inventory risk from one ecommerce control surface.',
+                    'health_items' => [
+                        ['label' => 'Categories', 'value' => (string) Category::query()->count(), 'description' => 'Live storefront categories'],
+                        ['label' => 'Active products', 'value' => (string) $catalogProducts->where('status', 'active')->count(), 'description' => 'Listings ready for visibility'],
+                        ['label' => 'Featured products', 'value' => (string) $catalogProducts->where('is_featured', true)->count(), 'description' => 'Products pinned for promotion'],
+                        ['label' => 'Draft products', 'value' => (string) $catalogProducts->where('status', 'draft')->count(), 'description' => 'Catalog items still in progress'],
+                    ],
+                    'fee_transactions' => $platformFeeTransactions,
+                    'orders_path' => '/admin/orders',
+                    'products_path' => '/admin/products',
+                ],
+            ),
             'menu' => self::menuTree(self::activeSlugsForScreen($screen)),
             'products' => [
                 'count' => $products->count(),
@@ -388,6 +413,57 @@ class AdminDashboardData
         ];
     }
 
+    public static function qrCodesPage(): array
+    {
+        $meta = self::metaForScreen('qr-codes');
+
+        return [
+            'screen' => 'qr-codes',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('qr-codes')),
+        ];
+    }
+
+    public static function paymentMethodsPage(): array
+    {
+        $meta = self::metaForScreen('payment-methods');
+
+        return [
+            'screen' => 'payment-methods',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('payment-methods')),
+        ];
+    }
+
+    public static function paymentFeesPage(): array
+    {
+        $meta = self::metaForScreen('payment-fees');
+
+        return [
+            'screen' => 'payment-fees',
+            'meta' => [
+                'brand' => 'E-commerce',
+                'page_title' => $meta['page_title'],
+                'kicker' => $meta['kicker'],
+                'subheadline' => $meta['subheadline'],
+                'links' => self::sharedLinks(),
+            ],
+            'menu' => self::menuTree(self::activeSlugsForScreen('payment-fees')),
+        ];
+    }
+
     public static function financeOverviewPage(): array
     {
         $meta = self::metaForScreen('finance-overview');
@@ -441,7 +517,7 @@ class AdminDashboardData
 
     private static function normalizedScreen(string $screen): string
     {
-        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet', 'bank-accounts', 'merchant-balance', 'finance-overview'], true) ? $screen : 'products';
+        return in_array($screen, ['dashboard', 'sliders', 'products', 'add-product', 'featured-products', 'users', 'merchants', 'platform-fee-settings', 'withdrawals', 'deposits', 'wallet', 'qr-codes', 'bank-accounts', 'merchant-balance', 'finance-overview', 'payment-methods', 'payment-fees'], true) ? $screen : 'products';
     }
 
     private static function merchantProductsIndex(string $screen, User $user): array
@@ -464,7 +540,7 @@ class AdminDashboardData
         $pendingCount = $products->where('status', 'pending')->count();
         $approvedCount = $products->where('status', 'approved')->count();
         $rejectedCount = $products->where('status', 'rejected')->count();
-        $lowStockCount = $products->where('inventory', '<=', 60)->count();
+        $lowStockCount = $products->where('inventory', '<', 10)->count();
         $balanceUsd = (float) ($merchant?->balance_total ?? 0);
         $balanceKhr = $balanceUsd * 4100;
         $walletTransactions = $merchant?->walletTransactions()->get() ?? collect();
@@ -484,7 +560,7 @@ class AdminDashboardData
                 ->pluck('order_id')
             : collect();
         $merchantOrders = $merchantOrderIds->isNotEmpty()
-            ? Order::query()->whereIn('id', $merchantOrderIds)->get()
+            ? Order::query()->whereIn('id', $merchantOrderIds)->with(['items.product.category', 'customer'])->get()
             : collect();
         $bankPaymentCount = $merchantOrders
             ->whereIn('payment_method', ['aba_qr', 'wing', 'card'])
@@ -608,6 +684,28 @@ class AdminDashboardData
                 'bank_methods' => 'ABA / Wing / Card',
             ],
             'order_analytics' => $orderAnalytics,
+            'dashboard_workspace' => self::commerceDashboardWorkspacePayload(
+                orders: $merchantOrders,
+                products: $products,
+                customerCount: (int) $merchantOrders
+                    ->pluck('customer_id')
+                    ->filter()
+                    ->unique()
+                    ->count(),
+                options: [
+                    'scope' => 'merchant',
+                    'title' => $user->merchant?->shop_name ? $user->merchant->shop_name.' dashboard' : 'Merchant dashboard',
+                    'description' => 'Monitor revenue, customer orders, and low-stock pressure from the same commerce workspace used across the admin side.',
+                    'health_items' => [
+                        ['label' => 'Available balance', 'value' => self::currency($availableUsd), 'description' => 'Ready for payout'],
+                        ['label' => 'Pending balance', 'value' => self::currency($pendingUsd), 'description' => 'Awaiting release'],
+                        ['label' => 'Approved products', 'value' => (string) $approvedCount, 'description' => 'Listings visible on storefront'],
+                        ['label' => 'Pending review', 'value' => (string) $pendingCount, 'description' => 'Awaiting admin approval'],
+                    ],
+                    'orders_path' => '/merchant/orders',
+                    'products_path' => '/merchant/products',
+                ],
+            ),
             'merchant_dashboard' => $merchantDashboard,
             'menu' => $menu,
             'products' => [
@@ -901,6 +999,589 @@ class AdminDashboardData
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $options
+     * @return array<string, mixed>
+     */
+    private static function commerceDashboardWorkspacePayload(
+        Collection $orders,
+        Collection $products,
+        int $customerCount,
+        array $options = [],
+    ): array {
+        $scope = (string) ($options['scope'] ?? 'admin');
+        $title = (string) ($options['title'] ?? ($scope === 'merchant' ? 'Merchant dashboard' : 'E-commerce Overview'));
+        $description = (string) ($options['description'] ?? 'Track sales, orders, customers, and stock health.');
+        $feeTransactions = collect($options['fee_transactions'] ?? []);
+        $ordersPath = (string) ($options['orders_path'] ?? ($scope === 'merchant' ? '/merchant/orders' : '/admin/orders'));
+        $productsPath = (string) ($options['products_path'] ?? ($scope === 'merchant' ? '/merchant/products' : '/admin/products'));
+        $lowStockItems = $products
+            ->filter(fn (Product $product): bool => (int) $product->inventory < 10)
+            ->sortBy('inventory')
+            ->values();
+        $totalProducts = $products->count();
+        $pendingOrders = $orders->where('status', 'pending')->count();
+        $adminDirectSales = $scope === 'admin' ? self::sumAdminOwnedSales($orders) : 0.0;
+
+        $salesCurrent = $scope === 'admin'
+            ? self::sumMerchantTransactionsInRange($feeTransactions, now()->copy()->subDays(29)->startOfDay(), now()->copy()->endOfDay())
+                + self::sumAdminOwnedSalesInRange($orders, now()->copy()->subDays(29)->startOfDay(), now()->copy()->endOfDay())
+            : self::sumOrdersInRange($orders, now()->copy()->subDays(29)->startOfDay(), now()->copy()->endOfDay());
+        $salesPrevious = $scope === 'admin'
+            ? self::sumMerchantTransactionsInRange($feeTransactions, now()->copy()->subDays(59)->startOfDay(), now()->copy()->subDays(30)->endOfDay())
+                + self::sumAdminOwnedSalesInRange($orders, now()->copy()->subDays(59)->startOfDay(), now()->copy()->subDays(30)->endOfDay())
+            : self::sumOrdersInRange($orders, now()->copy()->subDays(59)->startOfDay(), now()->copy()->subDays(30)->endOfDay());
+        $ordersCurrent = self::countOrdersInRange($orders, now()->copy()->subDays(29)->startOfDay(), now()->copy()->endOfDay());
+        $ordersPrevious = self::countOrdersInRange($orders, now()->copy()->subDays(59)->startOfDay(), now()->copy()->subDays(30)->endOfDay());
+        $customersCurrent = self::countCustomersInRange($orders, now()->copy()->subDays(29)->startOfDay(), now()->copy()->endOfDay());
+        $customersPrevious = self::countCustomersInRange($orders, now()->copy()->subDays(59)->startOfDay(), now()->copy()->subDays(30)->endOfDay());
+        $lowStockCurrent = $lowStockItems->count();
+        $datasetRanges = [
+            'today' => self::commerceDashboardDataset($orders, $products, 'today', [
+                'scope' => $scope,
+                'fee_transactions' => $feeTransactions,
+            ]),
+            '7days' => self::commerceDashboardDataset($orders, $products, '7days', [
+                'scope' => $scope,
+                'fee_transactions' => $feeTransactions,
+            ]),
+            '30days' => self::commerceDashboardDataset($orders, $products, '30days', [
+                'scope' => $scope,
+                'fee_transactions' => $feeTransactions,
+            ]),
+            'thisyear' => self::commerceDashboardDataset($orders, $products, 'thisyear', [
+                'scope' => $scope,
+                'fee_transactions' => $feeTransactions,
+            ]),
+        ];
+
+        return [
+            'hero' => [
+                'eyebrow' => $scope === 'merchant' ? 'Merchant analytics' : 'Admin analytics',
+                'title' => $title,
+                'description' => $description,
+            ],
+            'analytics' => [
+                'primary_chart' => [
+                    'title' => 'Customer Purchases Over Time',
+                    'eyebrow' => 'Sales analytics',
+                ],
+                'secondary_chart' => $scope === 'admin'
+                    ? [
+                        'title' => 'Platform Revenue Trend',
+                        'eyebrow' => 'Fee + admin product sales',
+                    ]
+                    : [
+                        'title' => 'Order Volume Trend',
+                        'eyebrow' => 'Order movement',
+                    ],
+            ],
+            'summary_cards' => [
+                self::dashboardSummaryCard(
+                    label: $scope === 'admin' ? 'Total Revenue' : 'Total Sales',
+                    value: $scope === 'admin'
+                        ? self::currency(self::absoluteSum($feeTransactions->pluck('amount')) + $adminDirectSales)
+                        : self::currency((float) $orders->sum('total_amount')),
+                    description: $scope === 'admin'
+                        ? 'Platform fees plus customer purchases for admin-owned products.'
+                        : 'Gross revenue from customer product purchases.',
+                    theme: 'sales',
+                    trend: self::trendMeta($salesCurrent, $salesPrevious)
+                ),
+                self::dashboardSummaryCard(
+                    label: 'Total Orders',
+                    value: (string) $orders->count(),
+                    description: 'Orders recorded and ready for review.',
+                    theme: 'orders',
+                    trend: self::trendMeta($ordersCurrent, $ordersPrevious)
+                ),
+                self::dashboardSummaryCard(
+                    label: 'Total Customers',
+                    value: (string) $customerCount,
+                    description: 'Unique buyers connected to this dashboard scope.',
+                    theme: 'customers',
+                    trend: self::trendMeta($customersCurrent, $customersPrevious)
+                ),
+                self::dashboardSummaryCard(
+                    label: 'Total Products',
+                    value: (string) $totalProducts,
+                    description: 'Products currently managed in this workspace.',
+                    theme: 'products',
+                    trend: self::neutralTrendMeta()
+                ),
+                self::dashboardSummaryCard(
+                    label: 'Pending Orders',
+                    value: (string) $pendingOrders,
+                    description: 'Orders waiting for action or confirmation.',
+                    theme: 'pending',
+                    trend: self::neutralTrendMeta()
+                ),
+                self::dashboardSummaryCard(
+                    label: 'Low Stock Products',
+                    value: (string) $lowStockCurrent,
+                    description: 'Inventory lines at or below the watch threshold.',
+                    theme: 'stock',
+                    trend: self::neutralTrendMeta()
+                ),
+            ],
+            'range_options' => [
+                ['value' => 'today', 'label' => 'Today'],
+                ['value' => '7days', 'label' => '7 Days'],
+                ['value' => '30days', 'label' => '30 Days'],
+                ['value' => 'thisyear', 'label' => 'This Year'],
+            ],
+            'selected_range' => '30days',
+            'datasets' => $datasetRanges,
+            'store_health' => array_values($options['health_items'] ?? []),
+            'recent_orders' => $orders
+                ->sortByDesc(fn (Order $order) => self::orderDate($order)?->getTimestamp() ?? 0)
+                ->take(6)
+                ->map(fn (Order $order): array => [
+                    'id' => $order->number ?: 'ORD-'.$order->id,
+                    'customer' => $order->customer_name ?: ($order->customer?->name ?: 'Walk-in customer'),
+                    'product' => collect($order->items ?? [])
+                        ->pluck('product_name')
+                        ->filter()
+                        ->take(2)
+                        ->implode(', ') ?: 'Mixed items',
+                    'amount' => self::currency((float) $order->total_amount),
+                    'status' => self::dashboardOrderStatusLabel($order->status),
+                    'payment' => self::dashboardPaymentLabel($order->payment_method),
+                    'date' => self::orderDate($order)?->format('M d, Y') ?? '-',
+                ])
+                ->values()
+                ->all(),
+            'low_stock_products' => $lowStockItems
+                ->take(6)
+                ->map(fn (Product $product): array => [
+                    'name' => $product->name,
+                    'category' => $product->category?->name ?? 'Uncategorized',
+                    'stock' => (int) $product->inventory,
+                    'status' => (int) $product->inventory <= 15 ? 'Critical' : 'Low',
+                ])
+                ->values()
+                ->all(),
+            'actions' => [
+                'orders_path' => $ordersPath,
+                'products_path' => $productsPath,
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function commerceDashboardDataset(Collection $orders, Collection $products, string $rangeKey, array $options = []): array
+    {
+        $scope = (string) ($options['scope'] ?? 'admin');
+        $feeTransactions = collect($options['fee_transactions'] ?? []);
+        [$start, $end, $points] = self::dashboardRangePoints($rangeKey);
+        $ordersInRange = $orders->filter(fn (Order $order): bool => (self::orderDate($order)?->between($start, $end)) ?? false)->values();
+        $feesInRange = $feeTransactions->filter(fn (MerchantTransaction $transaction): bool => ($transaction->created_at?->between($start, $end)) ?? false)->values();
+        $previousRange = self::previousDashboardRange($start, $end, $rangeKey);
+        $previousOrders = $orders->filter(fn (Order $order): bool => (self::orderDate($order)?->between($previousRange['start'], $previousRange['end'])) ?? false)->values();
+        $previousFees = $feeTransactions->filter(fn (MerchantTransaction $transaction): bool => ($transaction->created_at?->between($previousRange['start'], $previousRange['end'])) ?? false)->values();
+
+        $salesBars = collect($points)->map(function (array $point) use ($ordersInRange): array {
+            $bucketOrders = $ordersInRange->filter(function (Order $order) use ($point): bool {
+                $date = self::orderDate($order);
+
+                return $date ? ($date->gte($point['start']) && $date->lte($point['end'])) : false;
+            });
+
+            return [
+                'label' => $point['label'],
+                'value' => round((float) $bucketOrders->sum('total_amount'), 2),
+                'orders' => $bucketOrders->count(),
+            ];
+        })->values()->all();
+
+        $secondarySeries = $scope === 'admin'
+            ? collect($points)->map(function (array $point) use ($feesInRange): array {
+                $bucketFees = $feesInRange->filter(function (MerchantTransaction $transaction) use ($point): bool {
+                    $date = $transaction->created_at;
+
+                    return $date ? ($date->gte($point['start']) && $date->lte($point['end'])) : false;
+                });
+
+                return [
+                    'label' => $point['label'],
+                    'value' => self::absoluteSum($bucketFees->pluck('amount')),
+                    'orders' => $bucketFees->count(),
+                ];
+            })->values()->all()
+            : collect($points)->map(function (array $point) use ($ordersInRange): array {
+                $bucketOrders = $ordersInRange->filter(function (Order $order) use ($point): bool {
+                    $date = self::orderDate($order);
+
+                    return $date ? ($date->gte($point['start']) && $date->lte($point['end'])) : false;
+                });
+
+                return [
+                    'label' => $point['label'],
+                    'value' => $bucketOrders->count(),
+                    'orders' => $bucketOrders->count(),
+                ];
+            })->values()->all();
+
+        $currentRevenue = round((float) $ordersInRange->sum('total_amount'), 2);
+        $previousRevenue = round((float) $previousOrders->sum('total_amount'), 2);
+        $currentSecondary = $scope === 'admin'
+            ? self::absoluteSum($feesInRange->pluck('amount')) + self::sumAdminOwnedSales($ordersInRange)
+            : (float) $ordersInRange->count();
+        $previousSecondary = $scope === 'admin'
+            ? self::absoluteSum($previousFees->pluck('amount')) + self::sumAdminOwnedSales($previousOrders)
+            : (float) $previousOrders->count();
+        $salesByCategory = self::dashboardSalesByCategory($ordersInRange, $products);
+        $topProducts = self::dashboardTopProducts($ordersInRange, $products);
+        $paymentMethods = self::dashboardPaymentMethodSummary($ordersInRange);
+
+        return [
+            'sales_bars' => $salesBars,
+            'revenue_trend' => $secondarySeries,
+            'order_status' => self::dashboardOrderStatusSummary($ordersInRange),
+            'sales_by_category' => $salesByCategory,
+            'top_products' => $topProducts,
+            'payment_methods' => $paymentMethods,
+            'trend' => self::trendMeta($currentRevenue, $previousRevenue),
+            'secondary_trend' => self::trendMeta($currentSecondary, $previousSecondary),
+        ];
+    }
+
+    /**
+     * @return array{0:\Illuminate\Support\Carbon,1:\Illuminate\Support\Carbon,2:array<int, array{label:string,start:\Illuminate\Support\Carbon,end:\Illuminate\Support\Carbon}>}
+     */
+    private static function dashboardRangePoints(string $rangeKey): array
+    {
+        return match ($rangeKey) {
+            'today' => self::todayRangePoints(),
+            '7days' => self::daysRangePoints(7),
+            'thisyear' => self::yearRangePoints(),
+            default => self::daysRangePoints(30),
+        };
+    }
+
+    /**
+     * @return array{0:\Illuminate\Support\Carbon,1:\Illuminate\Support\Carbon,2:array<int, array{label:string,start:\Illuminate\Support\Carbon,end:\Illuminate\Support\Carbon}>}
+     */
+    private static function todayRangePoints(): array
+    {
+        $start = now()->copy()->startOfDay();
+        $end = now()->copy()->endOfDay();
+        $offsets = [0, 4, 8, 12, 16, 20];
+
+        $points = collect($offsets)->map(function (int $offset, int $index) use ($start, $offsets): array {
+            $pointStart = $start->copy()->addHours($offset);
+            $pointEnd = $index === count($offsets) - 1
+                ? $start->copy()->endOfDay()
+                : $start->copy()->addHours($offsets[$index + 1])->subSecond();
+
+            return [
+                'label' => $pointStart->format('g A'),
+                'start' => $pointStart,
+                'end' => $pointEnd,
+            ];
+        })->values()->all();
+
+        return [$start, $end, $points];
+    }
+
+    /**
+     * @return array{0:\Illuminate\Support\Carbon,1:\Illuminate\Support\Carbon,2:array<int, array{label:string,start:\Illuminate\Support\Carbon,end:\Illuminate\Support\Carbon}>}
+     */
+    private static function daysRangePoints(int $days): array
+    {
+        $start = now()->copy()->subDays($days - 1)->startOfDay();
+        $end = now()->copy()->endOfDay();
+        $points = collect(range(0, $days - 1))
+            ->map(function (int $offset) use ($start): array {
+                $day = $start->copy()->addDays($offset);
+
+                return [
+                    'label' => $day->format('j M'),
+                    'start' => $day->copy()->startOfDay(),
+                    'end' => $day->copy()->endOfDay(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        return [$start, $end, $points];
+    }
+
+    /**
+     * @return array{0:\Illuminate\Support\Carbon,1:\Illuminate\Support\Carbon,2:array<int, array{label:string,start:\Illuminate\Support\Carbon,end:\Illuminate\Support\Carbon}>}
+     */
+    private static function yearRangePoints(): array
+    {
+        $start = now()->copy()->startOfYear();
+        $end = now()->copy()->endOfYear();
+        $points = collect(range(1, 12))
+            ->map(function (int $month) use ($start): array {
+                $date = $start->copy()->month($month);
+
+                return [
+                    'label' => $date->format('M'),
+                    'start' => $date->copy()->startOfMonth(),
+                    'end' => $date->copy()->endOfMonth(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        return [$start, $end, $points];
+    }
+
+    /**
+     * @param  \Illuminate\Support\Carbon  $start
+     * @param  \Illuminate\Support\Carbon  $end
+     * @return array{start:\Illuminate\Support\Carbon,end:\Illuminate\Support\Carbon}
+     */
+    private static function previousDashboardRange($start, $end, string $rangeKey): array
+    {
+        return match ($rangeKey) {
+            'today' => [
+                'start' => $start->copy()->subDay()->startOfDay(),
+                'end' => $end->copy()->subDay()->endOfDay(),
+            ],
+            'thisyear' => [
+                'start' => $start->copy()->subYear()->startOfYear(),
+                'end' => $end->copy()->subYear()->endOfYear(),
+            ],
+            default => [
+                'start' => $start->copy()->subDays($start->diffInDays($end) + 1)->startOfDay(),
+                'end' => $start->copy()->subDay()->endOfDay(),
+            ],
+        };
+    }
+
+    /**
+     * @param  array<int, Order>|\Illuminate\Support\Collection<int, Order>  $orders
+     * @return array<int, array{label:string,value:int,color:string}>
+     */
+    private static function dashboardOrderStatusSummary(Collection $orders): array
+    {
+        return [
+            ['label' => 'Completed', 'value' => $orders->whereIn('status', ['completed', 'delivered'])->count(), 'color' => '#10B981'],
+            ['label' => 'Pending', 'value' => $orders->where('status', 'pending')->count(), 'color' => '#F59E0B'],
+            ['label' => 'Cancelled', 'value' => $orders->whereIn('status', ['cancelled', 'failed', 'payment_failed', 'refunded'])->count(), 'color' => '#EF4444'],
+            ['label' => 'Processing', 'value' => $orders->whereIn('status', ['paid', 'processing', 'shipped'])->count(), 'color' => '#3B82F6'],
+        ];
+    }
+
+    /**
+     * @return array<int, array{label:string,value:float}>
+     */
+    private static function dashboardSalesByCategory(Collection $orders, Collection $products): array
+    {
+        $salesTotals = collect($orders)
+            ->flatMap(fn (Order $order) => collect($order->items ?? []))
+            ->groupBy(fn ($item): string => $item->product?->category?->slug ?? 'uncategorized')
+            ->map(function (Collection $items, string $slug): array {
+                $first = $items->first();
+
+                return [
+                    'label' => $first?->product?->category?->name ?? 'Uncategorized',
+                    'slug' => $slug,
+                    'value' => round((float) $items->sum('line_total'), 2),
+                ];
+            })
+            ->filter(fn (array $item): bool => $item['value'] > 0)
+            ->sortBy(fn (array $item): array => [self::categoryOrder($item['slug']), $item['label']])
+            ->values()
+            ->all();
+
+        return $salesTotals;
+    }
+
+    /**
+     * @return array<int, array{label:string,value:int}>
+     */
+    private static function dashboardTopProducts(Collection $orders, Collection $products): array
+    {
+        $rows = collect($orders)
+            ->flatMap(fn (Order $order) => collect($order->items ?? []))
+            ->groupBy(fn ($item): string => (string) ($item->product_name ?? 'Unknown'))
+            ->map(fn (Collection $items, string $label): array => [
+                'label' => $label,
+                'value' => (int) $items->sum('quantity'),
+            ])
+            ->sortByDesc('value')
+            ->take(5)
+            ->values()
+            ->all();
+
+        return $rows;
+    }
+
+    /**
+     * @return array<int, array{label:string,value:int,color:string}>
+     */
+    private static function dashboardPaymentMethodSummary(Collection $orders): array
+    {
+        $map = [
+            'ABA' => ['aba_qr', 'ABA'],
+            'ACLEDA' => ['acleda', 'ACLEDA'],
+            'Wing' => ['wing', 'Wing'],
+            'Cash' => ['cash', 'Cash'],
+            'QR Payment' => ['card', 'Card'],
+        ];
+
+        return collect($map)->map(function (array $aliases, string $label) use ($orders): array {
+            return [
+                'label' => $label,
+                'value' => $orders->whereIn('payment_method', $aliases)->count(),
+                'color' => [
+                    'ABA' => '#3550A4',
+                    'ACLEDA' => '#27B5D0',
+                    'Wing' => '#FB923C',
+                    'Cash' => '#8B5CF6',
+                    'QR Payment' => '#F2C94C',
+                ][$label],
+            ];
+        })->values()->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function dashboardSummaryCard(
+        string $label,
+        string $value,
+        string $description,
+        string $theme,
+        array $trend,
+    ): array {
+        return [
+            'label' => $label,
+            'value' => $value,
+            'description' => $description,
+            'theme' => $theme,
+            'trend' => $trend,
+            'icon' => match ($theme) {
+                'sales' => 'M3 10.5 12 4l9 6.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8.5ZM9 14h6',
+                'orders' => 'M4 7h16M7 12h10M9 17h6',
+                'customers' => 'M16 19a4 4 0 0 0-8 0M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z',
+                'products' => 'M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9ZM12 12v9M4 7.5l8 4.5 8-4.5',
+                'pending' => 'M12 8v5l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+                'stock' => 'M20 7 9 18l-5-5',
+                default => 'M12 5v14M5 12h14',
+            },
+        ];
+    }
+
+    /**
+     * @return array{direction:string,label:string,delta:string}
+     */
+    private static function trendMeta(float|int $current, float|int $previous): array
+    {
+        $currentValue = (float) $current;
+        $previousValue = (float) $previous;
+        $direction = $currentValue >= $previousValue ? 'up' : 'down';
+        $delta = $previousValue === 0.0
+            ? ($currentValue === 0.0 ? 0.0 : 100.0)
+            : round((($currentValue - $previousValue) / abs($previousValue)) * 100, 1);
+
+        return [
+            'direction' => $direction,
+            'label' => sprintf('%s%s%%', $delta >= 0 ? '+' : '', number_format($delta, 1)),
+            'delta' => sprintf('%s%s%% vs previous period', $delta >= 0 ? '+' : '', number_format($delta, 1)),
+        ];
+    }
+
+    /**
+     * @return array{direction:string,label:string,delta:string}
+     */
+    private static function neutralTrendMeta(): array
+    {
+        return [
+            'direction' => 'up',
+            'label' => '0.0%',
+            'delta' => 'No previous period comparison',
+        ];
+    }
+
+    private static function sumOrdersInRange(Collection $orders, $start, $end): float
+    {
+        return round((float) $orders
+            ->filter(fn (Order $order): bool => (self::orderDate($order)?->between($start, $end)) ?? false)
+            ->sum('total_amount'), 2);
+    }
+
+    private static function sumMerchantTransactionsInRange(Collection $transactions, $start, $end): float
+    {
+        return self::absoluteSum(
+            $transactions
+                ->filter(fn (MerchantTransaction $transaction): bool => ($transaction->created_at?->between($start, $end)) ?? false)
+                ->pluck('amount')
+        );
+    }
+
+    private static function sumAdminOwnedSales(Collection $orders): float
+    {
+        return round((float) $orders->sum(function (Order $order): float {
+            return (float) collect($order->items ?? [])
+                ->filter(fn ($item): bool => $item->merchant_id === null)
+                ->sum(fn ($item): float => (float) $item->line_total);
+        }), 2);
+    }
+
+    private static function sumAdminOwnedSalesInRange(Collection $orders, $start, $end): float
+    {
+        return self::sumAdminOwnedSales(
+            $orders->filter(fn (Order $order): bool => (self::orderDate($order)?->between($start, $end)) ?? false)->values()
+        );
+    }
+
+    private static function absoluteSum(Collection $values): float
+    {
+        return round((float) $values->sum(fn ($value): float => abs((float) $value)), 2);
+    }
+
+    private static function countOrdersInRange(Collection $orders, $start, $end): int
+    {
+        return (int) $orders
+            ->filter(fn (Order $order): bool => (self::orderDate($order)?->between($start, $end)) ?? false)
+            ->count();
+    }
+
+    private static function countCustomersInRange(Collection $orders, $start, $end): int
+    {
+        return (int) $orders
+            ->filter(fn (Order $order): bool => (self::orderDate($order)?->between($start, $end)) ?? false)
+            ->pluck('customer_id')
+            ->filter()
+            ->unique()
+            ->count();
+    }
+
+    private static function orderDate(Order $order)
+    {
+        return $order->placed_at ?? $order->created_at;
+    }
+
+    private static function dashboardOrderStatusLabel(?string $status): string
+    {
+        return match ($status) {
+            'completed', 'delivered' => 'Completed',
+            'pending' => 'Pending',
+            'paid', 'processing', 'shipped' => 'Processing',
+            default => 'Cancelled',
+        };
+    }
+
+    private static function dashboardPaymentLabel(?string $method): string
+    {
+        return match ($method) {
+            'aba_qr' => 'ABA QR',
+            'acleda' => 'ACLEDA',
+            'wing' => 'Wing',
+            'card' => 'Card',
+            'cash' => 'Cash',
+            default => Str::headline((string) $method),
+        };
+    }
+
     private static function merchantOrderAnalytics(Collection $orders): array
     {
         $todayStart = now()->startOfDay();
@@ -1058,10 +1739,25 @@ class AdminDashboardData
                 'kicker' => 'Commission control',
                 'subheadline' => 'Configure how the platform deducts commission from merchant balances after each qualifying order stage.',
             ],
+            'payment-methods' => [
+                'page_title' => 'Payment Methods',
+                'kicker' => 'Frontend payments',
+                'subheadline' => 'Review the payment methods available during storefront checkout and how customers use them.',
+            ],
+            'payment-fees' => [
+                'page_title' => 'Platform Fee',
+                'kicker' => 'Commission ledger',
+                'subheadline' => 'Review platform fee deductions collected from merchant payouts across all orders.',
+            ],
+            'qr-codes' => [
+                'page_title' => 'QR Codes',
+                'kicker' => 'Payment collection',
+                'subheadline' => 'Preview admin payment QR codes and collection details used during manual transfer checkout flows.',
+            ],
             'wallet' => [
                 'page_title' => 'Wallet',
-                'kicker' => 'Finance overview',
-                'subheadline' => 'Review merchant deposit and withdrawal activity from a single admin wallet overview.',
+                'kicker' => 'Platform wallet',
+                'subheadline' => 'Track total platform fee balance collected from merchants and review the latest fee deductions.',
             ],
             'finance-overview' => [
                 'page_title' => 'Finance Overview',

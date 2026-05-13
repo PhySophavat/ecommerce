@@ -19,6 +19,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'merchant-finance-overview',
                 'screen' => 'finance-overview',
+                'role_scope' => 'merchant',
                 'endpoint' => route('api.merchant.finance-overview'),
             ],
         ]);
@@ -51,6 +52,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'merchant-withdrawals',
                 'screen' => $screen,
+                'role_scope' => 'merchant',
             ],
         ]);
     }

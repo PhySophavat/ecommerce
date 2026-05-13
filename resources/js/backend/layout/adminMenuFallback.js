@@ -108,8 +108,17 @@ const MENU_ITEMS = [
         children: [],
     },
     {
+        label: 'QR Codes',
+        slug: 'qr-codes',
+        icon: 'qr-codes',
+        permission: 'wallet.view',
+        roles: ['admin'],
+        paths: { admin: '/admin/qr-codes' },
+        children: [],
+    },
+    {
         label: 'Wallet',
-        labels: { admin: 'QR Codes', merchant: 'QR Codes' },
+        labels: { admin: 'Wallet', merchant: 'QR Codes' },
         slug: 'wallet',
         icon: 'wallet',
         permission: 'wallet.view',
@@ -136,6 +145,7 @@ const MENU_ITEMS = [
         children: [
             { label: 'Payment records', slug: 'payment-records', permission: 'payments.view', roles: ['admin'], paths: { admin: '/admin/payment-records' } },
             { label: 'Payment methods', slug: 'payment-methods', permission: 'payments.view', roles: ['admin'], paths: { admin: '/admin/payment-methods' } },
+            { label: 'Platform Fee', slug: 'payment-fees', permission: 'payments.view', roles: ['admin'], paths: { admin: '/admin/payment-fees' } },
             { label: 'Deposits', slug: 'deposits', permission: 'payments.view', roles: ['admin'], paths: { admin: '/admin/deposits' } },
             { label: 'Withdrawals', slug: 'withdrawals', permission: 'withdrawals.review', roles: ['admin'], paths: { admin: '/admin/withdrawals' } },
             { label: 'Deposits', slug: 'deposits', permission: 'wallet.manage', roles: ['merchant'], paths: { merchant: '/merchant/deposits' } },
@@ -232,9 +242,11 @@ const ACTIVE_SLUGS_BY_SCREEN = {
     'merchant-details': ['users-admin-management', 'merchants'],
     'finance-overview': ['finance-overview'],
     'merchant-balance': ['merchant-balance'],
+    'qr-codes': ['qr-codes'],
     wallet: ['wallet'],
     'payment-records': ['payments', 'payment-records'],
     'payment-methods': ['payments', 'payment-methods'],
+    'payment-fees': ['payments', 'payment-fees'],
     deposits: ['payments', 'deposits'],
     withdrawals: ['payments', 'withdrawals'],
     deposit: ['payments', 'deposits'],
@@ -286,9 +298,13 @@ function resolveMenuItem(item, role, activeSlugs) {
         permission: item.permission ?? null,
         is_enabled: path !== null || children.length > 0 || item.slug === 'logout',
         is_active: isActive,
-        is_expanded: childIsActive || ['users-admin-management', 'payments', 'wallet'].includes(item.slug),
+        is_expanded: childIsActive || alwaysExpandedMenus().includes(item.slug),
         children,
     };
+}
+
+function alwaysExpandedMenus() {
+    return ['users-admin-management', 'payments', 'wallet', 'content-management'];
 }
 
 export function canAccessScreen(screen, role = currentRole()) {

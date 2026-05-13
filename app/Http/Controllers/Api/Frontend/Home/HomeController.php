@@ -13,12 +13,13 @@ class HomeController extends Controller
 {
     public function __invoke(): JsonResponse
     {
-        $storefrontStatuses = ['approved'];
+        $storefrontStatuses = ['approved', 'active'];
 
         // Only show products that are intended to be visible on the storefront.
         $products = Product::query()
             ->with(['category', 'images', 'merchant.merchant'])
             ->whereIn('status', $storefrontStatuses)
+            ->orderByRaw('CASE WHEN merchant_id IS NULL THEN 0 ELSE 1 END ASC')
             ->orderByDesc('is_featured')
             ->orderByDesc('updated_at')
             ->get();

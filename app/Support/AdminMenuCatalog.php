@@ -79,6 +79,14 @@ class AdminMenuCatalog
                 'children' => [],
             ],
             [
+                'label' => 'QR Codes',
+                'slug' => 'qr-codes',
+                'icon' => 'qr-codes',
+                'path' => '/admin/qr-codes',
+                'is_enabled' => true,
+                'children' => [],
+            ],
+            [
                 'label' => 'Wallet',
                 'slug' => 'wallet',
                 'icon' => 'wallet',
@@ -103,6 +111,7 @@ class AdminMenuCatalog
                 'children' => [
                     ['label' => 'Payment records', 'slug' => 'payment-records', 'path' => '/admin/payment-records', 'is_enabled' => true],
                     ['label' => 'Payment methods', 'slug' => 'payment-methods', 'path' => '/admin/payment-methods', 'is_enabled' => true],
+                    ['label' => 'Platform Fee', 'slug' => 'payment-fees', 'path' => '/admin/payment-fees', 'is_enabled' => true],
                     ['label' => 'Deposits', 'slug' => 'deposits', 'path' => '/admin/deposits', 'is_enabled' => true],
                     ['label' => 'Transaction history', 'slug' => 'transaction-history', 'path' => '/admin/merchant-balance', 'is_enabled' => true],
                     ['label' => 'Withdrawals', 'slug' => 'withdrawals', 'path' => '/admin/withdrawals', 'is_enabled' => true],

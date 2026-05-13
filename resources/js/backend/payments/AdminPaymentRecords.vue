@@ -160,6 +160,7 @@ import { buildFallbackMenu } from '../layout/adminMenuFallback.js';
 
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/orders';
 const screen = window.__APP_CONTEXT__?.screen ?? 'payment-records';
+const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'admin';
 const openMenus = ref({});
 const dashboard = ref(initialDashboard());
 const loading = ref(false);
@@ -360,7 +361,7 @@ function formatDateTime(value) {
 }
 
 function initialDashboard() {
-    const menu = buildFallbackMenu(screen);
+    const menu = buildFallbackMenu(screen, roleScope);
 
     syncOpenMenus(menu);
 

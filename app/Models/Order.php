@@ -82,7 +82,8 @@ class Order extends Model
     public function shouldApplyPlatformFeeForStage(string $stage): bool
     {
         return match ($stage) {
-            'payment_success' => in_array($this->status, ['paid', 'payment_success'], true),
+            'payment_success' => in_array($this->status, ['paid', 'payment_success'], true)
+                || $this->payment_status === 'paid',
             'order_completed' => in_array($this->status, ['completed', 'delivered', 'order_completed'], true),
             default => false,
         };

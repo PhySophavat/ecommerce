@@ -14,7 +14,21 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-wallet',
                 'screen' => 'wallet',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.wallet.show'),
+            ],
+        ]);
+    }
+
+    public function qrCodes(): View
+    {
+        return view('backend.qr-codes.index', [
+            'title' => 'Admin | QR Codes',
+            'context' => [
+                'app' => 'backend-qr-codes',
+                'screen' => 'qr-codes',
+                'role_scope' => 'admin',
+                'endpoint' => route('api.admin.qr-codes.index'),
             ],
         ]);
     }
@@ -26,6 +40,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-finance-overview',
                 'screen' => 'finance-overview',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.finance-overview'),
             ],
         ]);
@@ -38,6 +53,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-payment-records',
                 'screen' => 'payment-records',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.orders.index'),
             ],
         ]);
@@ -50,7 +66,21 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-payment-methods',
                 'screen' => 'payment-methods',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.payment-methods.index'),
+            ],
+        ]);
+    }
+
+    public function paymentFees(): View
+    {
+        return view('backend.payment-fees.index', [
+            'title' => 'Admin | Platform Fee',
+            'context' => [
+                'app' => 'backend-payment-fees',
+                'screen' => 'payment-fees',
+                'role_scope' => 'admin',
+                'endpoint' => route('api.admin.payment-fees.index'),
             ],
         ]);
     }
@@ -62,6 +92,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-merchant-balance',
                 'screen' => 'merchant-balance',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.merchant-balance.index'),
             ],
         ]);
@@ -74,6 +105,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-withdrawals',
                 'screen' => 'withdrawals',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.withdrawals.index'),
             ],
         ]);
@@ -86,6 +118,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-bank-accounts',
                 'screen' => 'bank-accounts',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.bank-accounts.index'),
             ],
         ]);
@@ -98,6 +131,7 @@ class WithdrawalPageController extends Controller
             'context' => [
                 'app' => 'backend-deposits',
                 'screen' => 'deposits',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.deposits.index'),
             ],
         ]);

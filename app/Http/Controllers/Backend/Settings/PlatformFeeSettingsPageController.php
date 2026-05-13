@@ -14,6 +14,7 @@ class PlatformFeeSettingsPageController extends Controller
             'context' => [
                 'app' => 'backend-platform-fee-settings',
                 'screen' => 'platform-fee-settings',
+                'role_scope' => 'admin',
                 'endpoint' => route('api.admin.platform-fee-settings.show'),
             ],
         ]);

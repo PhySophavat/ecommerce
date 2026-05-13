@@ -1,76 +1,123 @@
 <template>
-    <div class="mx-auto w-full lg:w-[80%] px-4 py-8 sm:px-6 lg:px-8">
-        <div class="mb-8 flex flex-col gap-4 rounded-[32px] bg-white p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+    <div class="mx-auto w-full bg-[#F8FAFC] px-4 py-8 lg:w-[80%] sm:px-6 lg:px-8">
+        <div class="mb-8 flex flex-col gap-4 rounded-[32px] border border-[#E5E7EB] bg-white p-6 shadow-[0_12px_30px_rgba(17,24,39,0.05)] lg:flex-row lg:items-center lg:justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">Shop page</p>
+                <p class="text-xs font-semibold uppercase tracking-[0.22em] text-[#A78B9A]">Shop page</p>
                 <h1 class="mt-2 text-3xl font-black tracking-[-0.05em] text-[#111827]">Browse products with clean filters</h1>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row">
                 <SearchBar v-model="search" placeholder="Search by product, category, merchant" />
-                <select v-model="sortBy" class="rounded-full border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827] outline-none focus:border-[#A25F88]">
+                <select v-model="sortBy" class="rounded-full border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827] outline-none transition duration-200 focus:border-[#E8B4CF] focus:shadow-[0_0_0_4px_rgba(162,95,136,0.10)]">
                     <option value="featured">Sort: Featured</option>
                     <option value="price-low">Price: Low to high</option>
                     <option value="price-high">Price: High to low</option>
                     <option value="rating">Top rating</option>
                     <option value="new">Newest</option>
                 </select>
-                <Button variant="secondary" class="lg:hidden" @click="mobileFilters = true">Filters</Button>
             </div>
         </div>
 
-        <div class="grid gap-8 xl:grid-cols-[300px_minmax(0,1fr)]">
-            <div class="hidden xl:block">
-                <FilterSidebar v-model="filters" :categories="store.categories" :merchants="store.merchants" @reset="resetFilters" />
+        <div>
+            <div class="mb-5 flex items-center justify-between text-sm text-[#6B7280]">
+                <span>{{ filteredProducts.length }} results</span>
+                <span>Responsive product grid</span>
             </div>
 
-            <div>
-                <div class="mb-5 flex items-center justify-between text-sm text-[#6B7280]">
-                    <span>{{ filteredProducts.length }} results</span>
-                    <span>Responsive product grid</span>
-                </div>
-
-                <ProductGrid :products="filteredProducts" :wishlist-ids="store.wishlist" :columns="3" @add-to-cart="store.addToCart($event)" @toggle-wishlist="store.toggleWishlist($event)" />
-            </div>
-        </div>
-
-        <div v-if="mobileFilters" class="fixed inset-0 z-50 bg-[#111827]/35 px-4 py-6 xl:hidden" @click.self="mobileFilters = false">
-            <div class="mx-auto max-w-md">
-                <FilterSidebar v-model="filters" :categories="store.categories" :merchants="store.merchants" @reset="resetFilters" />
-                <div class="mt-4">
-                    <Button block @click="mobileFilters = false">Apply filters</Button>
-                </div>
-            </div>
+            <ProductGrid :products="filteredProducts" :wishlist-ids="store.wishlist" :columns="3" @add-to-cart="store.addToCart($event)" @toggle-wishlist="store.toggleWishlist($event)" />
         </div>
     </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute } from 'vue-router';
-import Button from '../components/Button.vue';
-import FilterSidebar from '../components/FilterSidebar.vue';
+import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import ProductGrid from '../components/ProductGrid.vue';
 import SearchBar from '../components/SearchBar.vue';
 import { useStorefrontStore } from '../stores/storefront';
 
 const store = useStorefrontStore();
 const route = useRoute();
-const mobileFilters = ref(false);
+const router = useRouter();
 const search = ref('');
 const sortBy = ref('featured');
 const filters = ref(defaultFilters());
-
-onMounted(async () => {
-    await store.initialize();
-    syncRouteFilters();
-});
 
 watch(
     () => route.query,
     () => {
         syncRouteFilters();
     },
-    { deep: true }
+    { deep: true, immediate: true }
+);
+
+watch(
+    () => filters.value.category,
+    (category) => {
+        const normalizedCategory = typeof category === 'string' ? category : '';
+        const routeCategory = typeof route.query.category === 'string' ? route.query.category : '';
+
+        if (normalizedCategory === routeCategory) {
+            return;
+        }
+
+        const nextQuery = { ...route.query };
+
+        if (normalizedCategory) {
+            nextQuery.category = normalizedCategory;
+        } else {
+            delete nextQuery.category;
+        }
+
+        router.replace({
+            path: route.path,
+            query: nextQuery,
+        });
+    }
+);
+
+const categoryProducts = computed(() => {
+    if (!filters.value.category) {
+        return store.products;
+    }
+
+    return store.products.filter((product) => product.category_slug === filters.value.category);
+});
+
+const availableColors = computed(() => uniqueOptions(categoryProducts.value.flatMap((product) => product.color_options ?? [])));
+const availableSizes = computed(() => uniqueOptions(categoryProducts.value.flatMap((product) => product.size_options ?? [])));
+
+const availableMerchants = computed(() => {
+    const items = categoryProducts.value;
+
+    if (!filters.value.color && !filters.value.size) {
+        return uniqueOptions(items.map((product) => product.merchant_name).filter(Boolean));
+    }
+
+    return uniqueOptions(
+        items
+            .filter((product) => matchesOption(product.color_options, filters.value.color))
+            .filter((product) => matchesOption(product.size_options, filters.value.size))
+            .map((product) => product.merchant_name)
+            .filter(Boolean)
+    );
+});
+
+watch(
+    [availableColors, availableSizes, availableMerchants],
+    ([colors, sizes, merchants]) => {
+        if (filters.value.color && !colors.includes(filters.value.color)) {
+            filters.value.color = '';
+        }
+
+        if (filters.value.size && !sizes.includes(filters.value.size)) {
+            filters.value.size = '';
+        }
+
+        if (filters.value.merchant && !merchants.includes(filters.value.merchant)) {
+            filters.value.merchant = '';
+        }
+    },
+    { immediate: true }
 );
 
 const filteredProducts = computed(() => {
@@ -85,6 +132,14 @@ const filteredProducts = computed(() => {
 
     if (filters.value.category) {
         items = items.filter((product) => product.category_slug === filters.value.category);
+    }
+
+    if (filters.value.color) {
+        items = items.filter((product) => matchesOption(product.color_options, filters.value.color));
+    }
+
+    if (filters.value.size) {
+        items = items.filter((product) => matchesOption(product.size_options, filters.value.size));
     }
 
     if (filters.value.merchant) {
@@ -117,7 +172,15 @@ const filteredProducts = computed(() => {
             items.reverse();
             break;
         default:
-            items.sort((a, b) => Number(b.is_featured) - Number(a.is_featured));
+            items.sort((a, b) => {
+                const featuredDiff = Number(b.is_featured) - Number(a.is_featured);
+
+                if (featuredDiff !== 0) {
+                    return featuredDiff;
+                }
+
+                return Number(b.is_admin_owned) - Number(a.is_admin_owned);
+            });
             break;
     }
 
@@ -137,7 +200,10 @@ function defaultFilters() {
 }
 
 function resetFilters() {
-    filters.value = defaultFilters();
+    filters.value = {
+        ...defaultFilters(),
+        category: '',
+    };
 }
 
 function syncRouteFilters() {
@@ -146,5 +212,17 @@ function syncRouteFilters() {
 
     filters.value.category = typeof category === 'string' ? category : '';
     search.value = typeof routeSearch === 'string' ? routeSearch : '';
+}
+
+function uniqueOptions(values) {
+    return [...new Set(values.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
+}
+
+function matchesOption(options, selected) {
+    if (!selected) {
+        return true;
+    }
+
+    return Array.isArray(options) && options.includes(selected);
 }
 </script>

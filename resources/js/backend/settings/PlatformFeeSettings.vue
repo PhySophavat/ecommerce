@@ -1,6 +1,6 @@
 <template>
     <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px]">
+        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-x-clip rounded-[36px]">
             <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
@@ -72,27 +72,31 @@
                                 <div class="grid gap-5 md:grid-cols-2">
                                     <label class="block space-y-2">
                                         <span class="text-sm font-semibold text-slate-800">Fee Type</span>
-                                        <select v-model="form.fee_type" class="field-input" :class="fieldClass('fee_type')">
-                                            <option value="percentage">Percentage</option>
-                                            <option value="fixed">Fixed</option>
-                                        </select>
+                                        <input
+                                            value="Percentage"
+                                            type="text"
+                                            class="field-input bg-slate-50 text-slate-500"
+                                            readonly
+                                        >
                                         <p v-if="errors.fee_type" class="text-xs text-rose-600">{{ errors.fee_type[0] }}</p>
                                     </label>
 
                                     <label class="block space-y-2">
                                         <span class="text-sm font-semibold text-slate-800">Fee Value</span>
-                                        <input
-                                            v-model="form.fee_value"
-                                            type="number"
-                                            min="0"
-                                            step="0.01"
-                                            class="field-input"
-                                            :class="fieldClass('fee_value')"
-                                            :placeholder="form.fee_type === 'percentage' ? '10' : '5.00'"
-                                        >
-                                        <p class="text-xs text-slate-500">
-                                            {{ form.fee_type === 'percentage' ? 'Enter a value from 0 to 100.' : 'Enter a flat currency amount.' }}
-                                        </p>
+                                        <div class="relative">
+                                            <input
+                                                v-model="form.fee_value"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                class="field-input pr-12"
+                                                :class="fieldClass('fee_value')"
+                                                placeholder="10"
+                                            >
+                                            <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-400">%</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500">Enter a value from 0 to 100.</p>
                                         <p v-if="errors.fee_value" class="text-xs text-rose-600">{{ errors.fee_value[0] }}</p>
                                     </label>
                                 </div>
@@ -202,9 +206,7 @@ const preview = computed(() => {
     const orderTotal = 100;
     const fee = !form.is_enabled
         ? 0
-        : form.fee_type === 'fixed'
-            ? numericFeeValue.value
-            : roundCurrency((orderTotal * numericFeeValue.value) / 100);
+        : roundCurrency((orderTotal * numericFeeValue.value) / 100);
     const merchantReceives = Math.max(roundCurrency(orderTotal - fee), 0);
 
     return {
@@ -219,9 +221,7 @@ const previewDescription = computed(() => {
         return 'Platform fee is disabled for this example.';
     }
 
-    return form.fee_type === 'percentage'
-        ? `${trimmedFeeValue()}% of the order total`
-        : `Fixed amount of $${numericFeeValue.value.toFixed(2)}`;
+    return `${trimmedFeeValue()}% of the order total`;
 });
 
 onMounted(async () => {
@@ -263,7 +263,7 @@ async function submitSettings() {
     try {
         const response = await window.axios.put(endpoint, {
             is_enabled: form.is_enabled,
-            fee_type: form.fee_type,
+            fee_type: 'percentage',
             fee_value: numericFeeValue.value.toFixed(2),
             apply_stage: form.apply_stage,
             deduct_from: form.deduct_from,
@@ -301,7 +301,7 @@ async function submitSettings() {
 
 function syncForm(setting) {
     form.is_enabled = Boolean(setting.is_enabled);
-    form.fee_type = setting.fee_type ?? 'percentage';
+    form.fee_type = 'percentage';
     form.fee_value = String(setting.fee_value ?? '0.00');
     form.apply_stage = setting.apply_stage ?? 'payment_success';
     form.deduct_from = setting.deduct_from ?? 'merchant_balance';

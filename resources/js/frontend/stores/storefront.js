@@ -2,6 +2,33 @@ import { defineStore } from 'pinia';
 
 const STORAGE_CART = 'frontend-cart-v3';
 const STORAGE_WISHLIST = 'frontend-wishlist-v3';
+const CATEGORY_OPTIONS = {
+    beauty: {
+        colors: ['Rose', 'Nude', 'Coral', 'Berry', 'Ivory'],
+        sizes: ['Travel', 'Regular', 'Large'],
+        variants: ['Standard', 'Sensitive', 'Gift Ready'],
+    },
+    fashion: {
+        colors: ['Black', 'White', 'Navy', 'Khaki', 'Olive'],
+        sizes: ['XS', 'S', 'M', 'L', 'XL'],
+        variants: ['Slim Fit', 'Regular Fit', 'Relaxed Fit'],
+    },
+    sport: {
+        colors: ['Black', 'Cobalt', 'Lime', 'Graphite', 'Red'],
+        sizes: ['S', 'M', 'L', 'XL'],
+        variants: ['Training', 'Performance', 'Outdoor'],
+    },
+    electronic: {
+        colors: ['Black', 'Silver', 'White', 'Blue', 'Graphite'],
+        sizes: ['Compact', 'Standard', 'Pro'],
+        variants: ['Standard', 'Plus', 'Premium'],
+    },
+    home: {
+        colors: ['Ivory', 'Slate', 'Sage', 'Navy', 'Terracotta'],
+        sizes: ['Small', 'Medium', 'Large'],
+        variants: ['Standard', 'Deluxe', 'Gift Ready'],
+    },
+};
 
 function parseStorage(key, fallback = []) {
     try {
@@ -14,6 +41,14 @@ function parseStorage(key, fallback = []) {
 
 function money(value) {
     return `$${Number(value || 0).toFixed(2)}`;
+}
+
+function categoryOptions(slug) {
+    return CATEGORY_OPTIONS[slug] ?? {
+        colors: ['Rose', 'Ivory', 'Slate'],
+        sizes: ['S', 'M', 'L'],
+        variants: ['Standard', 'Premium', 'Gift Ready'],
+    };
 }
 
 function createLineId() {
@@ -147,9 +182,9 @@ export const useStorefrontStore = defineStore('storefront', {
                     ...product,
                     rating_value: Number(product.rating || 4.8),
                     reviews_count: Number(product.reviews_count || (18 + index)),
-                    color_options: product.color_options ?? ['Rose', 'Ivory', 'Slate'],
-                    size_options: product.size_options ?? ['S', 'M', 'L'],
-                    variant_options: product.variant_options ?? ['Standard', 'Premium', 'Gift ready'],
+                    color_options: product.color_options ?? categoryOptions(product.category_slug).colors,
+                    size_options: product.size_options ?? categoryOptions(product.category_slug).sizes,
+                    variant_options: product.variant_options ?? categoryOptions(product.category_slug).variants,
                     image_url: product.image_url ?? null,
                 }));
 

@@ -445,7 +445,7 @@ function formatDateTime(value) {
 }
 
 function initialDashboard() {
-    const menu = buildFallbackMenu(screen);
+    const menu = buildFallbackMenu(screen, roleScope);
 
     syncOpenMenus(menu);
 

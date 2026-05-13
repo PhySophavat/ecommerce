@@ -266,10 +266,10 @@ const recentProducts = computed(() => props.products.slice(0, 5));
 const featuredCount = computed(() => props.products.filter((product) => product.is_featured).length);
 const activeCount = computed(() => props.products.filter((product) => product.status === 'active').length);
 const scheduledCount = computed(() => props.products.filter((product) => product.status === 'scheduled').length);
-const lowStockCount = computed(() => props.products.filter((product) => Number.parseInt(product.stock, 10) <= 60).length);
+const lowStockCount = computed(() => props.products.filter((product) => Number.parseInt(product.stock, 10) < 10).length);
 
 const activityFeed = computed(() => recentProducts.value.map((product) => {
-    const isLowStock = Number.parseInt(product.stock, 10) <= 60;
+    const isLowStock = Number.parseInt(product.stock, 10) < 10;
 
     if (product.is_featured) {
         return {

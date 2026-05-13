@@ -60,7 +60,7 @@ class OrderService
                     ]);
                 }
 
-                if (!$product->merchant?->merchant?->isApproved()) {
+                if ($product->merchant_id !== null && !$product->merchant?->merchant?->isApproved()) {
                     throw ValidationException::withMessages([
                         'items' => ["{$product->name} is not available right now."],
                     ]);

@@ -149,6 +149,7 @@ import { buildFallbackMenu } from '../layout/adminMenuFallback.js';
 
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/payment-methods';
 const screen = window.__APP_CONTEXT__?.screen ?? 'payment-methods';
+const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'admin';
 const loading = ref(false);
 const notice = ref(null);
 const methods = ref([]);
@@ -205,6 +206,12 @@ async function loadMethods() {
         const response = await window.axios.get(endpoint);
         methods.value = response.data.methods ?? [];
         summary.value = response.data.summary ?? summary.value;
+        dashboard.value = {
+            ...dashboard.value,
+            meta: response.data.meta ?? dashboard.value.meta,
+            menu: response.data.menu ?? dashboard.value.menu,
+        };
+        syncOpenMenus(response.data.menu ?? []);
         if (methods.value.length > 0) {
             selectedMethod.value = methods.value.find((method) => method.code === selectedMethod.value?.code) ?? methods.value[0];
         } else {
@@ -219,7 +226,7 @@ async function loadMethods() {
 }
 
 function initialDashboard() {
-    const menu = buildFallbackMenu(screen);
+    const menu = buildFallbackMenu(screen, roleScope);
     syncOpenMenus(menu);
 
     return {

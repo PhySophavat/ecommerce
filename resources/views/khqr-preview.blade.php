@@ -69,51 +69,38 @@
 
     $svgDataUri = 'data:image/svg+xml;charset=UTF-8,'.rawurlencode($svg);
 @endphp
-<div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-    <div class="mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[760px] items-center justify-center px-4 py-6 sm:px-6">
-        <section class="w-full max-w-[440px] rounded-[24px] border border-[#ead9e3] bg-white p-4 shadow-[0_20px_60px_rgba(58,74,145,0.10)]">
-            <div class="flex flex-col gap-4">
-                <div class="rounded-[20px] border border-[#f0d9e6] bg-[#fff9fc] p-4">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <p class="chatgpt-kicker text-[11px] uppercase text-[#A25F88]">KHQR Preview</p>
-                            <h1 class="chatgpt-title mt-1.5 text-xl font-extrabold text-slate-950">Scan and pay</h1>
-                        </div>
-                        <span class="admin-chip rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                            {{ $bank }}
-                        </span>
-                    </div>
+<div class="chatgpt-admin min-h-screen bg-[#F8FAFC] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    <div class="mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-[640px] items-center justify-center">
+        <section class="w-full rounded-[28px] border border-[#E5E7EB] bg-[#FFFFFF] px-5 py-5 shadow-[0_18px_48px_rgba(17,24,39,0.08)] sm:px-6 sm:py-6">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#A25F88]">KHQR Preview</p>
+                    <h1 class="mt-2 text-[1.9rem] font-extrabold tracking-[-0.04em] text-[#111827] sm:text-[2rem]">Scan and pay</h1>
+                </div>
+                <span class="inline-flex items-center rounded-full border border-[#E5E7EB] bg-[#FFFFFF] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A25F88] shadow-sm">
+                    {{ $bank }}
+                </span>
+            </div>
 
-                    <div class="mt-4 rounded-[18px] border border-[#f0d9e6] bg-white p-3">
-                        <img
-                            id="khqr-preview-image"
-                            src="{{ $svgDataUri }}"
-                            alt="KHQR"
-                            class="block w-full rounded-[18px] border border-[#f3e4ec] bg-white"
-                            data-image-token="{{ $imageToken }}"
-                        >
-                    </div>
-
-                    <div class="mt-3 rounded-[16px] border border-[#ead9e3] bg-white px-4 py-3">
-                        <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Amount</p>
-                        <p class="mt-1.5 text-[1.75rem] font-extrabold tracking-[-0.05em] text-[#A25F88]">${{ $amount }}</p>
-                    </div>
+            <div class="mt-5 rounded-[24px] border border-[#E5E7EB] bg-[#F9FAFB] p-4 shadow-[0_10px_30px_rgba(17,24,39,0.05)] sm:p-5">
+                <div class="mx-auto flex w-full max-w-[272px] items-center justify-center rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF] p-3 shadow-[0_12px_28px_rgba(17,24,39,0.06)] sm:max-w-[290px]">
+                    <img
+                        id="khqr-preview-image"
+                        src="{{ $svgDataUri }}"
+                        alt="KHQR"
+                        class="mx-auto h-auto w-full rounded-[20px] border border-[#E5E7EB] bg-[#FFFFFF] object-contain"
+                        data-image-token="{{ $imageToken }}"
+                    >
                 </div>
 
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <article class="rounded-[16px] border border-slate-200 bg-slate-50 px-3.5 py-3">
-                        <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Shop</p>
-                        <p class="mt-2 text-sm font-bold text-slate-950">{{ $shop }}</p>
+                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                    <article class="rounded-[18px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3.5">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">Shop</p>
+                        <p class="mt-2 text-base font-semibold leading-6 text-[#111827]">{{ $shop }}</p>
                     </article>
-
-                    <article class="rounded-[16px] border border-slate-200 bg-slate-50 px-3.5 py-3">
-                        <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Bank</p>
-                        <p class="mt-2 text-sm font-bold text-slate-950">{{ $bank }}</p>
-                    </article>
-
-                    <article class="rounded-[16px] border border-slate-200 bg-slate-50 px-3.5 py-3 sm:col-span-2">
-                        <p class="chatgpt-kicker text-[11px] uppercase text-slate-400">Receiver</p>
-                        <p class="mt-2 text-sm font-bold text-slate-950">{{ $receiver }}</p>
+                    <article class="rounded-[18px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3.5">
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">Amount</p>
+                        <p class="mt-2 text-base font-semibold leading-6 text-[#111827]">${{ $amount }}</p>
                     </article>
                 </div>
             </div>

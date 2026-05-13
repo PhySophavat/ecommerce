@@ -12,6 +12,8 @@ import MerchantBalancePage from './backend/merchant-balance/MerchantBalancePage.
 import FinanceOverviewPage from './backend/finance/FinanceOverviewPage.vue';
 import AdminPaymentRecords from './backend/payments/AdminPaymentRecords.vue';
 import AdminPaymentMethods from './backend/payments/AdminPaymentMethods.vue';
+import AdminPaymentFees from './backend/payments/AdminPaymentFees.vue';
+import AdminQrCodes from './backend/wallet/AdminQrCodes.vue';
 import AdminWallet from './backend/wallet/AdminWallet.vue';
 import AdminWithdrawals from './backend/withdrawals/AdminWithdrawals.vue';
 import MerchantFinanceApp from './backend/merchant/MerchantFinanceApp.vue';
@@ -33,6 +35,8 @@ const appMap = {
     'backend-finance-overview': FinanceOverviewPage,
     'backend-payment-records': AdminPaymentRecords,
     'backend-payment-methods': AdminPaymentMethods,
+    'backend-payment-fees': AdminPaymentFees,
+    'backend-qr-codes': AdminQrCodes,
     'backend-wallet': AdminWallet,
     'backend-withdrawals': AdminWithdrawals,
     'backend-merchant-register': MerchantRegistrationApp,

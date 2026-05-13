@@ -6,7 +6,9 @@ use App\Http\Controllers\Api\Backend\BankAccountController;
 use App\Http\Controllers\Api\Backend\DepositController;
 use App\Http\Controllers\Api\Backend\FinanceOverviewController;
 use App\Http\Controllers\Api\Backend\MerchantBalanceController;
+use App\Http\Controllers\Api\Backend\PaymentFeeController;
 use App\Http\Controllers\Api\Backend\PaymentMethodController;
+use App\Http\Controllers\Api\Backend\QrCodeController;
 use App\Http\Controllers\Api\Backend\WalletController;
 use App\Http\Controllers\Api\Backend\WithdrawalController;
 use App\Http\Controllers\Api\Backend\Settings\PlatformFeeSettingsController;
@@ -34,6 +36,7 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::put('/platform-fee-settings', [PlatformFeeSettingsController::class, 'update'])->middleware('permission:settings.manage')->name('platform-fee-settings.update');
 
     Route::get('/wallet', WalletController::class)->middleware('permission:wallet.view')->name('wallet.show');
+    Route::get('/qr-codes', QrCodeController::class)->middleware('permission:wallet.view')->name('qr-codes.index');
     Route::get('/finance-overview', FinanceOverviewController::class)->middleware('permission:reports.view')->name('finance-overview');
     Route::get('/merchant-balance', MerchantBalanceController::class)->middleware('permission:wallet.view')->name('merchant-balance.index');
     Route::get('/deposits', [DepositController::class, 'index'])->middleware('permission:payments.view')->name('deposits.index');
@@ -50,6 +53,7 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::put('/withdrawals/{withdrawal}/reject', [WithdrawalController::class, 'reject'])->middleware('permission:withdrawals.review')->name('withdrawals.reject');
     Route::put('/withdrawals/{withdrawal}/mark-paid', [WithdrawalController::class, 'markPaid'])->middleware('permission:withdrawals.review')->name('withdrawals.mark-paid');
     Route::get('/payment-methods', PaymentMethodController::class)->middleware('permission:payments.view')->name('payment-methods.index');
+    Route::get('/payment-fees', PaymentFeeController::class)->middleware('permission:payments.view')->name('payment-fees.index');
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->middleware('permission:orders.view')->name('orders.show');
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('permission:orders.manage')->name('orders.update-status');

@@ -191,6 +191,7 @@ class UserController extends Controller
             'context' => [
                 'app' => 'backend-users',
                 'screen' => $screen,
+                'role_scope' => 'admin',
                 'endpoint' => route(match ($screen) {
                 'merchants' => 'admin.merchants.index',
                 'customers' => 'admin.customers.index',

@@ -43,17 +43,10 @@
 
                     <template v-else>
                         <template v-if="screen === 'dashboard'">
-                            <MerchantDashboardContent
-                                v-if="roleScope === 'merchant'"
-                                :merchant-dashboard="dashboard.merchant_dashboard"
-                                @open-balance="openMerchantBalance"
-                                @open-products="openProductsView()"
+                            <DashboardWorkspace
+                                :workspace="dashboard.dashboard_workspace"
+                                @refresh="loadDashboard"
                             />
-                            <template v-else>
-                                <SummaryCardsGrid :cards="dashboard.summary" />
-                                <MenuHighlights :highlights="dashboard.highlights" />
-                                <DashboardOverview :order-analytics="dashboard.order_analytics" :payment-metrics="dashboard.payment_metrics" :products="dashboard.products.items" @open-add-product="scrollToAddProduct" @open-products="openProductsView()" />
-                            </template>
                         </template>
 
                         <template v-else-if="productListScreens.includes(screen)">
@@ -97,11 +90,8 @@ import { nextTick, onMounted, ref } from 'vue';
 import AddProductForm from './add-product/AddProductForm.vue';
 import AdminHeader from '../layout/AdminHeader.vue';
 import AdminSidebar from '../layout/AdminSidebar.vue';
-import DashboardOverview from './sections/DashboardOverview.vue';
-import MenuHighlights from './sections/MenuHighlights.vue';
-import MerchantDashboardContent from './sections/MerchantDashboardContent.vue';
+import DashboardWorkspace from './sections/DashboardWorkspace.vue';
 import ProductsTable from './sections/ProductsTable.vue';
-import SummaryCardsGrid from './sections/SummaryCardsGrid.vue';
 import { useProductDashboard } from './state/useProductDashboard.js';
 
 const addProductSection = ref(null);
@@ -109,8 +99,6 @@ const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'admin';
 const productListScreens = ['products', 'featured-products', 'merchant-pending-products', 'merchant-approved-products', 'merchant-rejected-products'];
 const productsIndexPath = roleScope === 'merchant' ? '/merchant/products' : '/admin/products';
 const productCreatePath = roleScope === 'merchant' ? '/merchant/products/create' : '/admin/products/create';
-const merchantBalancePath = '/merchant/qr-codes';
-
 const {
     dashboard,
     deleteProduct,
@@ -135,7 +123,7 @@ const {
     toggleMenu,
 } = useProductDashboard();
 
-const showHeader = !(roleScope === 'merchant' && screen === 'dashboard');
+const showHeader = screen !== 'dashboard';
 onMounted(async () => {
     await loadDashboard();
 
@@ -301,7 +289,4 @@ function openProductsView(hash = '') {
     window.location.href = `${productsIndexPath}${hash}`;
 }
 
-function openMerchantBalance() {
-    window.location.href = merchantBalancePath;
-}
 </script>

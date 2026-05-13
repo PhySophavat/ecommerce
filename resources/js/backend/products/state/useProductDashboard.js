@@ -649,6 +649,21 @@ function initialDashboard() {
         },
         summary: [],
         highlights: [],
+        dashboard_workspace: {
+            hero: {
+                eyebrow: 'Analytics',
+                title: 'Dashboard',
+                description: 'Loading dashboard analytics...',
+            },
+            summary_cards: [],
+            range_options: [],
+            selected_range: '30days',
+            datasets: {},
+            store_health: [],
+            recent_orders: [],
+            low_stock_products: [],
+            actions: {},
+        },
         menu: [],
         products: {
             count: 0,

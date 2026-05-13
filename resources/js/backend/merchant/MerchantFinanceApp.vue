@@ -123,6 +123,7 @@ import MerchantWallet from './MerchantWallet.vue';
 import MerchantWithdraw from './MerchantWithdraw.vue';
 
 const screen = window.__APP_CONTEXT__?.screen ?? 'wallet';
+const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'merchant';
 const navItems = [
     { key: 'wallet', label: 'QR Codes', href: '/merchant/qr-codes' },
     { key: 'deposit', label: 'Deposit', href: '/merchant/deposits' },
@@ -149,7 +150,7 @@ const withdrawalAccounts = ref([]);
 const withdrawalSuccessToken = ref(0);
 const minimumAmount = ref('10.00');
 const withdrawFee = ref('0.00');
-const menuItems = computed(() => buildFallbackMenu(screen));
+const menuItems = computed(() => buildFallbackMenu(screen, roleScope));
 const wallet = ref({
     balance_total: '0.00',
     available_balance: '0.00',

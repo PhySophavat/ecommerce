@@ -21,7 +21,7 @@ class PlatformFeeSettingsController extends Controller
     {
         $validated = $request->validate([
             'is_enabled' => ['required', 'boolean'],
-            'fee_type' => ['required', Rule::in(['percentage', 'fixed'])],
+            'fee_type' => ['required', Rule::in(['percentage'])],
             'fee_value' => ['required', 'numeric', 'min:0'],
             'apply_stage' => ['required', Rule::in(['payment_success', 'order_completed'])],
             'deduct_from' => ['required', Rule::in(['merchant_balance'])],
@@ -39,7 +39,7 @@ class PlatformFeeSettingsController extends Controller
         $setting = PlatformFeeSetting::query()->latest('id')->first() ?? new PlatformFeeSetting();
         $setting->fill([
             'is_enabled' => (bool) $validated['is_enabled'],
-            'fee_type' => $validated['fee_type'],
+            'fee_type' => 'percentage',
             'fee_value' => round((float) $validated['fee_value'], 2),
             'apply_stage' => $validated['apply_stage'],
             'deduct_from' => $validated['deduct_from'],
@@ -61,7 +61,7 @@ class PlatformFeeSettingsController extends Controller
             ...AdminDashboardData::platformFeeSettings(),
             'setting' => [
                 'is_enabled' => (bool) $setting->is_enabled,
-                'fee_type' => $setting->fee_type,
+                'fee_type' => 'percentage',
                 'fee_value' => number_format((float) $setting->fee_value, 2, '.', ''),
                 'apply_stage' => $setting->apply_stage,
                 'deduct_from' => $setting->deduct_from,

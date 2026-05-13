@@ -58,6 +58,7 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::get('/merchant-balance', [WithdrawalPageController::class, 'merchantBalance'])->middleware('permission:wallet.view')->name('merchant-balance.index');
     Route::get('/settings/platform-fee', PlatformFeeSettingsPageController::class)->middleware('permission:settings.manage')->name('settings.platform-fee');
 
+    Route::get('/qr-codes', [WithdrawalPageController::class, 'qrCodes'])->middleware('permission:wallet.view')->name('qr-codes.index');
     Route::get('/wallet', [WithdrawalPageController::class, 'wallet'])->middleware('permission:wallet.view')->name('wallet.index');
     Route::get('/finance-overview', [WithdrawalPageController::class, 'financeOverview'])->middleware('permission:reports.view')->name('finance-overview.index');
     Route::get('/bank-accounts', [WithdrawalPageController::class, 'bankAccounts'])->middleware('permission:wallet.manage')->name('bank-accounts.index');
@@ -65,6 +66,7 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::get('/deposits', [WithdrawalPageController::class, 'deposits'])->middleware('permission:payments.view')->name('deposits.index');
     Route::get('/payment-records', [WithdrawalPageController::class, 'paymentRecords'])->middleware('permission:payments.view')->name('payment-records.index');
     Route::get('/payment-methods', [WithdrawalPageController::class, 'paymentMethods'])->middleware('permission:payments.view')->name('payment-methods.index');
+    Route::get('/payment-fees', [WithdrawalPageController::class, 'paymentFees'])->middleware('permission:payments.view')->name('payment-fees.index');
     Route::get('/orders', [OrderPageController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');
     Route::get('/orders/pending', [OrderPageController::class, 'pending'])->middleware('permission:orders.view')->name('orders.pending');
     Route::get('/orders/processing', [OrderPageController::class, 'processing'])->middleware('permission:orders.view')->name('orders.processing');

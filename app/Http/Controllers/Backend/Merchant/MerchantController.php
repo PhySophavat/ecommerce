@@ -251,6 +251,7 @@ class MerchantController extends Controller
             'context' => [
                 'app' => 'backend-merchants',
                 'screen' => $screen,
+                'role_scope' => 'admin',
                 'endpoint' => match ($screen) {
                     'pending-merchants' => route('admin.merchants.pending'),
                     'merchant-details' => $merchant ? route('admin.merchants.show', $merchant) : route('admin.merchants.index'),

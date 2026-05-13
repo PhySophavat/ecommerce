@@ -78,7 +78,7 @@ class Product extends Model
      */
     public function isApproved(): bool
     {
-        return $this->status === 'approved';
+        return in_array($this->status, ['approved', 'active'], true);
     }
 
     /**
@@ -102,7 +102,7 @@ class Product extends Model
      */
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->whereIn('status', ['approved', 'active']);
     }
 
     /**

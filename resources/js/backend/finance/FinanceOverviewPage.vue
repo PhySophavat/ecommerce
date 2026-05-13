@@ -1,6 +1,6 @@
 <template>
     <div class="min-h-screen bg-[#F8FAFC] px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-hidden rounded-[36px] border border-[#E5E7EB] bg-white shadow-[0_30px_80px_rgba(17,24,39,0.08)]">
+        <div class="mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-x-clip rounded-[36px] border border-[#E5E7EB] bg-white shadow-[0_30px_80px_rgba(17,24,39,0.08)]">
             <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
@@ -26,20 +26,20 @@
                     </div>
 
                     <template v-else>
-                        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                            <article v-for="card in metricCards" :key="card.label" class="rounded-[28px] border border-[#E5E7EB] bg-white p-5 shadow-sm transition hover:border-[#A25F88]">
+                        <section class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                            <article v-for="card in metricCards" :key="card.label" class="rounded-[24px] border border-[#E5E7EB] bg-white p-4 shadow-sm transition hover:border-[#A25F88]">
                                 <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7280]">{{ card.label }}</p>
-                                <p class="mt-4 text-3xl font-black tracking-[-0.05em] text-[#111827]">{{ card.value }}</p>
+                                <p class="mt-3 text-2xl font-black tracking-[-0.05em] text-[#111827] sm:text-[2rem]">{{ card.value }}</p>
                             </article>
                         </section>
 
-                        <section class="mt-6 grid gap-6 xl:grid-cols-3">
+                        <section class="mt-5 grid gap-4 xl:grid-cols-3">
                             <FinanceDonutChart title="Transaction IN / OUT" eyebrow="Transactions" :items="charts.transaction_flow" format="currency" />
                             <FinanceDonutChart title="Payment Count by Bank" eyebrow="Payments" :items="charts.payments_by_bank" />
                             <FinanceDonutChart title="Order Success / Failed" eyebrow="Orders" :items="charts.orders_by_status" />
                         </section>
 
-                        <section class="mt-6 rounded-[28px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+                        <section class="mt-5 rounded-[24px] border border-[#E5E7EB] bg-white p-5 shadow-sm">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6B7280]">Recent ledger</p>
@@ -98,6 +98,7 @@ import FinanceDonutChart from './FinanceDonutChart.vue';
 
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/finance-overview';
 const screen = window.__APP_CONTEXT__?.screen ?? 'finance-overview';
+const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'admin';
 const scope = ref('admin');
 const loading = ref(true);
 const openMenus = ref({});
@@ -116,7 +117,7 @@ const dashboard = ref({
         subheadline: 'Review balances, payment mix, transaction flow, and order outcomes.',
         primary_action_label: 'Refresh overview',
     },
-    menu: buildFallbackMenu(screen),
+    menu: buildFallbackMenu(screen, roleScope),
 });
 
 const metricCards = computed(() => ([
@@ -146,7 +147,7 @@ async function refresh() {
         charts.value = response.data.charts ?? charts.value;
         recentTransactions.value = response.data.recent_transactions ?? [];
 
-        const menu = response.data.menu ?? buildFallbackMenu(screen);
+        const menu = response.data.menu ?? buildFallbackMenu(screen, roleScope);
         dashboard.value = {
             meta: {
                 ...dashboard.value.meta,
