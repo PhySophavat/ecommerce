@@ -10,9 +10,16 @@
                         </div>
                     </div>
                 </div>
-                <div class="grid grid-cols-4 gap-4">
-                    <button v-for="thumb in gallery" :key="thumb" type="button" class="overflow-hidden rounded-[22px] border transition" :class="selectedImage === thumb ? 'border-[#1495E8]' : 'border-[#D8E7F4]'" @click="selectedImage = thumb">
-                        <img :src="thumb" :alt="product.name" class="aspect-square h-full w-full object-cover">
+                <div v-if="gallery.length > 1" class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    <button
+                        v-for="(thumb, index) in gallery"
+                        :key="`${thumb}-${index}`"
+                        type="button"
+                        class="overflow-hidden rounded-[22px] border bg-white transition"
+                        :class="selectedImage === thumb ? 'border-[#1495E8] ring-2 ring-[#DCEEFF]' : 'border-[#D8E7F4]'"
+                        @click="selectedImage = thumb"
+                    >
+                        <img :src="thumb" :alt="`${product.name} ${index + 1}`" class="aspect-square h-full w-full object-cover">
                     </button>
                 </div>
             </section>
@@ -127,8 +134,6 @@ onMounted(async () => {
     hydrateSelections();
 });
 
-watch(() => props.id, hydrateSelections);
-
 const product = computed(() => store.productById(props.id));
 const related = computed(() => store.relatedProducts(props.id));
 const gallery = computed(() => {
@@ -136,15 +141,20 @@ const gallery = computed(() => {
         return [];
     }
 
-    return [product.value.image_url, product.value.image_url, product.value.image_url, product.value.image_url].filter(Boolean);
+    return Array.isArray(product.value.image_urls) && product.value.image_urls.length
+        ? product.value.image_urls
+        : [product.value.image_url].filter(Boolean);
 });
+
+watch(() => props.id, hydrateSelections);
+watch(product, hydrateSelections);
 
 function hydrateSelections() {
     if (!product.value) {
         return;
     }
 
-    selectedImage.value = product.value.image_url || '';
+    selectedImage.value = gallery.value[0] || '';
     selectedVariant.value = product.value.variant_options?.[0] || 'Standard';
     selectedColor.value = product.value.color_options?.[0] || 'Rose';
     selectedSize.value = product.value.size_options?.[0] || 'M';

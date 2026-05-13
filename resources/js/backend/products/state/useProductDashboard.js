@@ -598,7 +598,7 @@ function initialDashboard() {
         products: {
             page_title: 'Products',
             kicker: 'Catalog control center',
-            subheadline: 'Loading products...',
+            subheadline: 'Manage products, categories, stock, and approval status.',
         },
         'featured-products': {
             page_title: 'Featured Products',

@@ -386,6 +386,6 @@ class DashboardAccess
 
     private static function shouldAlwaysExpandMenu(string $slug): bool
     {
-        return in_array($slug, ['users-admin-management', 'payments', 'wallet', 'content-management'], true);
+        return false;
     }
 }

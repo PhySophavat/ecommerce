@@ -1,34 +1,34 @@
 <template>
-    <aside class="hidden w-[280px] shrink-0 self-start border-r border-[#e3e7ef] bg-[#EEF2F7] text-[#222] shadow-xl lg:sticky lg:top-0 lg:flex lg:h-[calc(100vh-1rem)] lg:flex-col xl:w-[300px]">
-        <div class="px-5 pt-5">
-            <div class="rounded-[30px] border border-[#e3e7ef] bg-white px-5 py-5 shadow-md">
+    <aside class="hidden w-[280px] shrink-0 self-start border-r border-[#E5E7EB] bg-[#EEF2F7] text-[#111827] lg:sticky lg:top-0 lg:flex lg:h-[calc(100vh-1rem)] lg:flex-col">
+        <div class="px-4 pt-4">
+            <div class="rounded-[20px] border border-[#E5E7EB] bg-white px-4 py-4 shadow-[0_10px_24px_rgba(17,24,39,0.06)]">
                 <div class="flex items-center gap-3">
                     <img
                         :src="logoUrl"
                         alt="Store logo"
-                        class="h-12 w-12 rounded-2xl bg-[#F8FAFC] p-1 shadow"
+                        class="h-11 w-11 rounded-[16px] border border-[#EEF2F7] bg-[#F8FAFC] p-1.5 shadow-[0_6px_16px_rgba(17,24,39,0.06)]"
                     >
                     <div class="min-w-0">
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#A0A4AE]">BACKEND ACCESS</p>
-                        <h1 class="truncate text-xl font-bold tracking-[-0.04em] text-[#222]">{{ brandName }}</h1>
+                        <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9CA3AF]">Backend access</p>
+                        <h1 class="truncate text-[1.1rem] font-semibold tracking-[-0.03em] text-[#111827]">{{ brandName }}</h1>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="soft-scroll flex-1 overflow-y-auto px-4 py-5">
-            <nav class="space-y-1">
+        <div class="soft-scroll flex-1 overflow-y-auto px-3 py-5">
+            <nav class="space-y-1.5">
                 <div v-for="item in menuItems" :key="item.slug">
                     <button
                         v-if="itemChildren(item).length"
                         type="button"
-                        class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition"
+                        class="group flex h-[52px] w-full items-center gap-3 rounded-[16px] px-3.5 text-left text-sm transition duration-200"
                         :class="[parentItemClass(item), 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
                         @click="$emit('toggle-menu', item.slug)"
                     >
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" :class="parentIconWrapClass(item)">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-[12px] border border-[#EEF2F7]" :class="parentIconWrapClass(item)">
                             <svg
-                                class="h-4 w-4"
+                                class="h-[18px] w-[18px]"
                                 :class="parentIconClass(item)"
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -40,7 +40,7 @@
                         </span>
                         <span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
                         <svg
-                            class="h-3 w-3 transition"
+                            class="h-4 w-4 shrink-0 transition"
                             :class="[parentChevronClass(item), isOpen(item) ? 'rotate-180' : '']"
                             viewBox="0 0 20 20"
                             fill="none"
@@ -53,14 +53,14 @@
                     <button
                         v-else
                         type="button"
-                        class="group flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition"
-                        :class="[item.is_active ? 'bg-[#A25F88] font-bold text-white shadow' : 'text-[#222]/80 hover:bg-[#F3E8F1]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
+                        class="group flex h-[52px] w-full items-center gap-3 rounded-[16px] px-3.5 text-left text-sm transition duration-200"
+                        :class="[item.is_active ? 'bg-[linear-gradient(135deg,#A25F88,#8E4F76)] font-semibold text-white shadow-[0_12px_24px_rgba(162,95,136,0.24)]' : 'text-[#111827] hover:bg-[#F8FAFC]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
                         :disabled="menuIsInteractive(item) === false"
                         @click="$emit('select-item', item)"
                     >
-                        <span class="flex h-7 w-7 items-center justify-center rounded-lg" :class="item.is_active ? 'bg-[#A25F88]' : 'bg-[#F8FAFC]'">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-[12px] border border-[#EEF2F7]" :class="item.is_active ? 'bg-white/12 border-white/15' : 'bg-white'">
                             <svg
-                                class="h-4 w-4"
+                                class="h-[18px] w-[18px]"
                                 :class="item.is_active ? 'text-white' : 'text-[#A25F88]'"
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -74,15 +74,15 @@
                     </button>
                     <div
                         v-if="itemChildren(item).length && isOpen(item)"
-                        class="ml-3 mt-1 space-y-1 border-l-2 pl-3"
-                        :class="isParentMenuHighlighted(item) ? 'border-[#A25F88]/40' : 'border-[#e3e7ef]'"
+                        class="ml-5 mt-1 space-y-1.5 border-l pl-4"
+                        :class="isParentMenuHighlighted(item) ? 'border-[#D7B3C8]' : 'border-[#E5E7EB]'"
                     >
                         <button
                             v-for="child in itemChildren(item)"
                             :key="child.slug"
                             type="button"
-                            class="flex w-full items-center rounded px-2 py-1.5 text-left text-xs font-medium transition"
-                            :class="[child.is_active ? 'bg-[#A25F88] font-bold text-white' : 'text-[#222]/70 hover:bg-[#F3E8F1]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
+                            class="flex min-h-[40px] w-full items-center rounded-[12px] px-3 py-2 text-left text-[13px] font-medium transition duration-200"
+                            :class="[child.is_active ? 'bg-[#A25F88] font-semibold text-white shadow-[0_8px_18px_rgba(162,95,136,0.20)]' : 'text-[#6B7280] hover:bg-[#F8FAFC] hover:text-[#111827]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
                             :disabled="menuIsInteractive(child) === false"
                             @click="$emit('select-item', child)"
                         >
@@ -93,10 +93,10 @@
             </nav>
         </div>
 
-        <div class="border-t border-[#dfe5f5] px-4 py-4">
+        <div class="mt-auto border-t border-[#E5E7EB] px-3 pb-4 pt-4">
             <button
                 type="button"
-                class="flex w-full items-center gap-3 rounded-2xl bg-white px-3 py-3 text-left shadow-sm transition hover:bg-[#f8fafc]"
+                class="flex w-full items-center gap-3 rounded-[20px] border border-[#E5E7EB] bg-white px-4 py-4 text-left shadow-[0_10px_24px_rgba(17,24,39,0.06)] transition hover:bg-[#F8FAFC]"
                 @click="$emit('select-item', { slug: 'logout' })"
             >
                 <img
@@ -107,16 +107,16 @@
                 >
                 <span
                     v-else
-                    class="flex h-11 w-11 items-center justify-center rounded-full bg-[#edf3ff] text-sm font-bold text-[#355eea]"
+                    class="flex h-11 w-11 items-center justify-center rounded-full bg-[#EEF2FF] text-sm font-bold text-[#4F46E5]"
                 >
                     {{ currentUserInitials }}
                 </span>
 
                 <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-semibold text-slate-900">
+                    <span class="block truncate text-sm font-semibold text-[#111827]">
                         {{ resolvedUser?.name || 'Admin User' }}
                     </span>
-                    <span class="block truncate text-xs text-slate-500">
+                    <span class="block truncate text-xs text-[#6B7280]">
                         {{ currentUserSubtitle }}
                     </span>
                 </span>
@@ -241,14 +241,14 @@ function isOpen(item) {
 
 function parentItemClass(item) {
     if (isParentMenuHighlighted(item)) {
-        return 'bg-[#A25F88] font-bold text-white shadow';
+        return 'bg-[linear-gradient(135deg,#A25F88,#8E4F76)] font-semibold text-white shadow-[0_12px_24px_rgba(162,95,136,0.24)]';
     }
 
-    return 'text-[#222]/80 hover:bg-[#F3E8F1]';
+    return 'text-[#111827] hover:bg-[#F8FAFC]';
 }
 
 function parentIconWrapClass(item) {
-    return isParentMenuHighlighted(item) ? 'bg-[#A25F88]' : 'bg-[#F8FAFC]';
+    return isParentMenuHighlighted(item) ? 'bg-white/12 border-white/15' : 'bg-white';
 }
 
 function parentIconClass(item) {
@@ -256,7 +256,7 @@ function parentIconClass(item) {
 }
 
 function parentChevronClass(item) {
-    return isParentMenuHighlighted(item) ? 'text-white' : 'text-[#A0A4AE]';
+    return isParentMenuHighlighted(item) ? 'text-white' : 'text-[#9CA3AF]';
 }
 
 function iconPath(icon) {

@@ -1,46 +1,48 @@
 <template>
-    <header class="border-b border-[#dfe5f5] bg-white/88 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
-        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div class="flex min-w-0 items-start gap-3">
-                <button
-                    type="button"
-                    class="admin-chip flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-slate-500 transition hover:-translate-y-0.5 hover:text-slate-900"
-                    @click="$emit('toggle-menu')"
-                >
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
-                    </svg>
-                </button>
+    <header class="px-4 pt-4 sm:px-6 lg:px-7 lg:pt-5">
+        <article class="overflow-hidden rounded-[28px] border border-white/12 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.14),_transparent_34%),linear-gradient(135deg,#465572_0%,#56657F_42%,#A25F88_100%)] text-white shadow-[0_18px_34px_rgba(70,85,114,0.18)]">
+            <div class="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-6 lg:py-5">
+                <div class="flex min-w-0 items-start gap-3">
+                    <button
+                        type="button"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/12 text-white/90 shadow-[0_10px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:bg-white/18 lg:hidden"
+                        @click="$emit('toggle-menu')"
+                    >
+                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+                        </svg>
+                    </button>
 
-                <div class="min-w-0">
-                    <p v-if="heroEyebrow" class="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#6c78da]">{{ heroEyebrow }}</p>
-                    <h1 class="mt-1 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">
-                        {{ heroTitle }}
-                    </h1>
-                    <p v-if="heroSubtitle" class="mt-2 max-w-3xl text-sm leading-7 text-slate-500">
-                        {{ heroSubtitle }}
-                    </p>
+                    <div class="min-w-0 max-w-4xl">
+                        <p v-if="heroEyebrow" class="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#E5E7EB]">{{ heroEyebrow }}</p>
+                        <h1 class="mt-1.5 text-[1.85rem] font-black tracking-[-0.05em] text-white sm:text-[2rem]">
+                            {{ heroTitle }}
+                        </h1>
+                        <p v-if="heroSubtitle" class="mt-2 max-w-3xl text-sm leading-6 text-white/78">
+                            {{ heroSubtitle }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-start lg:justify-end">
+                    <button
+                        v-if="showUtilityActions"
+                        type="button"
+                        class="min-h-[48px] rounded-2xl border border-[rgba(255,255,255,0.28)] bg-[rgba(255,255,255,0.08)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:bg-[rgba(255,255,255,0.16)] focus:outline-none focus:ring-2 focus:ring-white/30"
+                        @click="$emit('refresh')"
+                    >
+                        Refresh
+                    </button>
+                    <button
+                        type="button"
+                        class="min-h-[48px] rounded-2xl border border-white/15 bg-white px-4 py-2.5 text-sm font-semibold text-[#111827] shadow-[0_12px_24px_rgba(15,23,42,0.10)] transition hover:bg-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-white/30"
+                        @click="$emit('primary-action')"
+                    >
+                        {{ primaryActionLabel }}
+                    </button>
                 </div>
             </div>
-
-            <div class="flex flex-wrap items-center gap-3">
-                <button
-                    v-if="showUtilityActions"
-                    type="button"
-                    class="admin-secondary-button rounded-2xl px-4 py-3 text-sm font-semibold transition hover:-translate-y-0.5 hover:text-slate-900"
-                    @click="$emit('refresh')"
-                >
-                    Refresh
-                </button>
-                <button
-                    type="button"
-                    class="admin-primary-button rounded-2xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5"
-                    @click="$emit('primary-action')"
-                >
-                    {{ primaryActionLabel }}
-                </button>
-            </div>
-        </div>
+        </article>
     </header>
 </template>
 
@@ -97,7 +99,7 @@ const heroEyebrow = computed(() => props.dashboard.meta.kicker || ({
 const heroSubtitle = computed(() => props.dashboard.meta.subheadline || ({
     dashboard: 'Track the latest product changes, featured placements, and inventory signals from one admin surface.',
     sliders: '',
-    products: '',
+    products: 'Manage products, categories, stock, and approval status.',
     orders: 'Review customer orders, merchant breakdowns, and payment status changes from one admin queue.',
     'featured-products': 'Focus on products with the strongest storefront visibility and update them without scanning the full catalog.',
     customers: 'View registered storefront customers and keep track of account growth from the admin dashboard.',

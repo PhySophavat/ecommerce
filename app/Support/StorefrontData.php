@@ -37,7 +37,14 @@ class StorefrontData
 
     public static function product(Product $product): array
     {
-        $primaryImage = $product->images->sortBy('sort_order')->first();
+        $imageUrls = $product->images
+            ->sortBy('sort_order')
+            ->pluck('path')
+            ->map(fn (mixed $path): ?string => self::imageUrl($path))
+            ->filter()
+            ->values();
+        $fallbackImage = self::productFallbackImage($product);
+        $primaryImageUrl = $imageUrls->first() ?? $fallbackImage;
         $merchantUser = $product->merchant;
         $merchantProfile = $merchantUser?->merchant;
         $isStorefrontVisible = in_array($product->status, ['approved', 'active'], true);
@@ -65,7 +72,8 @@ class StorefrontData
             'merchant_id' => $merchantProfile?->id,
             'merchant_name' => $merchantProfile?->shop_name ?: ($merchantUser?->name ?: 'Admin Store'),
             'merchant_owner' => $merchantUser?->name ?: Str::before((string) $merchantUser?->email, '@'),
-            'image_url' => $primaryImage?->path ? Storage::disk('public')->url($primaryImage->path) : null,
+            'image_url' => $primaryImageUrl,
+            'image_urls' => $imageUrls->isNotEmpty() ? $imageUrls->all() : [$fallbackImage],
         ];
     }
 
@@ -104,4 +112,63 @@ class StorefrontData
         return '$'.number_format($value, 2);
     }
 
+    private static function imageUrl(?string $value): ?string
+    {
+        $path = trim((string) $value);
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (filter_var($path, FILTER_VALIDATE_URL)) {
+            return $path;
+        }
+
+        if (str_starts_with($path, '/')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            return '/'.ltrim($path, '/');
+        }
+
+        return '/storage/'.ltrim($path, '/');
+    }
+
+    private static function productFallbackImage(Product $product): string
+    {
+        $palette = match ($product->category?->slug) {
+            'beauty' => ['#FCE7F3', '#F9A8D4', '#9D174D'],
+            'fashion' => ['#EDE9FE', '#C4B5FD', '#5B21B6'],
+            'sport' => ['#DCFCE7', '#86EFAC', '#166534'],
+            'electronic' => ['#DBEAFE', '#93C5FD', '#1D4ED8'],
+            'home' => ['#FFEDD5', '#FDBA74', '#C2410C'],
+            default => ['#F3F4F6', '#D1D5DB', '#374151'],
+        };
+
+        $category = htmlspecialchars(Str::upper($product->category?->name ?? 'Product'), ENT_QUOTES, 'UTF-8');
+        $name = htmlspecialchars(Str::upper(Str::limit(strip_tags((string) $product->name), 28, '')), ENT_QUOTES, 'UTF-8');
+        $ariaLabel = htmlspecialchars((string) $product->name, ENT_QUOTES, 'UTF-8');
+
+        $svg = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="{$ariaLabel}">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="{$palette[0]}"/>
+      <stop offset="55%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="{$palette[1]}"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <circle cx="180" cy="160" r="120" fill="{$palette[1]}" fill-opacity="0.24"/>
+  <circle cx="1030" cy="210" r="170" fill="{$palette[1]}" fill-opacity="0.18"/>
+  <circle cx="980" cy="720" r="210" fill="{$palette[0]}" fill-opacity="0.7"/>
+  <text x="96" y="128" fill="{$palette[2]}" font-size="42" font-family="Arial, sans-serif" font-weight="700" letter-spacing="12">{$category}</text>
+  <text x="96" y="675" fill="#111827" font-size="74" font-family="Arial, sans-serif" font-weight="700">{$name}</text>
+  <text x="96" y="750" fill="#6B7280" font-size="30" font-family="Arial, sans-serif">STORE DEMO IMAGE</text>
+</svg>
+SVG;
+
+        return 'data:image/svg+xml;base64,'.base64_encode($svg);
+    }
 }

@@ -304,7 +304,7 @@ function resolveMenuItem(item, role, activeSlugs) {
 }
 
 function alwaysExpandedMenus() {
-    return ['users-admin-management', 'payments', 'wallet', 'content-management'];
+    return [];
 }
 
 export function canAccessScreen(screen, role = currentRole()) {

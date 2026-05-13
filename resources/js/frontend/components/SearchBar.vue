@@ -9,7 +9,7 @@
             :value="modelValue"
             :placeholder="placeholder"
             type="search"
-            class="w-full rounded-full border border-[#E5E7EB] bg-[#F8FAFC] py-3 pl-11 pr-4 text-sm text-[#111827] shadow-sm outline-none transition placeholder:text-[#94A3B8] focus:border-[#E8B4CF] focus:bg-white focus:ring-4 focus:ring-[rgba(162,95,136,0.10)]"
+            class="w-full rounded-full border border-[#E5E7EB] bg-[#F8FAFC] py-3 pl-11 pr-4 text-sm text-[#111827] shadow-[0_8px_20px_rgba(17,24,39,0.04)] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#E8B4CF] focus:bg-white focus:ring-4 focus:ring-[rgba(162,95,136,0.10)]"
             @input="$emit('update:modelValue', $event.target.value)"
         >
     </label>

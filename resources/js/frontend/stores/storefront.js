@@ -186,6 +186,9 @@ export const useStorefrontStore = defineStore('storefront', {
                     size_options: product.size_options ?? categoryOptions(product.category_slug).sizes,
                     variant_options: product.variant_options ?? categoryOptions(product.category_slug).variants,
                     image_url: product.image_url ?? null,
+                    image_urls: Array.isArray(product.image_urls) && product.image_urls.length
+                        ? product.image_urls.filter(Boolean)
+                        : [product.image_url].filter(Boolean),
                 }));
 
                 this.normalizeCart();
