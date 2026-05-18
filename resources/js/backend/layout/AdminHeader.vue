@@ -1,11 +1,11 @@
 <template>
     <header class="px-4 pt-4 sm:px-6 lg:px-7 lg:pt-5">
-        <article class="overflow-hidden rounded-[28px] border border-white/12 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.14),_transparent_34%),linear-gradient(135deg,#465572_0%,#56657F_42%,#A25F88_100%)] text-white shadow-[0_18px_34px_rgba(70,85,114,0.18)]">
-            <div class="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-6 lg:py-5">
+        <article class="overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-[linear-gradient(135deg,#FFFFFF_0%,#FCFAFB_58%,#F7EEF4_100%)] text-[#111827] shadow-[0_10px_25px_rgba(15,23,42,0.04)]">
+            <div class="flex flex-col gap-4 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-6">
                 <div class="flex min-w-0 items-start gap-3">
                     <button
                         type="button"
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/12 text-white/90 shadow-[0_10px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:bg-white/18 lg:hidden"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white text-[#A25F88] shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition hover:bg-[rgba(162,95,136,0.08)] lg:hidden"
                         @click="$emit('toggle-menu')"
                     >
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -14,13 +14,9 @@
                     </button>
 
                     <div class="min-w-0 max-w-4xl">
-                        <p v-if="heroEyebrow" class="text-[10px] font-semibold uppercase tracking-[0.26em] text-[#E5E7EB]">{{ heroEyebrow }}</p>
-                        <h1 class="mt-1.5 text-[1.85rem] font-black tracking-[-0.05em] text-white sm:text-[2rem]">
-                            {{ heroTitle }}
-                        </h1>
-                        <p v-if="heroSubtitle" class="mt-2 max-w-3xl text-sm leading-6 text-white/78">
-                            {{ heroSubtitle }}
-                        </p>
+                        <p v-if="heroEyebrow" class="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">{{ heroEyebrow }}</p>
+                        <h1 class="mt-1.5 text-[1.75rem] font-bold tracking-[-0.045em] text-[#111827] sm:text-[1.85rem]">{{ heroTitle }}</h1>
+                        <p v-if="heroSubtitle" class="mt-2 max-w-3xl text-[14px] leading-6 text-[#6B7280]">{{ heroSubtitle }}</p>
                     </div>
                 </div>
 
@@ -28,14 +24,14 @@
                     <button
                         v-if="showUtilityActions"
                         type="button"
-                        class="min-h-[48px] rounded-2xl border border-[rgba(255,255,255,0.28)] bg-[rgba(255,255,255,0.08)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm transition hover:bg-[rgba(255,255,255,0.16)] focus:outline-none focus:ring-2 focus:ring-white/30"
+                        class="min-h-[46px] rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#6B7280] shadow-[0_8px_18px_rgba(15,23,42,0.05)] transition hover:border-[#D9B7CA] hover:text-[#A25F88] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.18)]"
                         @click="$emit('refresh')"
                     >
                         Refresh
                     </button>
                     <button
                         type="button"
-                        class="min-h-[48px] rounded-2xl border border-white/15 bg-white px-4 py-2.5 text-sm font-semibold text-[#111827] shadow-[0_12px_24px_rgba(15,23,42,0.10)] transition hover:bg-[#F8FAFC] focus:outline-none focus:ring-2 focus:ring-white/30"
+                        class="min-h-[46px] rounded-2xl border border-[#A25F88] bg-[#A25F88] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(162,95,136,0.18)] transition hover:bg-[#92557a] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.24)]"
                         @click="$emit('primary-action')"
                     >
                         {{ primaryActionLabel }}

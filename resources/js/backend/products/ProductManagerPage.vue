@@ -1,17 +1,14 @@
 <template>
-    <div class="chatgpt-admin min-h-screen px-2 py-2 sm:px-4 lg:px-5 lg:py-5">
-        <div class="admin-panel flex min-h-[calc(100vh-1rem)] w-full overflow-x-clip rounded-[36px]">
-            <AdminSidebar
-                :dashboard="dashboard"
-                :is-menu-open="isMenuOpen"
-                :screen="screen"
-                @quick-action="handlePrimaryAction"
-                @scroll-add-product="scrollToAddProduct"
-                @select-item="handleMenuSelection"
-                @toggle-menu="toggleMenu"
-            />
-
-            <div class="flex min-w-0 flex-1 flex-col">
+    <AdminLayout
+        :dashboard="dashboard"
+        :is-menu-open="isMenuOpen"
+        :screen="screen"
+        @quick-action="handlePrimaryAction"
+        @scroll-add-product="scrollToAddProduct"
+        @select-item="handleMenuSelection"
+        @toggle-menu="toggleMenu"
+    >
+        <template #header>
                 <AdminHeader
                     v-if="showHeader"
                     :dashboard="dashboard"
@@ -23,8 +20,9 @@
                     @select-item="handleMenuSelection"
                     @toggle-menu="toggleMenu"
                 />
+        </template>
 
-                <main class="flex-1 p-4 sm:p-6 lg:p-7">
+        <main class="flex-1 p-4 sm:p-6 lg:p-7">
                     <section
                         v-if="notice"
                         class="admin-frosted mb-6 rounded-[26px] px-5 py-4 text-sm"
@@ -78,10 +76,8 @@
                             />
                         </section>
                     </template>
-                </main>
-            </div>
-        </div>
-    </div>
+        </main>
+    </AdminLayout>
 </template>
 
 <script setup>
@@ -89,7 +85,7 @@ import { nextTick, onMounted, ref } from 'vue';
 
 import AddProductForm from './add-product/AddProductForm.vue';
 import AdminHeader from '../layout/AdminHeader.vue';
-import AdminSidebar from '../layout/AdminSidebar.vue';
+import AdminLayout from '../layout/AdminLayout.vue';
 import DashboardWorkspace from './sections/DashboardWorkspace.vue';
 import ProductsTable from './sections/ProductsTable.vue';
 import { useProductDashboard } from './state/useProductDashboard.js';

@@ -14,6 +14,7 @@ class OrderService
 {
     public function __construct(
         private readonly FinanceReportingService $financeReportingService,
+        private readonly TelegramService $telegramService,
     ) {
     }
 
@@ -127,6 +128,10 @@ class OrderService
             ]);
 
             $this->financeReportingService->syncOrder($order);
+
+            DB::afterCommit(function () use ($order): void {
+                $this->telegramService->notifyOrderCreated($order);
+            });
 
             return $order;
         });

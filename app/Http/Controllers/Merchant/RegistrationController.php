@@ -227,6 +227,11 @@ class RegistrationController extends Controller
                 'screen' => 'merchant-status',
                 'merchant' => [
                     'shop_name' => $merchant->shop_name,
+                    'business_type' => $merchant->business_type,
+                    'business_description' => $merchant->business_description,
+                    'shop_logo' => $merchant->shop_logo,
+                    'cover_image' => $merchant->cover_image,
+                    'id_card_document' => $merchant->id_card_document,
                     'status' => $merchant->status,
                     'verification_status' => $merchant->verification_status,
                     'rejection_reason' => $merchant->rejection_reason,
@@ -235,10 +240,15 @@ class RegistrationController extends Controller
                         'name' => $merchant->user?->name,
                         'email' => $merchant->user?->email,
                         'phone' => $merchant->user?->phone,
+                        'profile_image' => $merchant->user?->profile_image,
                     ],
                     'location' => [
                         'province_city' => $merchant->location?->province_city,
                         'full_address' => $merchant->location?->full_address,
+                        'district' => $merchant->location?->district,
+                        'commune' => $merchant->location?->commune,
+                        'google_map_link' => $merchant->location?->google_map_link,
+                        'delivery_area' => $merchant->location?->delivery_area,
                     ],
                 ],
                 'meta' => [

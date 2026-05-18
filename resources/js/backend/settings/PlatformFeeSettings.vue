@@ -1,15 +1,12 @@
 <template>
-    <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-[1540px] overflow-x-clip rounded-[36px]">
-            <AdminSidebar
-                :dashboard="dashboard"
-                :is-menu-open="isMenuOpen"
-                :screen="screen"
-                @select-item="handleMenuSelection"
-                @toggle-menu="toggleMenu"
-            />
-
-            <div class="flex min-w-0 flex-1 flex-col">
+    <AdminLayout
+        :dashboard="dashboard"
+        :is-menu-open="isMenuOpen"
+        :screen="screen"
+        @select-item="handleMenuSelection"
+        @toggle-menu="toggleMenu"
+    >
+        <template #header>
                 <AdminHeader
                     :dashboard="dashboard"
                     :is-menu-open="isMenuOpen"
@@ -19,8 +16,9 @@
                     @select-item="handleMenuSelection"
                     @toggle-menu="toggleMenu"
                 />
+        </template>
 
-                <main class="flex-1 p-4 sm:p-6 lg:p-7">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8">
                     <transition name="fade">
                         <div
                             v-if="toast"
@@ -38,28 +36,28 @@
                         {{ notice.text }}
                     </section>
 
-                    <div v-if="isLoading" class="admin-card rounded-[30px] px-6 py-14 text-center text-sm text-slate-500">
+                    <div v-if="isLoading" class="rounded-[28px] border border-[#E5E7EB] bg-white px-6 py-14 text-center text-sm text-[#6B7280] shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
                         Loading platform fee settings...
                     </div>
 
-                    <div v-else class="grid gap-6 xl:grid-cols-[minmax(0,1.2fr),420px]">
-                        <section class="admin-card rounded-[30px] px-6 py-6">
-                            <div class="flex flex-col gap-2">
+                    <div v-else class="grid gap-6 2xl:grid-cols-[minmax(0,1.18fr),minmax(360px,420px)]">
+                        <section class="rounded-[30px] border border-[#E5E7EB] bg-white px-6 py-6 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:px-7 sm:py-7">
+                            <div class="flex flex-col gap-2 border-b border-[#F1F5F9] pb-6">
                                 <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Platform fee settings</p>
-                                <h2 class="text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Commission rules for merchant payouts</h2>
-                                <p class="text-sm leading-7 text-slate-500">Choose when the platform deducts commission and how much should be withheld from merchant balance.</p>
+                                <h2 class="text-[1.9rem] font-bold tracking-[-0.04em] text-[#111827]">Commission rules for merchant payouts</h2>
+                                <p class="max-w-2xl text-sm leading-7 text-[#6B7280]">Choose when the platform deducts commission and how much should be withheld from merchant balance.</p>
                             </div>
 
-                            <form class="mt-6 space-y-5" @submit.prevent="submitSettings">
-                                <label class="flex items-center justify-between rounded-[24px] border border-[#dfe5f5] bg-[#fbfcff] px-5 py-4">
+                            <form class="mt-7 space-y-6" @submit.prevent="submitSettings">
+                                <label class="flex items-center justify-between gap-4 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] px-5 py-5">
                                     <div>
-                                        <p class="text-sm font-semibold text-slate-900">Enable Platform Fee</p>
-                                        <p class="mt-1 text-sm text-slate-500">Turn automatic commission deduction on or off.</p>
+                                        <p class="text-sm font-semibold text-[#111827]">Enable Platform Fee</p>
+                                        <p class="mt-1 text-sm text-[#6B7280]">Turn automatic commission deduction on or off.</p>
                                     </div>
                                     <button
                                         type="button"
                                         class="relative h-8 w-14 rounded-full transition"
-                                        :class="form.is_enabled ? 'bg-[#4f5ee4]' : 'bg-slate-300'"
+                                        :class="form.is_enabled ? 'bg-[#A25F88]' : 'bg-slate-300'"
                                         @click="form.is_enabled = !form.is_enabled"
                                     >
                                         <span
@@ -69,20 +67,20 @@
                                     </button>
                                 </label>
 
-                                <div class="grid gap-5 md:grid-cols-2">
-                                    <label class="block space-y-2">
-                                        <span class="text-sm font-semibold text-slate-800">Fee Type</span>
+                                <div class="grid gap-5 lg:grid-cols-2">
+                                    <label class="block space-y-2.5">
+                                        <span class="text-sm font-semibold text-[#111827]">Fee Type</span>
                                         <input
                                             value="Percentage"
                                             type="text"
-                                            class="field-input bg-slate-50 text-slate-500"
+                                            class="field-input bg-[#F8FAFC] text-[#6B7280]"
                                             readonly
                                         >
                                         <p v-if="errors.fee_type" class="text-xs text-rose-600">{{ errors.fee_type[0] }}</p>
                                     </label>
 
-                                    <label class="block space-y-2">
-                                        <span class="text-sm font-semibold text-slate-800">Fee Value</span>
+                                    <label class="block space-y-2.5">
+                                        <span class="text-sm font-semibold text-[#111827]">Fee Value</span>
                                         <div class="relative">
                                             <input
                                                 v-model="form.fee_value"
@@ -96,14 +94,14 @@
                                             >
                                             <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-400">%</span>
                                         </div>
-                                        <p class="text-xs text-slate-500">Enter a value from 0 to 100.</p>
+                                        <p class="text-xs text-[#6B7280]">Enter a value from 0 to 100.</p>
                                         <p v-if="errors.fee_value" class="text-xs text-rose-600">{{ errors.fee_value[0] }}</p>
                                     </label>
                                 </div>
 
-                                <div class="grid gap-5 md:grid-cols-2">
-                                    <label class="block space-y-2">
-                                        <span class="text-sm font-semibold text-slate-800">Apply Stage</span>
+                                <div class="space-y-2.5">
+                                    <label class="block space-y-2.5">
+                                        <span class="text-sm font-semibold text-[#111827]">Apply Stage</span>
                                         <select v-model="form.apply_stage" class="field-input" :class="fieldClass('apply_stage')">
                                             <option value="payment_success">Payment Success</option>
                                             <option value="order_completed">Order Completed</option>
@@ -111,23 +109,20 @@
                                         <p v-if="errors.apply_stage" class="text-xs text-rose-600">{{ errors.apply_stage[0] }}</p>
                                     </label>
 
-                                    <label class="block space-y-2">
-                                        <span class="text-sm font-semibold text-slate-800">Deduct From</span>
-                                        <input value="Merchant Balance" type="text" class="field-input bg-slate-50 text-slate-500" readonly>
-                                    </label>
+                                    <input v-model="form.deduct_from" type="hidden">
                                 </div>
 
-                                <div class="rounded-[24px] border border-[#e3e9f7] bg-[#f8faff] px-5 py-5">
-                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="rounded-[26px] border border-[#E5E7EB] bg-[#F8FAFC] px-5 py-5">
+                                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
-                                            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6c78da]">Rule summary</p>
-                                            <p class="mt-2 text-sm text-slate-600">
+                                            <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#A25F88]">Rule summary</p>
+                                            <p class="mt-2 max-w-2xl text-sm leading-7 text-[#6B7280]">
                                                 {{ form.is_enabled ? `The platform fee will be deducted when the order reaches ${applyStageLabel.toLowerCase()}.` : 'The platform fee is disabled, so merchants receive the full amount.' }}
                                             </p>
                                         </div>
                                         <button
                                             type="submit"
-                                            class="admin-primary-button rounded-2xl px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                                            class="rounded-2xl bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(162,95,136,0.22)] transition hover:-translate-y-0.5 hover:bg-[#92557a] disabled:cursor-not-allowed disabled:opacity-60"
                                             :disabled="isSaving"
                                         >
                                             {{ isSaving ? 'Saving...' : 'Save Settings' }}
@@ -137,47 +132,66 @@
                             </form>
                         </section>
 
-                        <section class="admin-card rounded-[30px] px-6 py-6">
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Preview</p>
-                            <h3 class="mt-2 text-2xl font-extrabold tracking-[-0.04em] text-slate-950">Example payout</h3>
-                            <p class="mt-2 text-sm leading-7 text-slate-500">This example uses an order total of $100.00 to show what the merchant receives and what the platform earns.</p>
+                        <section class="rounded-[30px] border border-[#E5E7EB] bg-white px-6 py-6 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:px-7 sm:py-7">
+                            <div class="rounded-[26px] border border-[#EDE7EC] bg-[linear-gradient(180deg,#FCFAFB_0%,#FFFFFF_100%)] p-5 sm:p-6">
+                                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Preview</p>
+                                <h3 class="mt-2 text-[1.9rem] font-bold tracking-[-0.04em] text-[#111827]">Example payout</h3>
+                                <p class="mt-2 text-sm leading-7 text-[#6B7280]">This example uses an order total of $100.00 to show what the merchant receives and what the platform earns.</p>
 
-                            <div class="mt-6 space-y-4">
-                                <div class="rounded-[24px] border border-[#e3e9f7] bg-[#fbfcff] px-5 py-4">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Order total</p>
-                                    <p class="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-slate-950">${{ preview.order_total }}</p>
+                                <div class="mt-6 grid gap-4 md:grid-cols-3">
+                                    <div class="rounded-[22px] border border-[#E5E7EB] bg-white px-5 py-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">Order Total</p>
+                                        <p class="mt-3 text-3xl font-bold tracking-[-0.04em] text-[#111827]">${{ preview.order_total }}</p>
+                                        <p class="mt-2 text-xs text-[#6B7280]">Base amount used for this payout example.</p>
+                                    </div>
+
+                                    <div class="rounded-[22px] border border-[#F0D9E6] bg-[#FCF4F8] px-5 py-5 shadow-[0_10px_24px_rgba(162,95,136,0.06)]">
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A25F88]">Platform Fee</p>
+                                        <p class="mt-3 text-3xl font-bold tracking-[-0.04em] text-[#A25F88]">${{ preview.platform_fee }}</p>
+                                        <p class="mt-2 text-xs text-[#8B5C78]">{{ previewDescription }}</p>
+                                    </div>
+
+                                    <div class="rounded-[22px] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-[0_10px_24px_rgba(16,185,129,0.06)]">
+                                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">Merchant Receives</p>
+                                        <p class="mt-3 text-3xl font-bold tracking-[-0.04em] text-emerald-700">${{ preview.merchant_receives }}</p>
+                                        <p class="mt-2 text-xs text-emerald-700/80">Net amount released to merchant balance.</p>
+                                    </div>
                                 </div>
 
-                                <div class="rounded-[24px] border border-[#f0d9e6] bg-[#fcf7fa] px-5 py-4">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#A25F88]">Platform fee</p>
-                                    <p class="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-[#A25F88]">${{ preview.platform_fee }}</p>
-                                    <p class="mt-1 text-sm text-slate-500">{{ previewDescription }}</p>
-                                </div>
+                                <div class="mt-6 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] p-5">
+                                    <div class="flex items-center justify-between gap-3 border-b border-[#E5E7EB] pb-4">
+                                        <div>
+                                            <p class="text-sm font-semibold text-[#111827]">Payout details</p>
+                                            <p class="mt-1 text-xs uppercase tracking-[0.16em] text-[#9CA3AF]">Current rule snapshot</p>
+                                        </div>
+                                        <span class="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#A25F88] shadow-sm">
+                                            {{ form.is_enabled ? 'Fee enabled' : 'Fee disabled' }}
+                                        </span>
+                                    </div>
 
-                                <div class="rounded-[24px] border border-emerald-200 bg-emerald-50 px-5 py-4">
-                                    <p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Merchant receives</p>
-                                    <p class="mt-2 text-3xl font-extrabold tracking-[-0.04em] text-emerald-700">${{ preview.merchant_receives }}</p>
-                                </div>
-
-                                <div class="rounded-[24px] border border-[#dfe5f5] bg-white px-5 py-4 text-sm text-slate-600">
-                                    <p><span class="font-semibold text-slate-900">Platform earns:</span> ${{ preview.platform_earns }}</p>
-                                    <p class="mt-2"><span class="font-semibold text-slate-900">Apply stage:</span> {{ applyStageLabel }}</p>
-                                    <p class="mt-2"><span class="font-semibold text-slate-900">Deduct from:</span> Merchant Balance</p>
+                                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                        <div class="rounded-[18px] bg-white px-4 py-3">
+                                            <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">Platform Earns</p>
+                                            <p class="mt-2 text-base font-semibold text-[#111827]">${{ preview.platform_earns }}</p>
+                                        </div>
+                                        <div class="rounded-[18px] bg-white px-4 py-3">
+                                            <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9CA3AF]">Apply Stage</p>
+                                            <p class="mt-2 text-base font-semibold text-[#111827]">{{ applyStageLabel }}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </section>
                     </div>
-                </main>
-            </div>
-        </div>
-    </div>
+        </main>
+    </AdminLayout>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 
 import AdminHeader from '../layout/AdminHeader.vue';
-import AdminSidebar from '../layout/AdminSidebar.vue';
+import AdminLayout from '../layout/AdminLayout.vue';
 
 const screen = 'platform-fee-settings';
 const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/platform-fee-settings';
@@ -407,17 +421,23 @@ function initialDashboard() {
 <style scoped>
 .field-input {
     width: 100%;
-    border-radius: 1.25rem;
+    border-radius: 1rem;
     border-width: 1px;
-    padding: 0.9rem 1rem;
+    border-color: #e5e7eb;
+    padding: 0.95rem 1rem;
     font-size: 0.95rem;
+    color: #111827;
     outline: none;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
 }
 
 .field-input:focus {
     border-color: #a25f88;
     box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.12);
+}
+
+.field-input::placeholder {
+    color: #9ca3af;
 }
 
 .fade-enter-active,

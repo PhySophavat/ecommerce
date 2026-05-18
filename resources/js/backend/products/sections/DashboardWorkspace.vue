@@ -1,20 +1,22 @@
 <template>
     <section v-if="workspace" class="space-y-6">
-        <article class="overflow-hidden rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,#465572_0%,#5B6FA3_55%,#A25F88_100%)] text-white shadow-[0_22px_44px_rgba(70,85,114,0.24)]">
-            <div class="grid gap-5 px-5 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start lg:px-6 lg:py-6">
+        <article class="overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-[linear-gradient(135deg,#FFFFFF_0%,#FDF2F8_50%,#F8FAFC_100%)] text-[#111827] shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+            <div class="grid gap-4 px-5 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-6 lg:py-4">
                 <div class="min-w-0 max-w-4xl">
-                    <h2 class="text-[1.7rem] font-black tracking-[-0.05em] text-white">{{ workspace.hero?.title || 'E-commerce Overview' }}</h2>
+                    <p class="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">{{ workspace.hero?.eyebrow || 'Overview' }}</p>
+                    <h2 class="mt-1.5 text-[1.85rem] font-bold tracking-[-0.045em] text-[#111827]">{{ workspace.hero?.title || 'E-commerce Overview' }}</h2>
+                    <p class="mt-2 max-w-3xl text-[14px] leading-6 text-[#6B7280]">{{ headerDescription }}</p>
                 </div>
 
-                <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-start lg:justify-end lg:self-start">
-                    <label class="flex min-h-[50px] items-center gap-3 rounded-xl border border-white/15 bg-white px-4 py-2.5 text-sm font-semibold text-[#111827] shadow-[0_12px_28px_rgba(15,23,42,0.12)]">
-                        <span class="text-[#64748B]">Date</span>
-                        <select v-model="selectedRange" class="bg-transparent pr-6 outline-none">
+                <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-start lg:justify-end">
+                    <label class="flex min-h-[46px] items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#111827] shadow-[0_8px_20px_rgba(15,23,42,0.04)]">
+                        <span class="font-medium text-[#6B7280]">Date</span>
+                        <select v-model="selectedRange" class="bg-transparent pr-6 font-semibold text-[#111827] outline-none">
                             <option v-for="item in rangeOptions" :key="item.value" :value="item.value">{{ item.label }}</option>
                         </select>
                     </label>
 
-                    <button type="button" class="min-h-[50px] rounded-xl border border-[rgba(255,255,255,0.25)] bg-[rgba(255,255,255,0.14)] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.10)] backdrop-blur-sm transition hover:bg-[rgba(255,255,255,0.22)] focus:outline-none focus:ring-2 focus:ring-white/30" @click="$emit('refresh')">
+                    <button type="button" class="min-h-[46px] rounded-2xl border border-[#A25F88] bg-[#A25F88] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(162,95,136,0.18)] transition hover:bg-[#92557a] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.24)]" @click="$emit('refresh')">
                         Refresh
                     </button>
                 </div>
@@ -223,6 +225,7 @@ const revenueTrendPoints = computed(() => activeDataset.value.revenue_trend.map(
     label: item.label,
     value: Number(item.value || 0),
 })));
+const headerDescription = computed(() => workspaceHeaderDescription(props.workspace));
 
 function orderStatusClass(status) {
     return {
@@ -246,5 +249,15 @@ function navigateTo(path) {
     }
 
     window.location.href = path;
+}
+
+function workspaceHeaderDescription(workspace) {
+    const heroTitle = String(workspace?.hero?.title || '').toLowerCase();
+
+    if (heroTitle.includes('merchant')) {
+        return 'Track orders, customers, products, and store performance from one clean merchant summary.';
+    }
+
+    return 'Track sales, customers, orders, and inventory from a focused admin summary.';
 }
 </script>
