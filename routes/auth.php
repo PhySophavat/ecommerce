@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use Illuminate\Support\Facades\Route;
 
 // Authentication routes
 // Login
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+Route::get('/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+Route::get('/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 
 Route::middleware('guest')->group(function () {
     // Register

@@ -152,7 +152,13 @@ function selectedStatusLabel() {
 }
 
 function filledVariantCount() {
-    return props.form.variants.filter((variant) => [variant.size, variant.color, variant.price, variant.stock].some((value) => String(value).trim() !== '')).length;
+    return props.form.variants.filter((variant) => {
+        const hasAttributes = Array.isArray(variant.attributes) && variant.attributes.length > 0;
+        const hasPrice = String(variant.price ?? '').trim() !== '';
+        const hasStock = String(variant.stock ?? '').trim() !== '';
+
+        return hasAttributes && (hasPrice || hasStock);
+    }).length;
 }
 
 function effectivePriceLabel() {

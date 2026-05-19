@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -26,18 +27,20 @@ class OrderService
         $cartLines = collect($payload['items'] ?? [])
             ->map(fn (array $item): array => [
                 'product_id' => (int) $item['product_id'],
+                'variant_id' => isset($item['variant_id']) ? (int) $item['variant_id'] : null,
                 'quantity' => (int) $item['quantity'],
             ])
-            ->groupBy('product_id')
-            ->map(fn (Collection $rows, $productId): array => [
-                'product_id' => (int) $productId,
+            ->groupBy(fn (array $item): string => $item['product_id'].'|'.($item['variant_id'] ?? 'base'))
+            ->map(fn (Collection $rows): array => [
+                'product_id' => (int) $rows->first()['product_id'],
+                'variant_id' => $rows->first()['variant_id'],
                 'quantity' => (int) $rows->sum('quantity'),
             ])
             ->values();
 
         return DB::transaction(function () use ($customer, $payload, $cartLines): Order {
             $products = Product::query()
-                ->with(['images', 'merchant.merchant'])
+                ->with(['images', 'variants', 'merchant.merchant'])
                 ->whereIn('id', $cartLines->pluck('product_id'))
                 ->lockForUpdate()
                 ->get()
@@ -54,6 +57,10 @@ class OrderService
             foreach ($cartLines as $line) {
                 /** @var Product $product */
                 $product = $products->get($line['product_id']);
+                /** @var ProductVariant|null $variant */
+                $variant = $line['variant_id']
+                    ? $product->variants->firstWhere('id', $line['variant_id'])
+                    : null;
 
                 if (!$product->isApproved()) {
                     throw ValidationException::withMessages([
@@ -67,13 +74,26 @@ class OrderService
                     ]);
                 }
 
+                if ($line['variant_id'] && !$variant) {
+                    throw ValidationException::withMessages([
+                        'items' => ["The selected variant for {$product->name} is no longer available."],
+                    ]);
+                }
+
                 if ((int) $product->inventory < $line['quantity']) {
                     throw ValidationException::withMessages([
                         'items' => ["Only {$product->inventory} unit(s) of {$product->name} are available."],
                     ]);
                 }
 
-                $subtotal += round((float) $product->price * $line['quantity'], 2);
+                if ($variant && (int) $variant->stock < $line['quantity']) {
+                    throw ValidationException::withMessages([
+                        'items' => ["Only {$variant->stock} unit(s) of {$variant->label} are available."],
+                    ]);
+                }
+
+                $unitPrice = (float) ($variant?->price ?? $product->price);
+                $subtotal += round($unitPrice * $line['quantity'], 2);
             }
 
             $order = Order::query()->create([
@@ -101,21 +121,30 @@ class OrderService
             foreach ($cartLines as $line) {
                 /** @var Product $product */
                 $product = $products->get($line['product_id']);
+                /** @var ProductVariant|null $variant */
+                $variant = $line['variant_id']
+                    ? $product->variants->firstWhere('id', $line['variant_id'])
+                    : null;
                 $merchant = $product->merchant?->merchant;
                 $primaryImage = $product->images->sortBy('sort_order')->first();
-                $lineTotal = round((float) $product->price * $line['quantity'], 2);
+                $unitPrice = (float) ($variant?->price ?? $product->price);
+                $lineTotal = round($unitPrice * $line['quantity'], 2);
 
                 $order->items()->create([
                     'product_id' => $product->id,
                     'merchant_id' => $merchant?->id,
                     'product_name' => $product->name,
-                    'product_image' => $primaryImage?->path,
-                    'product_sku' => $product->sku,
+                    'product_image' => $variant?->image_path ?? $primaryImage?->path,
+                    'product_sku' => $variant?->sku ?? $product->sku,
                     'theme' => $product->theme ?: 'cobalt',
-                    'unit_price' => $product->price,
+                    'unit_price' => $unitPrice,
                     'quantity' => $line['quantity'],
                     'line_total' => $lineTotal,
                 ]);
+
+                if ($variant) {
+                    $variant->decrement('stock', $line['quantity']);
+                }
 
                 $product->decrement('inventory', $line['quantity']);
             }

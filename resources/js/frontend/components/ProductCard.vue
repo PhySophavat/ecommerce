@@ -41,12 +41,21 @@
                 <span>({{ product.reviews_count }} reviews)</span>
             </div>
 
-            <div class="mt-auto flex items-end justify-between gap-4 pt-4">
-                <div class="min-w-0">
+            <div class="mt-auto flex items-start justify-between gap-4 pt-4">
+                <div class="min-w-0 min-h-[4.5rem]">
                     <div class="text-[1.95rem] font-bold tracking-[-0.03em] text-[#A25F88]">{{ product.price }}</div>
                     <div v-if="product.compare_at_price" class="text-sm text-[#9CA3AF] line-through">{{ product.compare_at_price }}</div>
                 </div>
-                <Button variant="primary" size="sm" class="min-w-[126px] shrink-0" :disabled="!product.is_orderable" @click="$emit('add-to-cart', product.id)">
+                <Button
+                    v-if="hasSelectableVariants"
+                    :to="`/product/${product.id}`"
+                    variant="primary"
+                    size="sm"
+                    class="min-w-[112px] shrink-0 px-4 text-sm"
+                >
+                    Add to cart
+                </Button>
+                <Button v-else variant="primary" size="sm" class="min-w-[112px] shrink-0 px-4 text-sm" :disabled="!product.is_orderable" @click="$emit('add-to-cart', product.id)">
                     {{ product.is_orderable ? 'Add to cart' : 'Unavailable' }}
                 </Button>
             </div>
@@ -55,9 +64,10 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import Button from './Button.vue';
 
-defineProps({
+const props = defineProps({
     product: {
         type: Object,
         required: true,
@@ -69,4 +79,6 @@ defineProps({
 });
 
 defineEmits(['add-to-cart', 'toggle-wishlist']);
+
+const hasSelectableVariants = computed(() => Array.isArray(props.product?.variants) && props.product.variants.length > 0);
 </script>

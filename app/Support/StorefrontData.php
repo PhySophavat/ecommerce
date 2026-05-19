@@ -4,10 +4,10 @@ namespace App\Support;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Slide;
 use App\Models\User;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Storage;
 
 class StorefrontData
 {
@@ -18,6 +18,7 @@ class StorefrontData
             'name' => $user->name ?: Str::before($user->email, '@'),
             'email' => $user->email,
             'phone' => $user->phone,
+            'avatar' => $user->avatar,
             'role' => $user->role,
             'joined_at' => $user->created_at?->toDateString(),
         ];
@@ -48,6 +49,8 @@ class StorefrontData
         $merchantUser = $product->merchant;
         $merchantProfile = $merchantUser?->merchant;
         $isStorefrontVisible = in_array($product->status, ['approved', 'active'], true);
+        $variantGroups = self::variantGroups($product);
+        $variants = self::variants($product);
 
         return [
             'id' => $product->id,
@@ -74,6 +77,11 @@ class StorefrontData
             'merchant_owner' => $merchantUser?->name ?: Str::before((string) $merchantUser?->email, '@'),
             'image_url' => $primaryImageUrl,
             'image_urls' => $imageUrls->isNotEmpty() ? $imageUrls->all() : [$fallbackImage],
+            'variant_groups' => $variantGroups,
+            'variants' => $variants,
+            'color_options' => self::groupOptions($variantGroups, 'Color'),
+            'size_options' => self::groupOptions($variantGroups, 'Size'),
+            'variant_options' => self::primaryVariantOptions($variantGroups),
         ];
     }
 
@@ -170,5 +178,111 @@ class StorefrontData
 SVG;
 
         return 'data:image/svg+xml;base64,'.base64_encode($svg);
+    }
+
+    /**
+     * @return array<int, array{name: string, options: array<int, string>}>
+     */
+    private static function variantGroups(Product $product): array
+    {
+        $groupMap = [];
+
+        foreach ($product->variants as $variant) {
+            foreach (self::variantAttributes($variant) as $attribute) {
+                if (!isset($groupMap[$attribute['name']])) {
+                    $groupMap[$attribute['name']] = [];
+                }
+
+                if (!in_array($attribute['value'], $groupMap[$attribute['name']], true)) {
+                    $groupMap[$attribute['name']][] = $attribute['value'];
+                }
+            }
+        }
+
+        return collect($groupMap)
+            ->map(fn (array $options, string $name): array => [
+                'name' => $name,
+                'options' => array_values($options),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private static function variants(Product $product): array
+    {
+        return $product->variants
+            ->values()
+            ->map(fn (ProductVariant $variant): array => [
+                'id' => $variant->id,
+                'label' => $variant->label ?: collect(self::variantAttributes($variant))->pluck('value')->implode(' / '),
+                'attributes' => self::variantAttributes($variant),
+                'price' => self::currency((float) $variant->price),
+                'price_value' => number_format((float) $variant->price, 2, '.', ''),
+                'stock' => (int) $variant->stock,
+                'sku' => $variant->sku,
+                'image_url' => self::imageUrl($variant->image_path),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{name: string, value: string}>
+     */
+    private static function variantAttributes(ProductVariant $variant): array
+    {
+        $optionValues = collect($variant->option_values ?? [])
+            ->map(fn (array $attribute): array => [
+                'name' => trim((string) ($attribute['name'] ?? '')),
+                'value' => trim((string) ($attribute['value'] ?? '')),
+            ])
+            ->filter(fn (array $attribute): bool => $attribute['name'] !== '' && $attribute['value'] !== '')
+            ->values();
+
+        if ($optionValues->isNotEmpty()) {
+            return $optionValues->all();
+        }
+
+        return collect([
+            ['name' => 'Size', 'value' => (string) $variant->size],
+            ['name' => 'Color', 'value' => (string) $variant->color],
+        ])
+            ->filter(fn (array $attribute): bool => trim($attribute['value']) !== '')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array{name: string, options: array<int, string>}>  $groups
+     * @return array<int, string>
+     */
+    private static function groupOptions(array $groups, string $name): array
+    {
+        foreach ($groups as $group) {
+            if (Str::lower((string) ($group['name'] ?? '')) === Str::lower($name)) {
+                return array_values($group['options'] ?? []);
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * @param  array<int, array{name: string, options: array<int, string>}>  $groups
+     * @return array<int, string>
+     */
+    private static function primaryVariantOptions(array $groups): array
+    {
+        foreach ($groups as $group) {
+            $name = Str::lower((string) ($group['name'] ?? ''));
+
+            if (!in_array($name, ['color', 'size'], true)) {
+                return array_values($group['options'] ?? []);
+            }
+        }
+
+        return [];
     }
 }

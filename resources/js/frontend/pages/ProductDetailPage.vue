@@ -35,7 +35,7 @@
                 </div>
 
                 <div class="mt-6 flex items-end gap-4">
-                    <div class="text-4xl font-black tracking-[-0.05em] text-[#1495E8]">{{ product.price }}</div>
+                    <div class="text-4xl font-black tracking-[-0.05em] text-[#1495E8]">{{ displayPrice }}</div>
                     <div v-if="product.compare_at_price" class="pb-1 text-lg text-[#94A3B8] line-through">{{ product.compare_at_price }}</div>
                 </div>
 
@@ -44,31 +44,19 @@
                 </p>
 
                 <div class="mt-8 space-y-6">
-                    <div>
-                        <h3 class="text-sm font-semibold text-[#111827]">Variant</h3>
+                    <div v-for="group in variantGroups" :key="group.name">
+                        <h3 class="text-sm font-semibold text-[#111827]">{{ group.name }}</h3>
                         <div class="mt-3 flex flex-wrap gap-2">
-                            <button v-for="option in product.variant_options" :key="option" type="button" class="rounded-full border px-4 py-2 text-sm font-semibold transition" :class="selectedVariant === option ? 'border-[#1495E8] bg-[#F3F9FD] text-[#1495E8]' : 'border-[#D8E7F4] text-[#6B7280]'" @click="selectedVariant = option">
+                            <button
+                                v-for="option in group.options"
+                                :key="`${group.name}-${option}`"
+                                type="button"
+                                class="rounded-full border px-4 py-2 text-sm font-semibold transition"
+                                :class="selectedOption(group.name) === option ? 'border-[#1495E8] bg-[#F3F9FD] text-[#1495E8]' : 'border-[#D8E7F4] text-[#6B7280]'"
+                                @click="setSelectedOption(group.name, option)"
+                            >
                                 {{ option }}
                             </button>
-                        </div>
-                    </div>
-
-                    <div class="grid gap-6 sm:grid-cols-2">
-                        <div>
-                            <h3 class="text-sm font-semibold text-[#111827]">Color</h3>
-                            <div class="mt-3 flex flex-wrap gap-2">
-                                <button v-for="color in product.color_options" :key="color" type="button" class="rounded-full border px-4 py-2 text-sm font-semibold transition" :class="selectedColor === color ? 'border-[#1495E8] bg-[#F3F9FD] text-[#1495E8]' : 'border-[#D8E7F4] text-[#6B7280]'" @click="selectedColor = color">
-                                    {{ color }}
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-semibold text-[#111827]">Size</h3>
-                            <div class="mt-3 flex flex-wrap gap-2">
-                                <button v-for="size in product.size_options" :key="size" type="button" class="rounded-full border px-4 py-2 text-sm font-semibold transition" :class="selectedSize === size ? 'border-[#1495E8] bg-[#F3F9FD] text-[#1495E8]' : 'border-[#D8E7F4] text-[#6B7280]'" @click="selectedSize = size">
-                                    {{ size }}
-                                </button>
-                            </div>
                         </div>
                     </div>
 
@@ -76,23 +64,23 @@
                         <div class="inline-flex items-center rounded-full border border-[#D8E7F4] bg-[#F3F9FD]">
                             <button type="button" class="px-4 py-3 text-lg text-[#1495E8]" @click="quantity = Math.max(1, quantity - 1)">-</button>
                             <span class="min-w-[3rem] text-center font-semibold text-[#111827]">{{ quantity }}</span>
-                            <button type="button" class="px-4 py-3 text-lg text-[#1495E8]" @click="quantity = Math.min(product.inventory || quantity + 1, quantity + 1)">+</button>
+                            <button type="button" class="px-4 py-3 text-lg text-[#1495E8]" @click="quantity = Math.min(maxQuantity || quantity + 1, quantity + 1)">+</button>
                         </div>
-                        <Button block size="lg" :disabled="!product.is_orderable" @click="addToCart">
-                            {{ product.is_orderable ? 'Add to Cart' : 'Unavailable' }}
+                        <Button block size="lg" :disabled="!canOrderSelection" @click="addToCart">
+                            {{ canOrderSelection ? 'Add to Cart' : 'Unavailable' }}
                         </Button>
-                        <Button block variant="secondary" size="lg" :disabled="!product.is_orderable" @click="buyNow">Buy Now</Button>
+                        <Button block variant="secondary" size="lg" :disabled="!canOrderSelection" @click="buyNow">Buy Now</Button>
                     </div>
 
-                    <p v-if="!product.is_orderable" class="text-sm font-medium text-amber-600">
-                        This product cannot be ordered until it is approved and in stock.
+                    <p v-if="selectedVariantRecord && selectedVariantRecord.sku" class="text-sm text-[#6B7280]">
+                        SKU: {{ selectedVariantRecord.sku }}
                     </p>
 
-                    <div class="rounded-[26px] border border-[#D8E7F4] bg-[#F8FBFE] p-5">
-                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">Merchant information</p>
-                        <h3 class="mt-2 text-lg font-black tracking-[-0.03em] text-[#111827]">{{ product.merchant_name }}</h3>
-                        <p class="mt-2 text-sm text-[#6B7280]">Managed by {{ product.merchant_owner }} with storefront-ready payout and wallet tracking.</p>
-                    </div>
+                    <p v-if="!canOrderSelection" class="text-sm font-medium text-amber-600">
+                        This selection cannot be ordered until it is approved and in stock.
+                    </p>
+
+                   
                 </div>
             </section>
         </div>
@@ -108,7 +96,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from '../components/Button.vue';
 import ProductGrid from '../components/ProductGrid.vue';
@@ -124,9 +112,7 @@ const props = defineProps({
 const store = useStorefrontStore();
 const router = useRouter();
 const selectedImage = ref('');
-const selectedVariant = ref('Standard');
-const selectedColor = ref('Rose');
-const selectedSize = ref('M');
+const selectedAttributes = reactive({});
 const quantity = ref(1);
 
 onMounted(async () => {
@@ -136,18 +122,40 @@ onMounted(async () => {
 
 const product = computed(() => store.productById(props.id));
 const related = computed(() => store.relatedProducts(props.id));
+const variantGroups = computed(() => product.value?.variant_groups ?? []);
+const selectedVariantRecord = computed(() => {
+    if (!product.value?.variants?.length) {
+        return null;
+    }
+
+    return product.value.variants.find((variant) => variant.attributes.every((attribute) => selectedAttributes[attribute.name] === attribute.value))
+        ?? null;
+});
+const displayPrice = computed(() => selectedVariantRecord.value?.price || product.value?.price || '$0.00');
+const maxQuantity = computed(() => Number(selectedVariantRecord.value?.stock ?? product.value?.inventory ?? 0));
+const canOrderSelection = computed(() => Boolean(product.value?.is_orderable) && maxQuantity.value > 0);
 const gallery = computed(() => {
     if (!product.value) {
         return [];
     }
 
-    return Array.isArray(product.value.image_urls) && product.value.image_urls.length
+    const productGallery = Array.isArray(product.value.image_urls) && product.value.image_urls.length
         ? product.value.image_urls
         : [product.value.image_url].filter(Boolean);
+
+    if (selectedVariantRecord.value?.image_url) {
+        return [selectedVariantRecord.value.image_url, ...productGallery.filter((image) => image !== selectedVariantRecord.value.image_url)];
+    }
+
+    return productGallery;
 });
 
 watch(() => props.id, hydrateSelections);
 watch(product, hydrateSelections);
+watch(selectedVariantRecord, () => {
+    selectedImage.value = gallery.value[0] || '';
+    quantity.value = Math.min(quantity.value, maxQuantity.value || 1);
+});
 
 function hydrateSelections() {
     if (!product.value) {
@@ -155,18 +163,44 @@ function hydrateSelections() {
     }
 
     selectedImage.value = gallery.value[0] || '';
-    selectedVariant.value = product.value.variant_options?.[0] || 'Standard';
-    selectedColor.value = product.value.color_options?.[0] || 'Rose';
-    selectedSize.value = product.value.size_options?.[0] || 'M';
+    Object.keys(selectedAttributes).forEach((key) => {
+        delete selectedAttributes[key];
+    });
+
+    const seedVariant = product.value.variants?.[0] ?? null;
+    seedVariant?.attributes?.forEach((attribute) => {
+        selectedAttributes[attribute.name] = attribute.value;
+    });
+
     quantity.value = 1;
 }
 
 function addToCart() {
-    store.addToCart(product.value.id, quantity.value, `${selectedVariant.value} / ${selectedColor.value} / ${selectedSize.value}`);
+    if (!product.value) {
+        return false;
+    }
+
+    return store.addToCart(product.value.id, quantity.value, selectedVariantRecord.value
+        ? {
+            variant_id: selectedVariantRecord.value.id,
+        }
+        : null);
 }
 
 function buyNow() {
-    addToCart();
+    if (!addToCart()) {
+        return;
+    }
+
     router.push('/checkout');
+}
+
+function selectedOption(name) {
+    return selectedAttributes[name] ?? '';
+}
+
+function setSelectedOption(name, value) {
+    selectedAttributes[name] = value;
+    quantity.value = Math.min(quantity.value, maxQuantity.value || 1);
 }
 </script>

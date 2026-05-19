@@ -64,11 +64,10 @@
                         </div>
                     </section>
 
-                    <VariantFields
+                    <VariantsSection
+                        :dashboard="dashboard"
                         :errors="errors"
                         :form="form"
-                        :selected-category-name="selectedCategoryName"
-                        :selected-category-slug="selectedCategorySlug"
                     />
 
                     <ImageUploadPreview :errors="errors" :form="form" :reset-token="resetToken" />
@@ -172,11 +171,10 @@
 <script setup>
 import { computed } from 'vue';
 
-import { categoryFieldsForSlug, emptyVariantValues } from './categoryConfig.js';
 import FormInput from './components/FormInput.vue';
 import FormSelect from './components/FormSelect.vue';
 import ImageUploadPreview from './components/ImageUploadPreview.vue';
-import VariantFields from './components/VariantFields.vue';
+import VariantsSection from './VariantsSection.vue';
 
 const props = defineProps({
     dashboard: {
@@ -225,7 +223,7 @@ const selectedCategory = computed(() => (props.dashboard.form?.categories ?? [])
 
 const selectedCategoryName = computed(() => selectedCategory.value?.name ?? '');
 const selectedCategorySlug = computed(() => selectedCategory.value?.slug ?? '');
-const variantFieldCount = computed(() => categoryFieldsForSlug(selectedCategorySlug.value).length);
+const variantFieldCount = computed(() => (props.dashboard.form?.variant_presets?.[selectedCategorySlug.value] ?? []).length);
 const totalImageCount = computed(() => (props.form.images?.length ?? 0) + (props.form.existing_images?.length ?? 0));
 const descriptionHint = computed(() => `${String(props.form.description ?? '').trim().length} chars`);
 const submitLabel = computed(() => {
@@ -251,7 +249,9 @@ const statusOptions = computed(() => {
 
 function handleCategoryChange(value) {
     if (String(value) !== String(props.form.category_id)) {
-        props.form.variant_values = emptyVariantValues();
+        props.form.variant_groups = [];
+        props.form.variant_group_source = null;
+        props.form.variants = [];
     }
 
     props.form.category_id = value;

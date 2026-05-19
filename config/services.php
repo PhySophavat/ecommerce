@@ -42,4 +42,14 @@ return [
         'enabled' => env('TELEGRAM_NOTIFICATIONS_ENABLED', true),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
+    'frontend' => [
+        'url' => env('FRONTEND_URL', env('APP_URL').'/frontend'),
+    ],
+
 ];

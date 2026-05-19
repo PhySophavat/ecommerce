@@ -17,7 +17,7 @@ class HomeController extends Controller
 
         // Only show products that are intended to be visible on the storefront.
         $products = Product::query()
-            ->with(['category', 'images', 'merchant.merchant'])
+            ->with(['category', 'images', 'variants', 'merchant.merchant'])
             ->whereIn('status', $storefrontStatuses)
             ->orderByRaw('CASE WHEN merchant_id IS NULL THEN 0 ELSE 1 END ASC')
             ->orderByDesc('is_featured')

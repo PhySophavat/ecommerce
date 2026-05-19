@@ -79,32 +79,49 @@
             </article>
 
             <!-- Added Items Table -->
-            <div v-if="allAddedItems.length" class="mt-6">
+            <div v-if="groupedAddedItems.length" class="mt-6">
                 <h5 class="mb-4 text-sm font-semibold text-slate-950">Added Type & Options</h5>
                 <div class="overflow-x-auto rounded-[24px] border border-slate-200">
                     <table class="w-full">
                         <thead class="border-b border-slate-200 bg-slate-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-sm font-semibold text-slate-900">Type</th>
-                                <th class="px-6 py-3 text-left text-sm font-semibold text-slate-900">Option</th>
+                                <th class="px-6 py-3 text-left text-sm font-semibold text-slate-900">Options</th>
                                 <th class="px-6 py-3 text-center text-sm font-semibold text-slate-900">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr
-                                v-for="(item, index) in allAddedItems"
-                                :key="`${item.groupIndex}-${item.option}`"
+                                v-for="group in groupedAddedItems"
+                                :key="`grouped-${group.groupIndex}-${group.type}`"
                                 class="border-b border-slate-200 transition hover:bg-slate-50"
                             >
-                                <td class="px-6 py-3 text-sm text-slate-700">{{ item.type }}</td>
-                                <td class="px-6 py-3 text-sm text-slate-700">{{ item.option }}</td>
-                                <td class="px-6 py-3 text-center">
+                                <td class="px-6 py-3 align-top text-sm font-medium text-slate-700">{{ group.type }}</td>
+                                <td class="px-6 py-3">
+                                    <div class="flex flex-wrap gap-2">
+                                        <span
+                                            v-for="option in group.options"
+                                            :key="`${group.groupIndex}-${option}`"
+                                            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700"
+                                        >
+                                            <span>{{ option }}</span>
+                                            <button
+                                                type="button"
+                                                class="inline-flex h-5 w-5 items-center justify-center rounded-full text-xs text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                                                @click="deleteTableItem(group.groupIndex, option)"
+                                            >
+                                                x
+                                            </button>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-3 text-center align-top">
                                     <button
                                         type="button"
                                         class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600"
-                                        @click="deleteTableItem(item.groupIndex, item.option)"
+                                        @click="clearGroupOptions(group.groupIndex)"
                                     >
-                                        Delete
+                                        Clear all
                                     </button>
                                 </td>
                             </tr>
@@ -118,6 +135,8 @@
                 <span>{{ generatedVariants.length }} variant{{ generatedVariants.length === 1 ? '' : 's' }}</span>
                 <span v-if="isCombinationLimitReached" class="text-amber-600">Limit {{ maxVariantCount }}</span>
             </div>
+
+            <p v-if="fieldError('variants')" class="mt-3 text-sm text-rose-600">{{ fieldError('variants') }}</p>
         </template>
 
         <div v-if="form.variants.length" class="mt-6 space-y-3">
@@ -252,32 +271,18 @@ const parsedVariantGroups = computed(() => (props.form.variant_groups ?? [])
         options: groupOptions(group),
     }))
     .filter((group) => group.name && group.options.length));
-const allAddedItems = computed(() => {
-    const items = [];
-    (props.form.variant_groups ?? []).forEach((group, groupIndex) => {
-        groupOptions(group).forEach((option) => {
-            items.push({
-                groupIndex,
-                type: group.name,
-                option,
-            });
-        });
-    });
-    return items;
-});
+const groupedAddedItems = computed(() => (props.form.variant_groups ?? [])
+    .map((group, groupIndex) => ({
+        groupIndex,
+        type: group.name,
+        options: groupOptions(group),
+    }))
+    .filter((group) => group.type && group.options.length));
 const generatedVariantState = computed(() => buildVariantCombinations(parsedVariantGroups.value, maxVariantCount));
 const generatedVariants = computed(() => generatedVariantState.value.items);
 const isCombinationLimitReached = computed(() => generatedVariantState.value.truncated);
 const showsVariantSku = computed(() => ['fashion', 'electronic'].includes(selectedCategory.value?.slug ?? ''));
-const hasAvailableGroups = computed(() => availableGroupChoices('').length > 0);
-const availableFormTypes = computed(() => selectedPresetGroups.value.filter((preset) => {
-    const selectedNames = new Set(
-        (props.form.variant_groups ?? [])
-            .map((group) => group.name)
-            .filter((name) => name),
-    );
-    return !selectedNames.has(preset.name);
-}));
+const availableFormTypes = computed(() => selectedPresetGroups.value);
 const formOptionChoices = computed(() => {
     if (!formState.selectedType) return [];
     const preset = selectedPresetGroups.value.find((p) => p.name === formState.selectedType);
@@ -403,8 +408,7 @@ function addTypeOption() {
         group.options_text = options.join(', ');
     }
 
-    // Clear form for next entry
-    formState.selectedType = '';
+    // Keep the type selected so multiple options like S/M/L can be added quickly.
     formState.selectedOption = '';
 }
 
@@ -462,6 +466,16 @@ function removeGroupOption(index, optionToRemove) {
 
 function deleteTableItem(groupIndex, optionToDelete) {
     removeGroupOption(groupIndex, optionToDelete);
+}
+
+function clearGroupOptions(groupIndex) {
+    const group = props.form.variant_groups[groupIndex];
+
+    if (!group) {
+        return;
+    }
+
+    group.options_text = '';
 }
 
 function syncVariantsFromGroups() {

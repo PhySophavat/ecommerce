@@ -27,6 +27,7 @@
                         <div v-for="item in store.cartItems" :key="`${item.id}-${item.variant}`" class="flex items-center justify-between gap-4 rounded-[24px] bg-[#F8FBFE] px-4 py-4">
                             <div>
                                 <div class="font-semibold text-[#111827]">{{ item.name }}</div>
+                                <div class="mt-1 text-sm text-[#6B7280]">{{ item.variant }}</div>
                                 <div class="mt-1 text-sm text-[#6B7280]">{{ item.merchant_name }} &middot; {{ item.quantity }} qty</div>
                             </div>
                             <div class="text-right font-semibold text-[#111827]">${{ item.line_total.toFixed(2) }}</div>

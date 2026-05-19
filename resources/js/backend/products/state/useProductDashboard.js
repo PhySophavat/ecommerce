@@ -1,11 +1,6 @@
 import { computed, reactive, ref } from 'vue';
 
-import {
-    categoryFieldsForSlug,
-    emptyVariantValues,
-    variantAttributesFromValues,
-    variantValuesFromAttributes,
-} from '../add-product/categoryConfig.js';
+import { emptyVariantValues, variantValuesFromAttributes } from '../add-product/categoryConfig.js';
 
 const editorActions = [
     { label: 'Bold', command: 'bold', value: null },
@@ -520,10 +515,7 @@ function buildProductPayload(form, categories = []) {
         stock: Number.parseInt(String(form.stock_quantity ?? ''), 10),
         status: String(form.status ?? '').trim() || 'active',
         images: Array.isArray(form.images) ? [...form.images] : [],
-        variants: {
-            ...emptyVariantValues(),
-            ...(form.variant_values ?? {}),
-        },
+        variants: Array.isArray(form.variants) ? form.variants : [],
     };
 }
 
@@ -558,9 +550,28 @@ function validateProductPayload(payload) {
         errors.status = ['Status is required.'];
     }
 
-    categoryFieldsForSlug(payload.category).forEach((field) => {
-        if (!String(payload.variants[field.key] ?? '').trim()) {
-            errors[`variant_values.${field.key}`] = [`${field.label} is required.`];
+    if (!Array.isArray(payload.variants) || payload.variants.length === 0) {
+        errors.variants = ['At least one product variant is required.'];
+        return errors;
+    }
+
+    payload.variants.forEach((variant, index) => {
+        if (!String(variant.label ?? '').trim()) {
+            errors[`variants.${index}.label`] = ['Variant label is required.'];
+        }
+
+        if (!Array.isArray(variant.attributes) || variant.attributes.length === 0) {
+            errors[`variants.${index}.attributes`] = ['Variant attributes are required.'];
+        }
+
+        const price = Number.parseFloat(String(variant.price ?? ''));
+        if (!Number.isFinite(price) || price < 0) {
+            errors[`variants.${index}.price`] = ['Variant price must be 0 or greater.'];
+        }
+
+        const stock = Number.parseInt(String(variant.stock ?? ''), 10);
+        if (!Number.isInteger(stock) || stock < 0) {
+            errors[`variants.${index}.stock`] = ['Variant stock must be 0 or greater.'];
         }
     });
 
@@ -568,24 +579,23 @@ function validateProductPayload(payload) {
 }
 
 function buildSubmissionVariants(payload) {
-    const attributes = variantAttributesFromValues(payload.category, payload.variants);
-
-    if (attributes.length === 0) {
-        return [];
-    }
-
-    return [
-        {
-            label: attributes.map((attribute) => attribute.value).join(' / '),
-            attributes,
-            variant_sku: '',
-            price: String(payload.price),
-            stock: String(payload.stock),
-            image: null,
-            existing_image_path: '',
-            remove_existing_image: false,
-        },
-    ];
+    return (payload.variants ?? []).map((variant) => ({
+        label: String(variant.label ?? '').trim(),
+        attributes: Array.isArray(variant.attributes)
+            ? variant.attributes
+                .map((attribute) => ({
+                    name: String(attribute.name ?? '').trim(),
+                    value: String(attribute.value ?? '').trim(),
+                }))
+                .filter((attribute) => attribute.name !== '' && attribute.value !== '')
+            : [],
+        variant_sku: String(variant.variant_sku ?? '').trim(),
+        price: String(variant.price ?? ''),
+        stock: String(variant.stock ?? ''),
+        image: variant.image ?? null,
+        existing_image_path: variant.existing_image_path ?? '',
+        remove_existing_image: Boolean(variant.remove_existing_image),
+    }));
 }
 
 function initialDashboard() {

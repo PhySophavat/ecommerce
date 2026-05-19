@@ -18,7 +18,7 @@
             </div>
         </div>
         <div class="border-t border-[rgba(255,255,255,0.18)] px-4 py-5 text-center text-[15px] text-[#FCE7F3]">
-            &copy; {{ new Date().getFullYear() }} {{ store.meta?.brand || 'E-commerce' }}. Built for a friendly storefront experience.
+            &copy; {{ new Date().getFullYear() }} {{ store.meta?.brand || 'E-commerce' }}. Crafted with precision for a smarter shopping experience.
         </div>
     </footer>
 </template>
