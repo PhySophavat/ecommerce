@@ -23,7 +23,7 @@
                 <span>Responsive product grid</span>
             </div>
 
-            <ProductGrid :products="filteredProducts" :wishlist-ids="store.wishlist" :columns="3" @add-to-cart="store.addToCart($event)" @toggle-wishlist="store.toggleWishlist($event)" />
+            <ProductGrid :products="filteredProducts" :wishlist-ids="store.wishlist" :columns="4" @add-to-cart="store.addToCart($event)" @toggle-wishlist="store.toggleWishlist($event)" />
         </div>
     </div>
 </template>

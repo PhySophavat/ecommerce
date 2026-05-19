@@ -102,7 +102,10 @@
 
         <section class="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                <h2 class="text-2xl font-extrabold tracking-[-0.04em] text-slate-950">All payout accounts</h2>
+                <div>
+                    <h2 class="text-2xl font-extrabold tracking-[-0.04em] text-slate-950">All payout accounts</h2>
+                    <p class="mt-2 text-sm text-slate-500">Clean overview of your payout methods, approval state, and default withdrawal account.</p>
+                </div>
 
                 <div class="grid gap-3 sm:grid-cols-3">
                     <label class="block sm:col-span-2">
@@ -140,9 +143,9 @@
                 No payout accounts found yet.
             </div>
 
-            <div v-else class="mt-6 overflow-x-auto rounded-[28px] border border-slate-200">
-                <table class="min-w-[1180px] w-full text-sm">
-                    <thead class="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            <div v-else class="soft-scroll mt-6 overflow-x-auto rounded-[28px] border border-slate-200">
+                <table class="accounts-table min-w-[1040px] w-full text-sm">
+                    <thead class="bg-slate-50 text-left text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
                         <tr>
                             <th class="px-4 py-4">Bank Name</th>
                             <th class="px-4 py-4">Account Holder</th>
@@ -161,22 +164,34 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="account in filteredAccounts" :key="account.id" class="border-t border-slate-200 bg-white align-top">
-                            <td class="px-4 py-4"><p class="font-semibold text-slate-950">{{ account.bank_name }}</p></td>
-                            <td class="px-4 py-4 text-slate-700">{{ account.account_holder_name }}</td>
-                            <td class="px-4 py-4 text-slate-700">{{ account.account_number || '-' }}</td>
-                            <td class="px-4 py-4 text-slate-600">{{ account.phone_number || '-' }}</td>
-                            <td class="px-4 py-4"><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">{{ account.currency }}</span></td>
-                            <td class="px-4 py-4 text-slate-700">{{ accountTypeLabel(account) }}</td>
-                            <td class="px-4 py-4">
-                                <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em]" :class="statusClass(account.status)">{{ account.status }}</span>
+                        <tr v-for="account in filteredAccounts" :key="account.id" class="accounts-row border-t border-slate-200 bg-white align-top">
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="flex items-center gap-3 whitespace-nowrap">
+                                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f6eaf1] text-xs font-bold uppercase tracking-[0.06em] text-[#A25F88]">
+                                        {{ bankInitials(account.bank_name) }}
+                                    </span>
+                                    <div class="whitespace-nowrap">
+                                        <p class="font-semibold text-slate-950">{{ account.bank_name }}</p>
+                                        <p class="mt-1 text-xs text-slate-500">{{ accountTypeLabel(account) }}</p>
+                                    </div>
+                                </div>
                             </td>
-                            <td class="px-4 py-4">
-                                <span v-if="account.is_default" class="rounded-full bg-[#A25F88] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-white">Default</span>
+                            <td class="px-4 py-4 whitespace-nowrap text-slate-700">
+                                <p class="font-medium text-slate-800">{{ account.account_holder_name }}</p>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-slate-700">{{ maskedAccountNumber(account.account_number) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-slate-600">{{ account.phone_number || '-' }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap"><span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-600">{{ account.currency }}</span></td>
+                            <td class="px-4 py-4 whitespace-nowrap text-slate-700">{{ accountTypeLabel(account) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em]" :class="statusClass(account.status)">{{ account.status }}</span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span v-if="account.is_default" class="rounded-full bg-[#A25F88] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-white">Default</span>
                                 <button
                                     v-else-if="account.status === 'approved'"
                                     type="button"
-                                    class="rounded-full bg-[#f6eaf1] px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#A25F88] transition hover:bg-[#eedbe6]"
+                                    class="rounded-full bg-[#f6eaf1] px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-[#A25F88] transition hover:bg-[#eedbe6]"
                                     :disabled="busyId === account.id"
                                     @click="setDefault(account)"
                                 >
@@ -184,14 +199,14 @@
                                 </button>
                                 <span v-else class="text-xs text-slate-400">-</span>
                             </td>
-                            <td class="px-4 py-4 text-slate-600">{{ formatDate(account.created_at) }}</td>
-                            <td class="px-4 py-4">
-                                <div class="flex justify-end gap-2">
-                                    <button type="button" class="rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200" @click="selectedAccount = account">View</button>
-                                    <button type="button" class="rounded-full bg-[#f6eaf1] px-3 py-2 text-xs font-semibold text-[#A25F88] transition hover:bg-[#eedbe6]" @click="startEdit(account)">
+                            <td class="px-4 py-4 whitespace-nowrap text-slate-600">{{ formatDate(account.created_at) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="flex justify-end gap-2 whitespace-nowrap">
+                                    <button type="button" class="action-button action-button-muted" @click="selectedAccount = account">View</button>
+                                    <button type="button" class="action-button action-button-accent" @click="startEdit(account)">
                                         {{ account.status === 'approved' ? 'Edit / Resubmit' : 'Edit' }}
                                     </button>
-                                    <button type="button" class="rounded-full bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100" :disabled="busyId === account.id" @click="$emit('delete', account.id)">Delete</button>
+                                    <button type="button" class="action-button action-button-danger" :disabled="busyId === account.id" @click="$emit('delete', account.id)">Delete</button>
                                 </div>
                             </td>
                         </tr>
@@ -381,6 +396,33 @@ function statusClass(status) {
         disabled: 'bg-slate-200 text-slate-600',
     }[status] ?? 'bg-slate-100 text-slate-700';
 }
+
+function bankInitials(value) {
+    const words = String(value ?? '')
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    if (!words.length) {
+        return 'BK';
+    }
+
+    return words.slice(0, 2).map((word) => word[0]).join('').toUpperCase();
+}
+
+function maskedAccountNumber(value) {
+    const digits = String(value ?? '').trim();
+
+    if (!digits) {
+        return '-';
+    }
+
+    if (digits.length <= 4) {
+        return digits;
+    }
+
+    return `${'*'.repeat(Math.max(0, digits.length - 4))}${digits.slice(-4)}`;
+}
 </script>
 
 <style scoped>
@@ -400,5 +442,67 @@ function statusClass(status) {
     border-color: #a25f88;
     background: #ffffff;
     box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.14);
+}
+
+.accounts-table {
+    font-size: 0.95rem;
+}
+
+.accounts-table thead th {
+    white-space: nowrap;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.accounts-table td {
+    white-space: nowrap;
+}
+
+.accounts-row {
+    transition: background-color 150ms ease;
+}
+
+.accounts-row:hover {
+    background: #fcfcfd;
+}
+
+.action-button {
+    border-radius: 9999px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+
+.action-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.action-button-muted {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.action-button-muted:hover {
+    background: #e2e8f0;
+}
+
+.action-button-accent {
+    background: #f6eaf1;
+    color: #a25f88;
+}
+
+.action-button-accent:hover {
+    background: #eedbe6;
+}
+
+.action-button-danger {
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.action-button-danger:hover {
+    background: #ffe4e6;
 }
 </style>

@@ -8,50 +8,7 @@
         />
 
         <div class="mx-auto mt-5 w-full max-w-[1280px] px-4 sm:px-6 lg:px-8">
-            <section class="grid gap-5 lg:grid-cols-[minmax(0,1.18fr)_minmax(320px,0.82fr)] lg:items-stretch">
-                <div class="overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white px-6 py-7 shadow-[0_16px_40px_rgba(17,24,39,0.05)] sm:px-8 sm:py-8 lg:px-9 lg:py-9">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.3em] text-[#A25F88]">{{ store.meta?.eyebrow || 'Clean modern storefront' }}</p>
-                    <h1 class="mt-4 max-w-2xl text-[2.4rem] font-bold leading-[1.02] tracking-[-0.05em] text-[#111827] sm:text-[3.2rem] lg:text-[4.1rem]">
-                        Friendly shopping with trusted merchant products.
-                    </h1>
-                    <p class="mt-4 max-w-2xl text-[15px] leading-7 text-[#6B7280] sm:text-base">
-                        Discover curated products, compare favorite finds, and checkout in a clean customer-first experience built for modern commerce.
-                    </p>
-
-                    <div class="mt-6 max-w-[620px]">
-                        <SearchBar v-model="searchTerm" placeholder="Search products, brands, and merchants" />
-                    </div>
-
-                    <div class="mt-6 flex flex-wrap gap-3">
-                        <Button to="/shop" size="lg">Start shopping</Button>
-                        <Button to="/wishlist" variant="secondary" size="lg">View wishlist</Button>
-                    </div>
-                </div>
-
-                <div class="overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.22),_transparent_34%),linear-gradient(155deg,#B6789A_0%,#A25F88_46%,#7B3F63_100%)] p-6 text-white shadow-[0_18px_40px_rgba(162,95,136,0.18)] sm:p-7">
-                    <div class="flex h-full flex-col justify-between">
-                        <div>
-                            <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70">Today&apos;s feature</p>
-                            <h2 class="mt-3 max-w-md text-3xl font-semibold leading-tight tracking-[-0.04em] text-white">
-                                Soft, polished storefront cards with merchant-ready products.
-                            </h2>
-                            <p class="mt-3 max-w-md text-sm leading-7 text-white/72">
-                                Curated browsing, trusted merchants, and a calmer storefront rhythm designed to feel premium without excess.
-                            </p>
-                        </div>
-                        <div class="mt-6 grid gap-3 sm:grid-cols-2">
-                            <div class="rounded-[24px] border border-white/15 bg-white/14 p-5 backdrop-blur">
-                                <div class="text-3xl font-semibold">{{ store.categories.length }}</div>
-                                <div class="mt-1 text-sm text-white/72">Live categories</div>
-                            </div>
-                            <div class="rounded-[24px] border border-white/15 bg-white/14 p-5 backdrop-blur">
-                                <div class="text-3xl font-semibold">{{ store.products.length }}</div>
-                                <div class="mt-1 text-sm text-white/72">Storefront products</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+           
 
            
             <section class="mt-10">
@@ -66,18 +23,8 @@
                 <ProductGrid :products="filteredFeatured" :wishlist-ids="store.wishlist" @add-to-cart="store.addToCart($event)" @toggle-wishlist="store.toggleWishlist($event)" />
             </section>
 
-            <section class="mt-10 rounded-[32px] border border-[#E5E7EB] bg-[linear-gradient(145deg,#FCF7FA,#FFFFFF)] px-6 py-7 shadow-[0_16px_36px_rgba(17,24,39,0.04)] sm:px-8">
-                <div class="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
-                    <div>
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#A25F88]">Promotion banner</p>
-                        <h2 class="mt-2 text-[1.85rem] font-bold tracking-[-0.04em] text-[#111827] sm:text-[2.15rem]">Save on curated storefront drops this week.</h2>
-                        <p class="mt-3 max-w-2xl text-sm leading-7 text-[#6B7280]">
-                            Explore new arrivals, merchant-approved products, and featured deals in a cleaner shopping experience designed for customer confidence.
-                        </p>
-                    </div>
-                    <Button to="/shop" variant="primary" size="lg">Explore promotions</Button>
-                </div>
-            </section>
+          
+            <OurPartnersSection />
 
             <section class="mt-10">
                 <div class="mb-5">
@@ -104,6 +51,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import Button from '../components/Button.vue';
+import OurPartnersSection from '../components/OurPartnersSection.vue';
 import ProductGrid from '../components/ProductGrid.vue';
 import SearchBar from '../components/SearchBar.vue';
 import Slides from '../components/slides/Slides.vue';

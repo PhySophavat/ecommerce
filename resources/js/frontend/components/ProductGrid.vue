@@ -26,7 +26,7 @@ const props = defineProps({
     },
     columns: {
         type: Number,
-        default: 3,
+        default: 4,
     },
 });
 
