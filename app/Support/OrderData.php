@@ -37,8 +37,11 @@ class OrderData
         return [
             'id' => $order->id,
             'number' => $order->number,
+            'order_code' => $order->order_code,
             'status' => $order->status,
+            'order_status' => $order->order_status,
             'payment_method' => $order->payment_method,
+            'payment_type' => $order->payment_type,
             'payment_method_label' => self::paymentMethodLabel($order->payment_method),
             'payment_status' => $order->payment_status,
             'payment_reference' => $order->payment_reference,
@@ -75,7 +78,10 @@ class OrderData
             'id' => $detail['id'],
             'number' => $detail['number'],
             'status' => $detail['status'],
+            'order_code' => $detail['order_code'],
+            'order_status' => $detail['order_status'],
             'payment_method' => $detail['payment_method'],
+            'payment_type' => $detail['payment_type'],
             'payment_method_label' => $detail['payment_method_label'],
             'payment_status' => $detail['payment_status'],
             'payment_reference' => $detail['payment_reference'],
@@ -141,11 +147,11 @@ class OrderData
     private static function paymentInstructions(?string $value): string
     {
         return match ($value) {
-            'aba_qr' => 'Use your ABA mobile app to complete the transfer, then keep the reference number for admin review.',
-            'acleda' => 'Complete the ACLEDA transfer and keep the payment reference for verification.',
-            'wing' => 'Complete the Wing wallet transfer and keep the transaction reference for merchant or admin review.',
-            'card' => 'Card payment is stored for manual verification in this demo flow before it is marked paid.',
-            default => 'Cash payment stays unpaid until delivery or manual confirmation.',
+            'aba_qr' => 'Transfer the exact amount with ABA QR, then submit the transfer reference or screenshot for admin verification.',
+            'acleda' => 'Transfer the exact amount with ACLEDA, then submit the transfer reference or screenshot for admin verification.',
+            'wing' => 'Transfer the exact amount with Wing, then submit the transfer reference or screenshot for admin verification.',
+            'card' => 'Card payment will confirm automatically only when a real gateway is connected.',
+            default => 'Cash orders stay unpaid until delivery or manual collection.',
         };
     }
 }

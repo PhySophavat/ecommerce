@@ -23,6 +23,7 @@ import ProductManagerPage from './backend/products/ProductManagerPage.vue';
 import SlideManagerPage from './backend/slides/SlideManagerPage.vue';
 import StorefrontApp from './frontend/StorefrontApp.vue';
 import storefrontRouter from './frontend/router';
+import { hydrateAdminSession } from './shared/adminSession';
 
 const appMap = {
     'backend-products': ProductManagerPage,
@@ -70,6 +71,10 @@ try {
     }
 
     app.mount(mountTarget);
+
+    if (appName !== 'frontend') {
+        void hydrateAdminSession();
+    }
 } catch (error) {
     console.error('Vue mount failed:', error);
 

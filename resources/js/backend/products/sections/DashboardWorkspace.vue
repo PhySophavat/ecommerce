@@ -1,52 +1,55 @@
 <template>
-    <section v-if="workspace" class="space-y-6">
-        <article class="overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-[linear-gradient(135deg,#FFFFFF_0%,#FDF2F8_50%,#F8FAFC_100%)] text-[#111827] shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
-            <div class="grid gap-4 px-5 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-6 lg:py-4">
+    <section v-if="workspace" class="space-y-5">
+        <article class="overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-[linear-gradient(135deg,#FFFFFF_0%,#FDFBFC_58%,#F7EEF4_100%)] text-[#111827] shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
+            <div class="grid gap-4 px-5 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
                 <div class="min-w-0 max-w-4xl">
-                    <p class="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">{{ workspace.hero?.eyebrow || 'Overview' }}</p>
-                    <h2 class="mt-1.5 text-[1.85rem] font-bold tracking-[-0.045em] text-[#111827]">{{ workspace.hero?.title || 'E-commerce Overview' }}</h2>
-                    <p class="mt-2 max-w-3xl text-[14px] leading-6 text-[#6B7280]">{{ headerDescription }}</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">{{ workspace.hero?.eyebrow || 'Overview' }}</p>
+                    <h2 class="mt-1.5 text-[1.9rem] font-bold tracking-[-0.045em] text-[#111827]">{{ workspace.hero?.title || 'E-commerce Overview' }}</h2>
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-[#6B7280]">{{ headerDescription }}</p>
                 </div>
 
-                <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-start lg:justify-end">
-                    <label class="flex min-h-[46px] items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#111827] shadow-[0_8px_20px_rgba(15,23,42,0.04)]">
+                <div class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-start lg:justify-end">
+                    <label class="flex min-h-[44px] items-center gap-3 rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#111827] shadow-[0_6px_16px_rgba(15,23,42,0.04)]">
                         <span class="font-medium text-[#6B7280]">Date</span>
                         <select v-model="selectedRange" class="bg-transparent pr-6 font-semibold text-[#111827] outline-none">
                             <option v-for="item in rangeOptions" :key="item.value" :value="item.value">{{ item.label }}</option>
                         </select>
                     </label>
 
-                    <button type="button" class="min-h-[46px] rounded-2xl border border-[#A25F88] bg-[#A25F88] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(162,95,136,0.18)] transition hover:bg-[#92557a] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.24)]" @click="$emit('refresh')">
+                    <button type="button" class="inline-flex min-h-[44px] items-center justify-center rounded-[14px] bg-[#A25F88] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8E4F76]" @click="$emit('refresh')">
                         Refresh
                     </button>
                 </div>
             </div>
         </article>
 
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
             <article
                 v-for="card in workspace.summary_cards"
                 :key="card.label"
-                class="relative overflow-hidden rounded-[18px] bg-[linear-gradient(180deg,#3550A4_0%,#304A99_100%)] px-4 py-4 text-white shadow-[0_14px_32px_rgba(48,74,153,0.18)] transition duration-200 hover:-translate-y-1 hover:shadow-[0_18px_38px_rgba(48,74,153,0.24)]"
+                class="relative flex min-h-[136px] flex-col justify-between overflow-hidden rounded-[20px] border border-[#E5E7EB] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition hover:border-[#D8C0CF]"
+                :class="summaryCardClass(card)"
             >
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                        <p class="text-xs font-medium text-white/80">{{ card.label }}</p>
-                        <p class="mt-2 text-[2rem] font-black tracking-[-0.05em]">{{ card.value }}</p>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.16em]" :class="summaryLabelClass(card)">{{ card.label }}</p>
+                        <p class="mt-3 text-[1.9rem] font-black tracking-[-0.05em] text-[#111827]">{{ card.value }}</p>
                     </div>
-                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/12 text-white/90">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px]" :class="summaryIconWrapClass(card)">
+                        <svg class="h-[18px] w-[18px]" :class="summaryIconClass(card)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" :d="card.icon" />
                         </svg>
                     </span>
                 </div>
-                <p class="mt-2 text-xs font-semibold" :class="String(card.trend?.label || '').startsWith('-') ? 'text-[#FECACA]' : 'text-[#BBF7D0]'">
-                    {{ card.trend?.label }}
-                </p>
+                <div class="mt-4">
+                    <span class="inline-flex rounded-[10px] px-2.5 py-1 text-[11px] font-semibold" :class="trendBadgeClass(card)">
+                        {{ card.trend?.label }}
+                    </span>
+                </div>
             </article>
         </section>
 
-        <section class="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
+        <section class="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.92fr)]">
             <DashboardLineChart
                 :title="workspace.analytics?.primary_chart?.title || 'Sales Over Time'"
                 :eyebrow="workspace.analytics?.primary_chart?.eyebrow || 'Sales analytics'"
@@ -62,42 +65,43 @@
                 eyebrow="Category performance"
                 :items="activeDataset.sales_by_category"
                 legend-label="Sales"
-                bar-color="#20B7D8"
+                bar-color="#A25F88"
             />
             <DashboardCategoryBarChart
                 title="Top Selling Products"
                 eyebrow="Best sellers"
                 :items="activeDataset.top_products"
                 legend-label="Units"
-                bar-color="#4F46E5"
+                bar-color="#3B82F6"
             />
         </section>
 
-        <section class="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.9fr)]">
+        <section class="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.92fr)]">
             <DashboardLineChart
                 :title="workspace.analytics?.secondary_chart?.title || 'Revenue Trend'"
                 :eyebrow="workspace.analytics?.secondary_chart?.eyebrow || 'Revenue movement'"
                 :points="revenueTrendPoints"
                 :trend="activeDataset.secondary_trend || activeDataset.trend"
+                line-color="#A25F88"
             />
             <DashboardDonutChart title="Payment Method Overview" eyebrow="Payments" :items="activeDataset.payment_methods" />
         </section>
 
         <section class="grid gap-5 2xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
-            <article class="rounded-[22px] border border-[#CBD5E1] bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.04)] sm:p-6">
+            <article class="rounded-[22px] border border-[#E5E7EB] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">Orders</p>
-                        <h3 class="mt-2 text-lg font-bold tracking-[-0.03em] text-[#111827]">Recent Orders</h3>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">Orders</p>
+                        <h3 class="mt-1 text-xl font-bold tracking-[-0.03em] text-[#111827]">Recent Orders</h3>
                     </div>
-                    <button type="button" class="rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-1.5 text-xs font-semibold text-[#2563EB] transition hover:bg-[#DBEAFE]" @click="navigateTo(workspace.actions?.orders_path)">
+                    <button type="button" class="rounded-[12px] border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-2 text-xs font-semibold text-[#6B7280] transition hover:border-[#D8C0CF] hover:text-[#A25F88]" @click="navigateTo(workspace.actions?.orders_path)">
                         Open Orders
                     </button>
                 </div>
 
                 <div class="mt-5 overflow-x-auto">
                     <table class="min-w-[860px] w-full text-left text-sm">
-                        <thead class="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[#64748B]">
+                        <thead class="bg-[#F8FAFC] text-[#6B7280]">
                             <tr>
                                 <th class="px-3 py-3 font-semibold">Order ID</th>
                                 <th class="px-3 py-3 font-semibold">Customer</th>
@@ -110,18 +114,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="order in workspace.recent_orders" :key="order.id" class="border-b border-[#F1F5F9] last:border-b-0">
+                            <tr v-for="order in workspace.recent_orders" :key="order.id" class="border-t border-[#F1F5F9] transition hover:bg-[#FBFCFE]">
                                 <td class="px-3 py-3.5 font-semibold text-[#111827]">{{ order.id }}</td>
                                 <td class="px-3 py-3.5 text-[#475569]">{{ order.customer }}</td>
-                                <td class="px-3 py-3.5 text-[#475569]">{{ order.product }}</td>
+                                <td class="max-w-[220px] px-3 py-3.5 text-[#475569]"><span class="block truncate">{{ order.product }}</span></td>
                                 <td class="px-3 py-3.5 font-semibold text-[#111827]">{{ order.amount }}</td>
                                 <td class="px-3 py-3.5 text-[#475569]">{{ order.payment }}</td>
                                 <td class="px-3 py-3.5">
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="orderStatusClass(order.status)">{{ order.status }}</span>
+                                    <span class="rounded-[10px] px-2.5 py-1 text-xs font-semibold" :class="orderStatusClass(order.status)">{{ order.status }}</span>
                                 </td>
                                 <td class="px-3 py-3.5 text-[#64748B]">{{ order.date }}</td>
                                 <td class="px-3 py-3.5 text-right">
-                                    <button type="button" class="rounded-full bg-[#F8FAFC] px-3 py-1.5 text-xs font-semibold text-[#334155] transition hover:bg-[#EEF2FF] hover:text-[#4338CA]" @click="navigateTo(workspace.actions?.orders_path)">
+                                    <button type="button" class="rounded-[10px] border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-semibold text-[#475569] transition hover:border-[#D8C0CF] hover:text-[#A25F88]" @click="navigateTo(workspace.actions?.orders_path)">
                                         View
                                     </button>
                                 </td>
@@ -134,20 +138,20 @@
                 </div>
             </article>
 
-            <article class="rounded-[22px] border border-[#CBD5E1] bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.04)] sm:p-6">
+            <article class="rounded-[22px] border border-[#E5E7EB] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">Inventory</p>
-                        <h3 class="mt-2 text-lg font-bold tracking-[-0.03em] text-[#111827]">Low Stock Products</h3>
+                        <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">Inventory</p>
+                        <h3 class="mt-1 text-xl font-bold tracking-[-0.03em] text-[#111827]">Low Stock Products</h3>
                     </div>
-                    <button type="button" class="rounded-full border border-[#DBEAFE] bg-[#EFF6FF] px-3 py-1.5 text-xs font-semibold text-[#2563EB] transition hover:bg-[#DBEAFE]" @click="navigateTo(workspace.actions?.products_path)">
+                    <button type="button" class="rounded-[12px] border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-2 text-xs font-semibold text-[#6B7280] transition hover:border-[#D8C0CF] hover:text-[#A25F88]" @click="navigateTo(workspace.actions?.products_path)">
                         Open Products
                     </button>
                 </div>
 
                 <div class="mt-5 overflow-x-auto">
                     <table class="min-w-full text-left text-sm">
-                        <thead class="border-b border-[#E5E7EB] bg-[#F8FAFC] text-[#64748B]">
+                        <thead class="bg-[#F8FAFC] text-[#6B7280]">
                             <tr>
                                 <th class="px-3 py-3 font-semibold">Product Name</th>
                                 <th class="px-3 py-3 font-semibold">Category</th>
@@ -157,15 +161,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr v-for="product in workspace.low_stock_products" :key="`${product.name}-${product.stock}`" class="border-b border-[#F1F5F9] last:border-b-0">
+                            <tr v-for="product in workspace.low_stock_products" :key="`${product.name}-${product.stock}`" class="border-t border-[#F1F5F9] transition hover:bg-[#FBFCFE]">
                                 <td class="px-3 py-3.5 font-semibold text-[#111827]">{{ product.name }}</td>
                                 <td class="px-3 py-3.5 text-[#475569]">{{ product.category }}</td>
                                 <td class="px-3 py-3.5 font-semibold text-[#111827]">{{ product.stock }}</td>
                                 <td class="px-3 py-3.5">
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="stockStatusClass(product.status)">{{ product.status === 'Low' ? 'Low Stock' : product.status }}</span>
+                                    <span class="rounded-[10px] px-2.5 py-1 text-xs font-semibold" :class="stockStatusClass(product.status)">{{ product.status === 'Low' ? 'Low Stock' : product.status }}</span>
                                 </td>
                                 <td class="px-3 py-3.5 text-right">
-                                    <button type="button" class="rounded-full bg-[#F8FAFC] px-3 py-1.5 text-xs font-semibold text-[#334155] transition hover:bg-[#EEF2FF] hover:text-[#4338CA]" @click="navigateTo(workspace.actions?.products_path)">
+                                    <button type="button" class="rounded-[10px] border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-semibold text-[#475569] transition hover:border-[#D8C0CF] hover:text-[#A25F88]" @click="navigateTo(workspace.actions?.products_path)">
                                         Restock
                                     </button>
                                 </td>
@@ -225,6 +229,7 @@ const revenueTrendPoints = computed(() => activeDataset.value.revenue_trend.map(
     label: item.label,
     value: Number(item.value || 0),
 })));
+
 const headerDescription = computed(() => workspaceHeaderDescription(props.workspace));
 
 function orderStatusClass(status) {
@@ -241,6 +246,56 @@ function stockStatusClass(status) {
         Low: 'bg-[#FEF3C7] text-[#B45309]',
         Critical: 'bg-[#FEE2E2] text-[#DC2626]',
     }[status] ?? 'bg-[#F8FAFC] text-[#64748B]';
+}
+
+function summaryCardClass(card) {
+    return {
+        'Total Revenue': 'bg-[linear-gradient(180deg,#FDF8FB_0%,#FFFFFF_100%)]',
+        'Total Orders': 'bg-[linear-gradient(180deg,#F8FAFF_0%,#FFFFFF_100%)]',
+        'Total Customers': 'bg-[linear-gradient(180deg,#F7FCFA_0%,#FFFFFF_100%)]',
+        'Total Products': 'bg-[linear-gradient(180deg,#FAFAFF_0%,#FFFFFF_100%)]',
+        'Pending Orders': 'bg-[linear-gradient(180deg,#FFF9F3_0%,#FFFFFF_100%)]',
+        'Low Stock Products': 'bg-[linear-gradient(180deg,#FFF7F7_0%,#FFFFFF_100%)]',
+    }[card.label] ?? 'bg-white';
+}
+
+function summaryLabelClass(card) {
+    return {
+        'Total Revenue': 'text-[#A25F88]',
+        'Total Orders': 'text-[#3B82F6]',
+        'Total Customers': 'text-[#10B981]',
+        'Total Products': 'text-[#8B5CF6]',
+        'Pending Orders': 'text-[#F59E0B]',
+        'Low Stock Products': 'text-[#EF4444]',
+    }[card.label] ?? 'text-[#6B7280]';
+}
+
+function summaryIconWrapClass(card) {
+    return {
+        'Total Revenue': 'bg-[#F6EAF1]',
+        'Total Orders': 'bg-[#EFF6FF]',
+        'Total Customers': 'bg-[#ECFDF5]',
+        'Total Products': 'bg-[#F5F3FF]',
+        'Pending Orders': 'bg-[#FFF7ED]',
+        'Low Stock Products': 'bg-[#FEF2F2]',
+    }[card.label] ?? 'bg-[#F8FAFC]';
+}
+
+function summaryIconClass(card) {
+    return {
+        'Total Revenue': 'text-[#A25F88]',
+        'Total Orders': 'text-[#3B82F6]',
+        'Total Customers': 'text-[#10B981]',
+        'Total Products': 'text-[#8B5CF6]',
+        'Pending Orders': 'text-[#F59E0B]',
+        'Low Stock Products': 'text-[#EF4444]',
+    }[card.label] ?? 'text-[#6B7280]';
+}
+
+function trendBadgeClass(card) {
+    return String(card.trend?.label || '').startsWith('-')
+        ? 'bg-[#FEF2F2] text-[#DC2626]'
+        : 'bg-[#ECFDF5] text-[#059669]';
 }
 
 function navigateTo(path) {

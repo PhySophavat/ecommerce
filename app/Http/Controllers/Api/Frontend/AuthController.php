@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use App\Support\StorefrontData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
@@ -20,11 +22,22 @@ class AuthController extends Controller
 
     public function session(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user('sanctum');
+        $token = null;
+
+        if (!$user) {
+            $sessionUser = $request->user();
+
+            if ($sessionUser?->isCustomer()) {
+                $user = $sessionUser;
+                $token = $user->createToken('customer-api-token')->plainTextToken;
+            }
+        }
 
         return response()->json([
             'authenticated' => (bool) $user,
             'user' => $user?->isCustomer() ? StorefrontData::user($user) : null,
+            'token' => $token,
         ]);
     }
 
@@ -44,13 +57,12 @@ class AuthController extends Controller
             'password' => $validated['password'],
             'role' => 'customer',
         ]);
-
-        Auth::login($user);
-        $request->session()->regenerate();
+        $token = $user->createToken('customer-api-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Customer account created successfully.',
             'user' => StorefrontData::user($user),
+            'token' => $token,
         ], 201);
     }
 
@@ -61,35 +73,33 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (!Auth::attempt($credentials, $request->boolean('remember'))) {
+        /** @var User|null $user */
+        $user = User::query()->where('email', $credentials['email'])->first();
+
+        if (!$user || !$this->passwordMatches($user, $credentials['password'])) {
             return response()->json([
                 'message' => 'The provided credentials do not match our records.',
             ], 422);
         }
 
-        $request->session()->regenerate();
-
-        $user = $request->user();
-
         if (!$user || !$user->isCustomer()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
             return response()->json([
                 'message' => 'Only customer accounts can sign in from the storefront.',
             ], 403);
         }
 
+        $token = $user->createToken('customer-api-token')->plainTextToken;
+
         return response()->json([
             'message' => 'Signed in successfully.',
             'user' => StorefrontData::user($user),
+            'token' => $token,
         ]);
     }
 
     public function updateProfile(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $request->user('sanctum');
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -107,12 +117,27 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $request->user('sanctum')?->currentAccessToken()?->delete();
 
         return response()->json([
             'message' => 'Signed out successfully.',
         ]);
+    }
+
+    private function passwordMatches(User $user, string $password): bool
+    {
+        try {
+            return Hash::check($password, $user->password);
+        } catch (RuntimeException) {
+            if (!hash_equals((string) $user->password, $password)) {
+                return false;
+            }
+
+            // Self-heal legacy plain-text records by rehashing after a successful fallback match.
+            $user->password = $password;
+            $user->save();
+
+            return true;
+        }
     }
 }

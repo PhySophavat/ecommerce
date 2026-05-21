@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\GatewayPayment;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
@@ -21,6 +22,32 @@ class TelegramService
         $this->notifyCustomerAboutNewOrder($order);
         $this->notifyMerchantsAboutNewOrder($order);
         $this->notifyAdminsAboutNewOrder($order);
+    }
+
+    public function notifyPaymentProofSubmitted(Order $order, GatewayPayment $payment): void
+    {
+        if (!$this->isEnabled()) {
+            return;
+        }
+
+        $order->loadMissing('customer');
+
+        $adminChatIds = User::query()
+            ->where('role', 'admin')
+            ->whereNotNull('telegram_chat_id')
+            ->pluck('telegram_chat_id')
+            ->filter()
+            ->map(fn ($chatId) => (string) $chatId);
+
+        $fallbackAdminChatId = config('services.telegram.admin_chat_id');
+
+        if (filled($fallbackAdminChatId)) {
+            $adminChatIds->push((string) $fallbackAdminChatId);
+        }
+
+        foreach ($adminChatIds->unique()->values() as $chatId) {
+            $this->sendMessage($chatId, $this->adminPaymentProofMessage($order, $payment));
+        }
     }
 
     public function notifyMerchantsAboutNewOrder(Order $order): void
@@ -168,6 +195,25 @@ class TelegramService
             "📌 Payment: {$order->payment_method}",
             '',
             'សូមចូលទៅពិនិត្យក្នុងប្រព័ន្ធ។',
+        ]);
+    }
+
+    private function adminPaymentProofMessage(Order $order, GatewayPayment $payment): string
+    {
+        $orderAmount = number_format((float) $order->total_amount, 2);
+        $autoStatus = $payment->auto_check_status ?: 'pending';
+        $autoScore = $payment->auto_check_score;
+
+        return implode("\n", [
+            'Payment Proof Submitted',
+            '',
+            "Order: {$order->order_code}",
+            "Customer: {$order->customer_name}",
+            "Method: {$payment->payment_method}",
+            "Amount: {$orderAmount}",
+            "Payment status: {$payment->status}",
+            filled($payment->transaction_ref) ? "Reference: {$payment->transaction_ref}" : 'Reference: not provided',
+            "Auto check: {$autoStatus}".($autoScore !== null ? " ({$autoScore}%)" : ''),
         ]);
     }
 }

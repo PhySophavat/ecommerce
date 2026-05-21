@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\GatewayPayment;
 use App\Models\Merchant;
 use App\Models\MerchantDeposit;
 use App\Models\MerchantTransaction;
@@ -309,8 +310,8 @@ class FinanceReportingService
             ],
             'charts' => [
                 'transaction_flow' => [
-                    ['label' => 'IN', 'value' => round((float) (clone $transactionQuery)->where('type', 'IN')->where('status', 'success')->sum('amount'), 2), 'color' => '#A25F88'],
-                    ['label' => 'OUT', 'value' => round((float) (clone $transactionQuery)->where('type', 'OUT')->where('status', 'success')->sum('amount'), 2), 'color' => '#E7B6D1'],
+                    ['label' => 'IN', 'value' => round((float) (clone $transactionQuery)->where('type', 'IN')->where('status', 'success')->sum('amount'), 2), 'color' => '#10B981'],
+                    ['label' => 'OUT', 'value' => round((float) (clone $transactionQuery)->where('type', 'OUT')->where('status', 'success')->sum('amount'), 2), 'color' => '#F59E0B'],
                 ],
                 'payments_by_bank' => collect(['ABA', 'ACLEDA', 'Wing', 'Cash', 'Card'])
                     ->map(fn (string $method): array => [
@@ -318,18 +319,19 @@ class FinanceReportingService
                         'value' => (int) (clone $paymentQuery)->where('payment_method', $method)->count(),
                         'color' => [
                             'ABA' => '#A25F88',
-                            'ACLEDA' => '#C77CA2',
-                            'Wing' => '#DCA5C0',
-                            'Cash' => '#EAC7D9',
-                            'Card' => '#F2DCE7',
+                            'ACLEDA' => '#3B82F6',
+                            'Wing' => '#F97316',
+                            'Cash' => '#10B981',
+                            'Card' => '#8B5CF6',
                         ][$method],
                     ])->values()->all(),
                 'orders_by_status' => [
-                    ['label' => 'Success', 'value' => $orderCounts['Success'], 'color' => '#A25F88'],
-                    ['label' => 'Failed', 'value' => $orderCounts['Failed'], 'color' => '#D88AAA'],
-                    ['label' => 'Cancelled', 'value' => $orderCounts['Cancelled'], 'color' => '#E7B6D1'],
-                    ['label' => 'Pending', 'value' => $orderCounts['Pending'], 'color' => '#F3DCE8'],
+                    ['label' => 'Success', 'value' => $orderCounts['Success'], 'color' => '#10B981'],
+                    ['label' => 'Failed', 'value' => $orderCounts['Failed'], 'color' => '#EF4444'],
+                    ['label' => 'Cancelled', 'value' => $orderCounts['Cancelled'], 'color' => '#94A3B8'],
+                    ['label' => 'Pending', 'value' => $orderCounts['Pending'], 'color' => '#F59E0B'],
                 ],
+                'payment_verification_trend' => $this->paymentVerificationTrend(),
             ],
             'recent_transactions' => $transactionQuery
                 ->latest('created_at')
@@ -422,7 +424,7 @@ class FinanceReportingService
     private function normalizePaymentStatus(?string $value): string
     {
         return match (strtolower((string) $value)) {
-            'paid', 'success' => 'success',
+            'paid', 'approved', 'success' => 'success',
             'failed', 'rejected' => 'failed',
             'refunded', 'cancelled', 'canceled' => 'cancelled',
             default => 'pending',
@@ -437,5 +439,51 @@ class FinanceReportingService
             'pending' => 'Pending',
             default => 'Success',
         };
+    }
+
+    private function paymentVerificationTrend(): array
+    {
+        $start = now()->copy()->subDays(6)->startOfDay();
+        $payments = GatewayPayment::query()
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereIn('auto_check_status', ['auto_verified', 'auto_failed'])
+                    ->orWhereIn('status', ['approved', 'auto_failed']);
+            })
+            ->where(function (Builder $query) use ($start): void {
+                $query
+                    ->where('auto_checked_at', '>=', $start)
+                    ->orWhere('approved_at', '>=', $start)
+                    ->orWhere('updated_at', '>=', $start);
+            })
+            ->get();
+
+        return collect(range(0, 6))
+            ->map(function (int $offset) use ($payments, $start): array {
+                $day = $start->copy()->addDays($offset);
+                $success = $payments->filter(function (GatewayPayment $payment) use ($day): bool {
+                    $date = $payment->approved_at ?? $payment->auto_checked_at ?? $payment->updated_at;
+
+                    return $date?->isSameDay($day)
+                        && $payment->status === 'approved'
+                        && $payment->auto_check_status === 'auto_verified';
+                })->count();
+
+                $failed = $payments->filter(function (GatewayPayment $payment) use ($day): bool {
+                    $date = $payment->auto_checked_at ?? $payment->updated_at;
+
+                    return $date?->isSameDay($day)
+                        && ($payment->status === 'auto_failed' || $payment->auto_check_status === 'auto_failed');
+                })->count();
+
+                return [
+                    'label' => $day->format('D'),
+                    'date' => $day->toDateString(),
+                    'success' => $success,
+                    'failed' => $failed,
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

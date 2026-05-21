@@ -13,15 +13,22 @@ class Order extends Model
 
     public const PAYMENT_METHODS = ['cash', 'aba_qr', 'acleda', 'wing', 'card'];
 
-    public const PAYMENT_STATUSES = ['unpaid', 'paid', 'failed', 'refunded'];
+    public const PAYMENT_TYPES = ['cash', 'manual_transfer', 'gateway'];
 
-    public const ORDER_STATUSES = ['pending', 'paid', 'processing', 'completed', 'shipped', 'delivered', 'cancelled', 'payment_failed', 'failed', 'refunded'];
+    public const PAYMENT_STATUSES = ['unpaid', 'pending', 'submitted', 'approved', 'auto_failed', 'rejected', 'failed'];
+
+    public const ORDER_STATUSES = ['pending', 'pending_payment', 'payment_submitted', 'processing', 'completed', 'cancelled'];
+
+    public const LEGACY_ORDER_STATUSES = ['pending', 'paid', 'processing', 'completed', 'shipped', 'delivered', 'cancelled', 'payment_failed', 'failed', 'refunded'];
 
     protected $fillable = [
         'customer_id',
         'number',
+        'order_code',
         'status',
+        'order_status',
         'payment_method',
+        'payment_type',
         'payment_status',
         'payment_reference',
         'customer_name',
@@ -71,6 +78,11 @@ class Order extends Model
 
     public function payments(): HasMany
     {
+        return $this->hasMany(GatewayPayment::class);
+    }
+
+    public function merchantPayments(): HasMany
+    {
         return $this->hasMany(Payment::class);
     }
 
@@ -82,8 +94,8 @@ class Order extends Model
     public function shouldApplyPlatformFeeForStage(string $stage): bool
     {
         return match ($stage) {
-            'payment_success' => in_array($this->status, ['paid', 'payment_success'], true)
-                || $this->payment_status === 'paid',
+            'payment_success' => in_array($this->status, ['paid', 'processing', 'payment_success'], true)
+                || in_array($this->payment_status, ['paid', 'approved'], true),
             'order_completed' => in_array($this->status, ['completed', 'delivered', 'order_completed'], true),
             default => false,
         };

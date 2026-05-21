@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
+use RuntimeException;
 
 class AuthController extends Controller
 {
@@ -43,7 +44,7 @@ class AuthController extends Controller
 
         $user = $this->resolveUserFromLogin($credentials['login']);
 
-        if ($user && Hash::check($credentials['password'], $user->password)) {
+        if ($user && $this->passwordMatches($user, $credentials['password'])) {
             Auth::login($user);
             $request->session()->regenerate();
             $request->session()->forget(self::ADMIN_OTP_SESSION_KEY);
@@ -208,6 +209,23 @@ class AuthController extends Controller
 
         return $user?->isAdmin()
             && $request->session()->get(self::ADMIN_OTP_SESSION_KEY) === $user->getKey();
+    }
+
+    private function passwordMatches(User $user, string $password): bool
+    {
+        try {
+            return Hash::check($password, $user->password);
+        } catch (RuntimeException) {
+            if (!hash_equals((string) $user->password, $password)) {
+                return false;
+            }
+
+            // Self-heal legacy plain-text records by rehashing after a successful fallback match.
+            $user->password = $password;
+            $user->save();
+
+            return true;
+        }
     }
 
     /**

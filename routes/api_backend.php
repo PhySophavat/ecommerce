@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Backend\FinanceOverviewController;
 use App\Http\Controllers\Api\Backend\MerchantBalanceController;
 use App\Http\Controllers\Api\Backend\PaymentFeeController;
 use App\Http\Controllers\Api\Backend\PaymentMethodController;
+use App\Http\Controllers\Api\Backend\PaymentRecordController;
 use App\Http\Controllers\Api\Backend\QrCodeController;
 use App\Http\Controllers\Api\Backend\WalletController;
 use App\Http\Controllers\Api\Backend\WithdrawalController;
@@ -19,10 +20,14 @@ use Illuminate\Support\Facades\Route;
 
 // Public API routes for authentication
 Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum')->name('logout');
 
 // Protected backend API routes - admin only
-Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
+Route::middleware(['auth', 'role:admin,super_admin', 'admin.otp'])->group(function () {
+    Route::get('/session', [AuthController::class, 'session'])->name('session');
+});
+
+Route::middleware(['auth:sanctum', 'role:admin,super_admin'])->group(function () {
     Route::get('/products', [ProductController::class, 'index'])->middleware('permission:products.view')->name('products.index');
     Route::post('/products', [ProductController::class, 'store'])->middleware('permission:products.manage')->name('products.store');
     Route::get('/products/{product}', [ProductController::class, 'show'])->middleware('permission:products.view')->name('products.show');
@@ -54,6 +59,10 @@ Route::middleware(['auth', 'role:admin', 'admin.otp'])->group(function () {
     Route::put('/withdrawals/{withdrawal}/mark-paid', [WithdrawalController::class, 'markPaid'])->middleware('permission:withdrawals.review')->name('withdrawals.mark-paid');
     Route::get('/payment-methods', PaymentMethodController::class)->middleware('permission:payments.view')->name('payment-methods.index');
     Route::get('/payment-fees', PaymentFeeController::class)->middleware('permission:payments.view')->name('payment-fees.index');
+    Route::get('/payments', [PaymentRecordController::class, 'index'])->middleware('permission:payments.view')->name('payments.index');
+    Route::get('/payments/{payment}', [PaymentRecordController::class, 'show'])->middleware('permission:payments.view')->name('payments.show');
+    Route::post('/payments/{payment}/approve', [PaymentRecordController::class, 'approve'])->middleware('permission:payments.view')->name('payments.approve');
+    Route::post('/payments/{payment}/reject', [PaymentRecordController::class, 'reject'])->middleware('permission:payments.view')->name('payments.reject');
     Route::get('/orders', [OrderController::class, 'index'])->middleware('permission:orders.view')->name('orders.index');
     Route::get('/orders/{order}', [OrderController::class, 'show'])->middleware('permission:orders.view')->name('orders.show');
     Route::put('/orders/{order}/status', [OrderController::class, 'updateStatus'])->middleware('permission:orders.manage')->name('orders.update-status');

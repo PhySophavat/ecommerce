@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { clearCustomerAuth, getCustomerToken, getCustomerUser, setCustomerAuth } from '../../shared/auth';
 
 const STORAGE_CART = 'frontend-cart-v3';
 const STORAGE_WISHLIST = 'frontend-wishlist-v3';
@@ -155,11 +156,11 @@ export const useStorefrontStore = defineStore('storefront', {
         wishlist: parseStorage(STORAGE_WISHLIST, []),
         orders: [],
         latestOrder: null,
-        user: null,
+        user: getCustomerUser(),
     }),
 
     getters: {
-        isAuthenticated: (state) => Boolean(state.user),
+        isAuthenticated: (state) => Boolean(getCustomerToken() && state.user),
         featuredProducts: (state) => state.products.filter((product) => product.is_featured).slice(0, 8),
         newArrivals: (state) => [...state.products].slice(0, 8),
         merchants: (state) => [...new Set(state.products.map((product) => product.merchant_name).filter(Boolean))],
@@ -263,8 +264,23 @@ export const useStorefrontStore = defineStore('storefront', {
             this.authLoading = true;
 
             try {
+                const currentUser = window.__APP_CONTEXT__?.currentUser ?? null;
+
+                if (!getCustomerToken() && currentUser?.role !== 'customer') {
+                    this.user = null;
+                    return;
+                }
+
                 const response = await window.axios.get('/api/frontend/session');
                 this.user = response.data?.user ?? null;
+
+                if (response.data?.token && this.user) {
+                    setCustomerAuth(response.data.token, this.user);
+                }
+
+                if (!this.user) {
+                    clearCustomerAuth();
+                }
             } finally {
                 this.authLoading = false;
             }
@@ -273,6 +289,7 @@ export const useStorefrontStore = defineStore('storefront', {
         async login(payload) {
             await ensureCsrfToken(true);
             const response = await window.axios.post('/api/frontend/login', payload);
+            setCustomerAuth(response.data.token, response.data.user);
             this.user = response.data.user;
             await this.fetchOrders();
             return response.data;
@@ -281,6 +298,7 @@ export const useStorefrontStore = defineStore('storefront', {
         async register(payload) {
             await ensureCsrfToken(true);
             const response = await window.axios.post('/api/frontend/register', payload);
+            setCustomerAuth(response.data.token, response.data.user);
             this.user = response.data.user;
             this.orders = [];
             return response.data;
@@ -288,7 +306,8 @@ export const useStorefrontStore = defineStore('storefront', {
 
         async logout() {
             await ensureCsrfToken(true);
-            await window.axios.post('/api/frontend/logout');
+            await window.axios.post('/api/frontend/logout').catch(() => {});
+            clearCustomerAuth();
             this.user = null;
             this.orders = [];
             this.latestOrder = null;
@@ -320,6 +339,37 @@ export const useStorefrontStore = defineStore('storefront', {
         async fetchOrder(orderId) {
             const response = await window.axios.get(`/api/frontend/orders/${orderId}`);
             return response.data.order;
+        },
+
+        async createPayment(orderId) {
+            await ensureCsrfToken(true);
+            const response = await window.axios.post('/api/payments/create', {
+                order_id: orderId,
+            });
+
+            return response.data;
+        },
+
+        async fetchPaymentStatus(orderId) {
+            const response = await window.axios.get(`/api/orders/${orderId}/payment-status`);
+            return response.data;
+        },
+
+        async submitPaymentProof(orderId, payload) {
+            await ensureCsrfToken(true);
+
+            const formData = new FormData();
+            formData.append('transaction_ref', payload.transaction_ref || '');
+            formData.append('payment_note', payload.payment_note || '');
+            formData.append('screenshot', payload.screenshot);
+
+            const response = await window.axios.post(`/api/frontend/orders/${orderId}/payment-proof`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            return response.data;
         },
 
         productById(id) {
@@ -437,14 +487,49 @@ export const useStorefrontStore = defineStore('storefront', {
 
         async checkout(payload) {
             await ensureCsrfToken(true);
-            const response = await window.axios.post('/api/frontend/checkout', {
+            const items = this.cartItems.map((item) => ({
+                product_id: item.id,
+                variant_id: item.variant_id,
+                quantity: item.quantity,
+            }));
+            let requestPayload = {
                 ...payload,
-                items: this.cartItems.map((item) => ({
-                    product_id: item.id,
-                    variant_id: item.variant_id,
-                    quantity: item.quantity,
-                })),
-            });
+                items,
+            };
+            let headers = {};
+
+            if (payload?.payment_screenshot instanceof File) {
+                const formData = new FormData();
+
+                Object.entries({
+                    customer_name: payload.customer_name,
+                    email: payload.email,
+                    phone: payload.phone,
+                    address_line1: payload.address_line1,
+                    address_line2: payload.address_line2 || '',
+                    city: payload.city,
+                    postal_code: payload.postal_code,
+                    notes: payload.notes || '',
+                    payment_method: payload.payment_method,
+                    payment_reference: payload.payment_reference || '',
+                    transaction_reference: payload.transaction_reference || '',
+                    payment_notes: payload.payment_notes || '',
+                }).forEach(([key, value]) => {
+                    formData.append(key, value ?? '');
+                });
+
+                items.forEach((item, index) => {
+                    formData.append(`items[${index}][product_id]`, String(item.product_id));
+                    formData.append(`items[${index}][variant_id]`, item.variant_id ? String(item.variant_id) : '');
+                    formData.append(`items[${index}][quantity]`, String(item.quantity));
+                });
+
+                formData.append('payment_screenshot', payload.payment_screenshot);
+                requestPayload = formData;
+                headers['Content-Type'] = 'multipart/form-data';
+            }
+
+            const response = await window.axios.post('/api/frontend/checkout', requestPayload, { headers });
 
             this.latestOrder = response.data.order;
             this.clearCart();

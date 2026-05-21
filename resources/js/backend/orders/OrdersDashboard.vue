@@ -218,10 +218,10 @@ const filters = reactive({
 });
 const statusForm = reactive({
     status: 'pending',
-    payment_status: 'unpaid',
+    payment_status: 'pending',
 });
 
-const paymentStatuses = ['unpaid', 'paid', 'failed', 'refunded'];
+const paymentStatuses = ['pending', 'paid', 'failed', 'expired', 'cancelled'];
 const paymentMethods = [
     { value: 'cash', label: 'Cash' },
     { value: 'aba_qr', label: 'ABA QR' },

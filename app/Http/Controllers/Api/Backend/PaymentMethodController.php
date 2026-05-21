@@ -22,30 +22,30 @@ class PaymentMethodController extends Controller
             [
                 'code' => 'aba_qr',
                 'label' => 'ABA QR',
-                'customer_text' => 'Customer pays with ABA QR transfer.',
-                'requires_reference' => true,
-                'verification' => 'Admin verifies transfer reference',
+                'customer_text' => 'Customer is redirected to the gateway-ready payment page with an ABA QR placeholder.',
+                'requires_reference' => false,
+                'verification' => 'Webhook or mock callback confirms payment',
             ],
             [
                 'code' => 'acleda',
                 'label' => 'ACLEDA',
-                'customer_text' => 'Customer pays with ACLEDA transfer.',
-                'requires_reference' => true,
-                'verification' => 'Admin verifies transfer reference',
+                'customer_text' => 'Customer is redirected to the gateway-ready payment page with an ACLEDA placeholder.',
+                'requires_reference' => false,
+                'verification' => 'Webhook or mock callback confirms payment',
             ],
             [
                 'code' => 'wing',
                 'label' => 'Wing',
-                'customer_text' => 'Customer pays with Wing wallet.',
-                'requires_reference' => true,
-                'verification' => 'Admin or merchant verifies transfer reference',
+                'customer_text' => 'Customer is redirected to the gateway-ready payment page with a Wing placeholder.',
+                'requires_reference' => false,
+                'verification' => 'Webhook or mock callback confirms payment',
             ],
             [
                 'code' => 'card',
                 'label' => 'Card',
-                'customer_text' => 'Card payment is available when enabled.',
-                'requires_reference' => true,
-                'verification' => 'Manual verification before marked paid',
+                'customer_text' => 'Card payment is routed through the same gateway-ready payment session.',
+                'requires_reference' => false,
+                'verification' => 'Webhook or mock callback confirms payment',
             ],
         ])->map(function (array $method): array {
             $query = Order::query()->where('payment_method', $method['code']);
@@ -53,10 +53,10 @@ class PaymentMethodController extends Controller
             return [
                 ...$method,
                 'orders_count' => (clone $query)->count(),
-                'paid_count' => (clone $query)->where('payment_status', 'paid')->count(),
-                'unpaid_count' => (clone $query)->where('payment_status', 'unpaid')->count(),
+                'paid_count' => (clone $query)->whereIn('payment_status', ['paid', 'approved'])->count(),
+                'pending_count' => (clone $query)->where('payment_status', 'pending')->count(),
                 'failed_count' => (clone $query)->where('payment_status', 'failed')->count(),
-                'refunded_count' => (clone $query)->where('payment_status', 'refunded')->count(),
+                'cancelled_count' => (clone $query)->whereIn('payment_status', ['expired', 'cancelled'])->count(),
             ];
         })->values();
 

@@ -1,0 +1,1041 @@
+﻿<!DOCTYPE html>
+<html lang="en"><head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="bqtjgwxn0J8BdzAqLkYMw11xmtN8ELnnvdTXQsUM">
+
+        <title>Frontend | Storefront</title>
+        <link rel="icon" type="image/jpeg" href="/logo.jpg">
+
+        <link rel="preconnect" href="https://fonts.bunny.net">
+        <link href="https://fonts.bunny.net/css?family=fraunces:600,700|plus-jakarta-sans:400,500,600,700,800|space-grotesk:400,500,700" rel="stylesheet">
+
+                    
+            <script>
+                window.__APP_CONTEXT__ = {"app":"frontend","currentUser":null};
+            </script>
+
+            <script type="module" src="http://127.0.0.1:5173/@vite/client"></script><link rel="stylesheet" href="http://127.0.0.1:5173/resources/css/app.css"><script type="module" src="http://127.0.0.1:5173/resources/js/app.js"></script>            <style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/merchant/MerchantRegistrationApp.vue?vue&amp;type=style&amp;index=0&amp;scoped=9b61abbb&amp;lang.css">
+.field-input[data-v-9b61abbb] {
+    width: 100%;
+    border-radius: 1.25rem;
+    border-width: 1px;
+    padding: 0.9rem 1rem;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.field-input[data-v-9b61abbb]:focus {
+    border-color: #a25f88;
+    box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.12);
+}
+.file-input[data-v-9b61abbb] {
+    width: 100%;
+    border-radius: 1.25rem;
+    border: 1px dashed #d8def1;
+    background: white;
+    padding: 0.9rem 1rem;
+    color: #334155;
+}
+.primary-button[data-v-9b61abbb] {
+    border-radius: 1rem;
+    background: #a25f88;
+    padding: 0.85rem 1.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: white;
+    transition: transform 150ms ease, background-color 150ms ease;
+}
+.primary-button[data-v-9b61abbb]:hover {
+    transform: translateY(-1px);
+    background: #8d4d75;
+}
+.secondary-button[data-v-9b61abbb] {
+    border-radius: 1rem;
+    border: 1px solid #d8def1;
+    background: white;
+    padding: 0.85rem 1.4rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #64748b;
+    transition: transform 150ms ease, color 150ms ease;
+}
+.secondary-button[data-v-9b61abbb]:hover {
+    transform: translateY(-1px);
+    color: #0f172a;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/merchant/MerchantManagerPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=9a8e4f5d&amp;lang.css">
+/* ── Stat cards ── */
+.stat-card[data-v-9a8e4f5d] { background: #fff; border: 0.5px solid #e2e8f0;
+}
+.stat-label[data-v-9a8e4f5d] { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px;
+}
+.stat-value[data-v-9a8e4f5d] { font-size: 24px; font-weight: 700;
+}
+.val-blue[data-v-9a8e4f5d]  { color: #2563eb;
+}
+.val-amber[data-v-9a8e4f5d] { color: #d97706;
+}
+.val-green[data-v-9a8e4f5d] { color: #059669;
+}
+.val-red[data-v-9a8e4f5d]   { color: #dc2626;
+}
+.val-gray[data-v-9a8e4f5d]  { color: #64748b;
+}
+
+/* ── Card ── */
+.card[data-v-9a8e4f5d] { background: #fff; border: 0.5px solid #e2e8f0;
+}
+.card-header[data-v-9a8e4f5d] { border-bottom: 0.5px solid #e2e8f0;
+}
+.kicker[data-v-9a8e4f5d] { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em;
+}
+.card-title[data-v-9a8e4f5d] { font-size: 18px; font-weight: 700; color: #0f172a;
+}
+
+/* ── Notice ── */
+.notice[data-v-9a8e4f5d] { border: 0.5px solid transparent;
+}
+.notice-success[data-v-9a8e4f5d] { background: #d1fae5; color: #065f46; border-color: #6ee7b7;
+}
+.notice-error[data-v-9a8e4f5d]   { background: #fee2e2; color: #991b1b; border-color: #fca5a5;
+}
+
+/* ── Buttons ── */
+.btn[data-v-9a8e4f5d] {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-weight: 500; cursor: pointer; border: 0.5px solid #cbd5e1;
+    background: #fff; color: #0f172a; text-decoration: none;
+    transition: background .1s, opacity .1s; white-space: nowrap;
+}
+.btn[data-v-9a8e4f5d]:hover    { background: #f8fafc;
+}
+.btn[data-v-9a8e4f5d]:disabled { opacity: .5; cursor: not-allowed;
+}
+.btn-primary[data-v-9a8e4f5d]  { background: #0f172a; color: #fff; border-color: #0f172a;
+}
+.btn-primary[data-v-9a8e4f5d]:hover  { background: #1e293b;
+}
+.btn-secondary[data-v-9a8e4f5d] { background: #fff;
+}
+.btn-success[data-v-9a8e4f5d]  { background: #059669; color: #fff; border-color: #059669;
+}
+.btn-success[data-v-9a8e4f5d]:hover  { background: #047857;
+}
+.btn-danger[data-v-9a8e4f5d]   { background: #dc2626; color: #fff; border-color: #dc2626;
+}
+.btn-danger[data-v-9a8e4f5d]:hover   { background: #b91c1c;
+}
+.btn-warn[data-v-9a8e4f5d]     { background: #d97706; color: #fff; border-color: #d97706;
+}
+.btn-warn[data-v-9a8e4f5d]:hover     { background: #b45309;
+}
+
+/* ── Toolbar ── */
+.toolbar[data-v-9a8e4f5d] { border-bottom: 0.5px solid #e2e8f0; background: #fafafa;
+}
+.search-input[data-v-9a8e4f5d] {
+    border: 0.5px solid #cbd5e1; background: #fff; color: #0f172a;
+    outline: none; font-size: 13px; padding: 7px 12px;
+}
+.search-input[data-v-9a8e4f5d]:focus { border-color: #94a3b8;
+}
+.filter-select[data-v-9a8e4f5d] {
+    border: 0.5px solid #cbd5e1; background: #fff; color: #0f172a;
+    outline: none; font-size: 13px; padding: 7px 10px; cursor: pointer;
+}
+
+/* ── Table ── */
+.table-wrap[data-v-9a8e4f5d] { border-top: 0.5px solid #e2e8f0;
+}
+.table-head[data-v-9a8e4f5d] { background: #f8fafc;
+}
+.table-head th[data-v-9a8e4f5d] {
+    font-size: 11px; font-weight: 500; color: #94a3b8;
+    text-transform: uppercase; letter-spacing: .07em;
+    border-bottom: 0.5px solid #e2e8f0; white-space: nowrap;
+}
+.table-row[data-v-9a8e4f5d] { border-bottom: 0.5px solid #f1f5f9; transition: background .1s;
+}
+.table-row[data-v-9a8e4f5d]:hover { background: #f8fafc;
+}
+.table-row[data-v-9a8e4f5d]:last-child { border-bottom: none;
+}
+.store-logo[data-v-9a8e4f5d] { width: 36px; height: 36px; flex-shrink: 0;
+}
+.store-initial[data-v-9a8e4f5d] { font-size: 13px;
+}
+
+/* ── Badges ── */
+.badge[data-v-9a8e4f5d] { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; white-space: nowrap;
+}
+.badge-pending[data-v-9a8e4f5d]   { background: #fef3c7; color: #92400e;
+}
+.badge-approved[data-v-9a8e4f5d]  { background: #d1fae5; color: #065f46;
+}
+.badge-rejected[data-v-9a8e4f5d]  { background: #fee2e2; color: #991b1b;
+}
+.badge-suspended[data-v-9a8e4f5d] { background: #f1f5f9; color: #475569;
+}
+.badge-verified[data-v-9a8e4f5d]  { background: #dbeafe; color: #1e40af;
+}
+.badge-default[data-v-9a8e4f5d]   { background: #f1f5f9; color: #64748b;
+}
+
+/* ── Icon button ── */
+.icon-btn[data-v-9a8e4f5d] {
+    width: 30px; height: 30px; border: 0.5px solid #e2e8f0;
+    background: #fff; display: inline-flex; align-items: center;
+    justify-content: center; cursor: pointer; color: #64748b;
+    transition: background .1s, color .1s;
+}
+.icon-btn[data-v-9a8e4f5d]:hover { background: #f1f5f9; color: #0f172a;
+}
+
+/* ── Table footer ── */
+.table-footer[data-v-9a8e4f5d] { border-top: 0.5px solid #e2e8f0; background: #fafafa;
+}
+
+/* ── Pending items ── */
+.pending-item[data-v-9a8e4f5d] { transition: background .1s;
+}
+.pending-item[data-v-9a8e4f5d]:hover { background: #fafafa;
+}
+
+/* ── Detail view ── */
+.detail-logo[data-v-9a8e4f5d] { width: 60px; height: 60px; flex-shrink: 0;
+}
+.info-title[data-v-9a8e4f5d] { font-size: 14px; font-weight: 600; color: #0f172a; border-bottom: 0.5px solid #f1f5f9; padding-bottom: 10px;
+}
+.info-row[data-v-9a8e4f5d] { display: flex; gap: 8px; font-size: 13px;
+}
+.info-row dt[data-v-9a8e4f5d] { color: #64748b; min-width: 120px; flex-shrink: 0;
+}
+.info-row dd[data-v-9a8e4f5d] { color: #0f172a;
+}
+.balance-tile[data-v-9a8e4f5d] { border: 0.5px solid #e2e8f0; background: #f8fafc; border-radius: 16px; padding: 14px 16px;
+}
+.balance-label[data-v-9a8e4f5d] { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em;
+}
+.balance-value[data-v-9a8e4f5d] { margin-top: 8px; font-size: 24px; font-weight: 700;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/deposits/AdminDeposits.vue?vue&amp;type=style&amp;index=0&amp;scoped=9a3a7dcc&amp;lang.css">
+.field-input[data-v-9a3a7dcc] {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.field-input[data-v-9a3a7dcc]:focus {
+    border-color: #a25f88;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.14);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/bank-accounts/BankAccountsPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=fd6ec880&amp;lang.css">
+.card[data-v-fd6ec880] { background: #fff; border: 0.5px solid #e2e8f0;
+}
+.card-header[data-v-fd6ec880] { border-bottom: 0.5px solid #e2e8f0;
+}
+.kicker[data-v-fd6ec880] { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em;
+}
+.card-title[data-v-fd6ec880] { font-size: 18px; font-weight: 700; color: #0f172a;
+}
+.toolbar[data-v-fd6ec880] { border-bottom: 0.5px solid #e2e8f0; background: #fafafa;
+}
+.table-wrap[data-v-fd6ec880] { border-top: 0.5px solid #e2e8f0;
+}
+.table-head[data-v-fd6ec880] { background: #f8fafc;
+}
+.table-head th[data-v-fd6ec880] {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    border-bottom: 0.5px solid #e2e8f0;
+    white-space: nowrap;
+}
+.table-row[data-v-fd6ec880] { border-bottom: 0.5px solid #f1f5f9; transition: background .1s;
+}
+.table-row[data-v-fd6ec880]:hover { background: #f8fafc;
+}
+.table-row[data-v-fd6ec880]:last-child { border-bottom: none;
+}
+.badge[data-v-fd6ec880] {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 9px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.badge-pending[data-v-fd6ec880] { background: #fef3c7; color: #92400e;
+}
+.badge-approved[data-v-fd6ec880] { background: #d1fae5; color: #065f46;
+}
+.badge-rejected[data-v-fd6ec880] { background: #fee2e2; color: #991b1b;
+}
+.badge-disabled[data-v-fd6ec880],
+.badge-default[data-v-fd6ec880] { background: #f1f5f9; color: #475569;
+}
+.badge-accent[data-v-fd6ec880] { background: #a25f88; color: #fff;
+}
+.table-footer[data-v-fd6ec880] { border-top: 0.5px solid #e2e8f0; background: #fafafa;
+}
+.field-input[data-v-fd6ec880] {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.field-input[data-v-fd6ec880]:focus {
+    border-color: #4f5de4;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(79, 93, 228, 0.14);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/merchant-balance/MerchantBalancePage.vue?vue&amp;type=style&amp;index=0&amp;scoped=fbcadd0f&amp;lang.css">
+.card[data-v-fbcadd0f] { background: #fff; border: 0.5px solid #e2e8f0;
+}
+.card-header[data-v-fbcadd0f] { border-bottom: 0.5px solid #e2e8f0;
+}
+.kicker[data-v-fbcadd0f] { font-size: 11px; color: #94a3b8; text-transform: uppercase; letter-spacing: .08em;
+}
+.card-title[data-v-fbcadd0f] { font-size: 18px; font-weight: 700; color: #0f172a;
+}
+.toolbar[data-v-fbcadd0f] { border-bottom: 0.5px solid #e2e8f0; background: #fafafa;
+}
+.search-input[data-v-fbcadd0f],
+.filter-select[data-v-fbcadd0f] {
+    border: 0.5px solid #cbd5e1;
+    background: #fff;
+    color: #0f172a;
+    outline: none;
+}
+.table-wrap[data-v-fbcadd0f] { border-top: 0.5px solid #e2e8f0;
+}
+.table-head[data-v-fbcadd0f] { background: #f8fafc;
+}
+.table-head th[data-v-fbcadd0f] {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    border-bottom: 0.5px solid #e2e8f0;
+    white-space: nowrap;
+}
+.table-row[data-v-fbcadd0f] { border-bottom: 0.5px solid #f1f5f9;
+}
+.table-row[data-v-fbcadd0f]:last-child { border-bottom: none;
+}
+.table-footer[data-v-fbcadd0f] { border-top: 0.5px solid #e2e8f0; background: #fafafa;
+}
+.badge[data-v-fbcadd0f] { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; white-space: nowrap;
+}
+.badge-pending[data-v-fbcadd0f] { background: #fef3c7; color: #92400e;
+}
+.badge-approved[data-v-fbcadd0f] { background: #d1fae5; color: #065f46;
+}
+.badge-rejected[data-v-fbcadd0f] { background: #fee2e2; color: #991b1b;
+}
+.badge-suspended[data-v-fbcadd0f] { background: #f1f5f9; color: #475569;
+}
+.badge-default[data-v-fbcadd0f] { background: #f1f5f9; color: #64748b;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/payments/AdminPaymentRecords.vue?vue&amp;type=style&amp;index=0&amp;scoped=41713070&amp;lang.css">
+.modal-fade-enter-active[data-v-41713070],
+.modal-fade-leave-active[data-v-41713070] {
+    transition: opacity 180ms ease;
+}
+.modal-fade-enter-from[data-v-41713070],
+.modal-fade-leave-to[data-v-41713070] {
+    opacity: 0;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/wallet/AdminQrCodes.vue?vue&amp;type=style&amp;index=0&amp;scoped=8a982f82&amp;lang.css">
+.field-input[data-v-8a982f82] {
+    width: 100%;
+    border-radius: 1.5rem;
+    border: 1px solid #dbe4f0;
+    background: #f7f9fc;
+    padding: 0.95rem 1.25rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.field-input[data-v-8a982f82]:focus {
+    border-color: #a25f88;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.12);
+}
+.field-input[readonly][data-v-8a982f82] {
+    color: #334155;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/withdrawals/AdminWithdrawals.vue?vue&amp;type=style&amp;index=0&amp;scoped=17eb5d16&amp;lang.css">
+.withdraw-card[data-v-17eb5d16] {
+    background: #fff;
+    border: 0.5px solid #e2e8f0;
+}
+.withdraw-card-header[data-v-17eb5d16] {
+    border-bottom: 0.5px solid #e2e8f0;
+}
+.withdraw-toolbar[data-v-17eb5d16],
+.withdraw-table-footer[data-v-17eb5d16] {
+    background: #fafafa;
+}
+.withdraw-kicker[data-v-17eb5d16] {
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.withdraw-title[data-v-17eb5d16] {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+}
+.withdraw-filter[data-v-17eb5d16] {
+    font-weight: 500;
+    border: 0.5px solid #cbd5e1;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.withdraw-filter-active[data-v-17eb5d16] {
+    background: #0f172a;
+    border-color: #0f172a;
+    color: #fff;
+}
+.withdraw-filter-idle[data-v-17eb5d16] {
+    background: #fff;
+    color: #475569;
+}
+.withdraw-filter-idle[data-v-17eb5d16]:hover {
+    background: #f8fafc;
+}
+.withdraw-meta-label[data-v-17eb5d16] {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.withdraw-table-wrap[data-v-17eb5d16] {
+    border-top: 0.5px solid #e2e8f0;
+}
+.withdraw-table-head th[data-v-17eb5d16] {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 0.5px solid #e2e8f0;
+    white-space: nowrap;
+}
+.withdraw-table-row[data-v-17eb5d16] {
+    border-bottom: 0.5px solid #f1f5f9;
+    transition: background 0.1s;
+}
+.withdraw-table-row[data-v-17eb5d16]:hover {
+    background: #f8fafc;
+}
+.withdraw-badge[data-v-17eb5d16] {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+.badge-pending[data-v-17eb5d16] { background: #fef3c7; color: #92400e;
+}
+.badge-approved[data-v-17eb5d16] { background: #dbeafe; color: #1d4ed8;
+}
+.badge-rejected[data-v-17eb5d16] { background: #fee2e2; color: #991b1b;
+}
+.badge-paid[data-v-17eb5d16] { background: #d1fae5; color: #065f46;
+}
+.badge-default[data-v-17eb5d16] { background: #f1f5f9; color: #64748b;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/merchant/MerchantBankAccounts.vue?vue&amp;type=style&amp;index=0&amp;scoped=c48336c6&amp;lang.css">
+.field-input[data-v-c48336c6] {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.field-input[data-v-c48336c6]:focus {
+    border-color: #a25f88;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.14);
+}
+.accounts-table[data-v-c48336c6] {
+    font-size: 0.95rem;
+}
+.accounts-table thead th[data-v-c48336c6] {
+    white-space: nowrap;
+    border-bottom: 1px solid #e2e8f0;
+}
+.accounts-table td[data-v-c48336c6] {
+    white-space: nowrap;
+}
+.accounts-row[data-v-c48336c6] {
+    transition: background-color 150ms ease;
+}
+.accounts-row[data-v-c48336c6]:hover {
+    background: #fcfcfd;
+}
+.action-button[data-v-c48336c6] {
+    border-radius: 9999px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1;
+    transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+.action-button[data-v-c48336c6]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+.action-button-muted[data-v-c48336c6] {
+    background: #f1f5f9;
+    color: #334155;
+}
+.action-button-muted[data-v-c48336c6]:hover {
+    background: #e2e8f0;
+}
+.action-button-accent[data-v-c48336c6] {
+    background: #f6eaf1;
+    color: #a25f88;
+}
+.action-button-accent[data-v-c48336c6]:hover {
+    background: #eedbe6;
+}
+.action-button-danger[data-v-c48336c6] {
+    background: #fff1f2;
+    color: #be123c;
+}
+.action-button-danger[data-v-c48336c6]:hover {
+    background: #ffe4e6;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/merchant/MerchantDeposit.vue?vue&amp;type=style&amp;index=0&amp;scoped=cc805728&amp;lang.css">
+.field-input[data-v-cc805728] {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.field-input[data-v-cc805728]:focus {
+    border-color: #a25f88;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.14);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/merchant/MerchantWallet.vue?vue&amp;type=style&amp;index=0&amp;scoped=ec3dfadc&amp;lang.css">
+.field-input[data-v-ec3dfadc] {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    color: #0f172a;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.field-input[data-v-ec3dfadc]:focus {
+    border-color: #a25f88;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.14);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/settings/PlatformFeeSettings.vue?vue&amp;type=style&amp;index=0&amp;scoped=f5d23eba&amp;lang.css">
+.field-input[data-v-f5d23eba] {
+    width: 100%;
+    border-radius: 1rem;
+    border-width: 1px;
+    border-color: #e5e7eb;
+    padding: 0.95rem 1rem;
+    font-size: 0.95rem;
+    color: #111827;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+.field-input[data-v-f5d23eba]:focus {
+    border-color: #a25f88;
+    box-shadow: 0 0 0 3px rgba(162, 95, 136, 0.12);
+}
+.field-input[data-v-f5d23eba]::placeholder {
+    color: #9ca3af;
+}
+.fade-enter-active[data-v-f5d23eba],
+.fade-leave-active[data-v-f5d23eba] {
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+.fade-enter-from[data-v-f5d23eba],
+.fade-leave-to[data-v-f5d23eba] {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/backend/slides/SlideManagerPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=76f13fa7&amp;lang.css">
+/* Page background */
+.admin-root[data-v-76f13fa7] {
+    background: #faf7f9;
+}
+
+/* Outer panel */
+.admin-panel[data-v-76f13fa7] {
+    background: #ffffff;
+    box-shadow: 0 8px 40px 0 rgba(162, 95, 136, 0.08);
+}
+
+/* Notice */
+.notice[data-v-76f13fa7] {
+    border: 1px solid transparent;
+}
+.notice--success[data-v-76f13fa7] {
+    background: #f0faf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+.notice--error[data-v-76f13fa7] {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+}
+.notice-dot[data-v-76f13fa7] {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    flex-shrink: 0;
+}
+.notice--success .notice-dot[data-v-76f13fa7] { background: #22c55e;
+}
+.notice--error   .notice-dot[data-v-76f13fa7] { background: #f43f5e;
+}
+
+/* Loading card */
+.loading-card[data-v-76f13fa7] {
+    background: #ffffff;
+    border: 1px solid #f0e6ed;
+    box-shadow: 0 1px 4px 0 rgba(162, 95, 136, 0.06);
+}
+
+/* Spinner */
+.loading-spinner[data-v-76f13fa7] {
+    width: 28px;
+    height: 28px;
+    border: 2.5px solid #f0e6ed;
+    border-top-color: #A25F88;
+    border-radius: 9999px;
+    animation: spin-76f13fa7 0.7s linear infinite;
+}
+@keyframes spin-76f13fa7 {
+to { transform: rotate(360deg);
+}
+}
+
+/* Fade transition for notice */
+.fade-enter-active[data-v-76f13fa7],
+.fade-leave-active[data-v-76f13fa7] {
+    transition: opacity 0.25s, transform 0.25s;
+}
+.fade-enter-from[data-v-76f13fa7],
+.fade-leave-to[data-v-76f13fa7] {
+    opacity: 0;
+    transform: translateY(-6px);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/pages/CheckoutPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=830ce149&amp;lang.css">
+.payment-modal[data-v-830ce149] {
+    width: min(92vw, 480px);
+    max-width: 480px;
+}
+.payment-brand-mark[data-v-830ce149] {
+    display: inline-flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    overflow: hidden;
+}
+.payment-brand-mark-compact[data-v-830ce149] {
+    height: 2.75rem;
+    width: 2.75rem;
+    border-radius: 0.85rem;
+    font-size: 0.72rem;
+}
+.payment-logo-image[data-v-830ce149] {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    display: block;
+}
+.processing-spinner[data-v-830ce149] {
+    height: 3rem;
+    width: 3rem;
+    border-radius: 9999px;
+    border: 3px solid rgba(162, 95, 136, 0.16);
+    border-top-color: #a25f88;
+    animation: spin-830ce149 0.9s linear infinite;
+}
+.qr-crop-shell[data-v-830ce149] {
+    height: 7.5rem;
+    width: 7.5rem;
+    overflow: hidden;
+    border-radius: 1.1rem;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+}
+.qr-crop-shell-large[data-v-830ce149] {
+    height: 12.5rem;
+    width: 12.5rem;
+}
+.qr-crop-image[data-v-830ce149] {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 64%;
+}
+.payment-brand-cash[data-v-830ce149] {
+    background: rgba(162, 95, 136, 0.14);
+    color: #a25f88;
+}
+.payment-brand-aba[data-v-830ce149] {
+    background: linear-gradient(135deg, #0f5fa8 0%, #2f89d2 100%);
+    color: #ffffff;
+}
+.payment-brand-acleda[data-v-830ce149] {
+    background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
+    color: #ffffff;
+}
+.payment-brand-wing[data-v-830ce149] {
+    background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
+    color: #ffffff;
+}
+.payment-brand-card[data-v-830ce149] {
+    background: linear-gradient(135deg, #111827 0%, #374151 100%);
+    color: #ffffff;
+}
+.field-input[data-v-830ce149] {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    padding: 0.9rem 1rem;
+    color: #111827;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.field-input[data-v-830ce149]:focus {
+    border-color: #a25f88;
+    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.12);
+}
+@media (min-width: 1024px) {
+.payment-modal[data-v-830ce149] {
+        width: min(100%, 480px);
+}
+}
+.modal-fade-enter-active[data-v-830ce149],
+.modal-fade-leave-active[data-v-830ce149] {
+    transition: opacity 180ms ease;
+}
+.modal-fade-enter-from[data-v-830ce149],
+.modal-fade-leave-to[data-v-830ce149] {
+    opacity: 0;
+}
+@keyframes spin-830ce149 {
+to {
+        transform: rotate(360deg);
+}
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/components/OurPartnersSection.vue?vue&amp;type=style&amp;index=0&amp;scoped=75657525&amp;lang.css">
+.partner-marquee[data-v-75657525] {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+.partner-track[data-v-75657525] {
+    display: flex;
+    width: max-content;
+    align-items: center;
+    gap: 1.25rem;
+    animation: partner-scroll-75657525 26s linear infinite;
+    will-change: transform;
+}
+.partner-circle-card[data-v-75657525] {
+    flex: 0 0 auto;
+    padding: 0.25rem;
+}
+.partner-circle[data-v-75657525] {
+    display: flex;
+    height: 6.75rem;
+    width: 6.75rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #f1e6ed;
+    border-radius: 9999px;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.08);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.partner-circle-card:hover .partner-circle[data-v-75657525] {
+    transform: scale(1.05);
+    box-shadow: 0 18px 38px rgba(17, 24, 39, 0.14);
+}
+.partner-marquee:hover .partner-track[data-v-75657525] {
+    animation-play-state: paused;
+}
+@keyframes partner-scroll-75657525 {
+from {
+        transform: translateX(0);
+}
+to {
+        transform: translateX(calc(-50% - 0.625rem));
+}
+}
+@media (min-width: 640px) {
+.partner-track[data-v-75657525] {
+        gap: 1.75rem;
+}
+.partner-circle[data-v-75657525] {
+        height: 8rem;
+        width: 8rem;
+}
+}
+@media (max-width: 639px) {
+.partner-marquee[data-v-75657525] {
+        mask-image: none;
+        -webkit-mask-image: none;
+}
+.partner-track[data-v-75657525] {
+        gap: 1rem;
+        animation-duration: 20s;
+}
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/components/slides/Slides.vue?vue&amp;type=style&amp;index=0&amp;scoped=8da58407&amp;lang.css">
+.highlight-slide-enter-active[data-v-8da58407],
+.highlight-slide-leave-active[data-v-8da58407] {
+    transition: opacity 0.45s ease, transform 0.45s ease;
+}
+.highlight-slide-enter-from[data-v-8da58407] {
+    opacity: 0;
+    transform: translateX(36px);
+}
+.highlight-slide-leave-to[data-v-8da58407] {
+    opacity: 0;
+    transform: translateX(-36px);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/pages/LoginPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=1d1db822&amp;lang.css">
+.field-input[data-v-1d1db822] {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 1.1rem;
+    border: 1px solid #E5E7EB;
+    background: #F8FAFC;
+    padding: 0.9rem 1rem;
+    color: #111827;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+    outline: none;
+}
+.field-input[data-v-1d1db822]:focus {
+    background: #ffffff;
+    border-color: #A25F88;
+    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.1);
+}
+.error-alert[data-v-1d1db822] {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    border-radius: 0.95rem;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+    padding: 0.8rem 0.95rem;
+    color: #dc2626;
+    font-size: 0.875rem;
+    line-height: 1.45;
+}
+.google-button[data-v-1d1db822] {
+    width: 100%;
+    min-height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid #E5E7EB;
+    background: #ffffff;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.9rem 1.25rem;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+    transition: background-color 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    text-decoration: none;
+}
+.google-button[data-v-1d1db822]:hover {
+    background: #F8FAFC;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    border-color: #d8e0ea;
+}
+.google-button[data-v-1d1db822]:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.16);
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/pages/OrderDetailPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=1e8bbbd8&amp;lang.css">
+.badge[data-v-1e8bbbd8] {
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.badge-order[data-v-1e8bbbd8] {
+    background: #f3e8f1;
+    color: #a25f88;
+}
+.badge-payment[data-v-1e8bbbd8] {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/pages/OrderHistoryPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=87582193&amp;lang.css">
+.badge[data-v-87582193] {
+    border-radius: 9999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.badge-order[data-v-87582193] {
+    background: #f3e8f1;
+    color: #a25f88;
+}
+.badge-payment[data-v-87582193] {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/pages/PaymentPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=a75ce4c7&amp;lang.css">
+.field-input[data-v-a75ce4c7] {
+    width: 100%;
+    min-height: 3.25rem;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding: 0.9rem 1rem;
+    font-size: 0.95rem;
+    color: #111827;
+    outline: none;
+}
+.field-input[data-v-a75ce4c7]:focus {
+    border-color: #a25f88;
+    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.1);
+}
+.qr-crop-shell[data-v-a75ce4c7] {
+    width: 210px;
+    max-width: 100%;
+    overflow: hidden;
+    border-radius: 20px;
+    background: #fff;
+}
+.qr-crop-image[data-v-a75ce4c7] {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}
+.loading-ring[data-v-a75ce4c7] {
+    height: 2rem;
+    width: 2rem;
+    border-radius: 9999px;
+    border: 3px solid rgba(162, 95, 136, 0.18);
+    border-top-color: #a25f88;
+    animation: spin-a75ce4c7 0.8s linear infinite;
+}
+@keyframes spin-a75ce4c7 {
+to {
+        transform: rotate(360deg);
+}
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/pages/ProfilePage.vue?vue&amp;type=style&amp;index=0&amp;scoped=82f06bd0&amp;lang.css">
+.field-input[data-v-82f06bd0] {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    padding: 0.95rem 1rem;
+    outline: none;
+}
+</style><style type="text/css" data-vite-dev-id="D:/project/ecommerce/resources/js/frontend/pages/RegisterPage.vue?vue&amp;type=style&amp;index=0&amp;scoped=5bfaa839&amp;lang.css">
+.field-input[data-v-5bfaa839] {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 16px;
+    border: 1px solid #DDE7F3;
+    background: #F8FAFC;
+    padding: 0.9rem 1rem;
+    color: #111827;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+    outline: none;
+}
+.field-input[data-v-5bfaa839]:focus {
+    background: #ffffff;
+    border-color: #A25F88;
+    box-shadow: 0 0 0 4px rgba(162, 95, 136, 0.1);
+}
+.google-button[data-v-5bfaa839] {
+    width: 100%;
+    min-height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid #E5E7EB;
+    background: #ffffff;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.9rem 1.25rem;
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+    transition: background-color 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+    text-decoration: none;
+}
+.google-button[data-v-5bfaa839]:hover {
+    background: #F8FAFC;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+    border-color: #d8e0ea;
+}
+.google-button[data-v-5bfaa839]:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.16);
+}
+</style></head>
+    <body class="antialiased" data-app="frontend">
+        
+            <div id="app" data-v-app=""><div class="storefront-shell min-h-screen bg-[#F8FAFC] text-[#111827]"><div data-v-1d1db822="" class="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4 py-8 sm:px-6 sm:py-10"><div data-v-1d1db822="" class="w-full max-w-[580px]"><section data-v-1d1db822="" class="rounded-[32px] border border-[#E5E7EB] bg-white px-6 py-7 shadow-[0_18px_40px_rgba(15,23,42,0.06)] sm:px-8 sm:py-8"><div data-v-1d1db822="" class="mx-auto w-full max-w-[520px]"><p data-v-1d1db822="" class="text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-[#94A3B8]">LOGIN PAGE</p><h2 data-v-1d1db822="" class="mt-3 text-center text-[2rem] font-black tracking-[-0.05em] text-[#111827] sm:text-[2.35rem]">Welcome back</h2><p data-v-1d1db822="" class="mt-3 text-center text-sm leading-7 text-[#6B7280]"> Sign in to continue shopping and manage your orders. </p><form data-v-1d1db822="" class="mt-7 space-y-4"><input data-v-1d1db822="" type="email" placeholder="Email address" class="field-input"><input data-v-1d1db822="" type="password" placeholder="Password" class="field-input"><!--v-if--><button data-v-1d1db822="" type="submit" class="inline-flex items-center justify-center gap-2 rounded-full font-semibold leading-none transition-all duration-300 ease-out focus:outline-none focus:ring-4 bg-[#A25F88] text-white shadow-[0_10px_24px_rgba(162,95,136,0.18)] hover:bg-[#8E4F76] hover:shadow-[0_16px_28px_rgba(162,95,136,0.24)] focus:ring-[rgba(162,95,136,0.18)] px-6 py-3.5 text-[15px] sm:px-7 sm:py-4 w-full">Login</button><div class="relative py-1" data-v-1d1db822=""><div class="absolute inset-0 flex items-center" data-v-1d1db822=""><div class="w-full border-t border-[#E5E7EB]" data-v-1d1db822=""></div></div><div class="relative flex justify-center" data-v-1d1db822=""><span class="bg-white px-4 text-xs font-semibold uppercase tracking-[0.22em] text-[#94A3B8]" data-v-1d1db822="">OR</span></div></div><a data-v-1d1db822="" href="http://127.0.0.1:8000/auth/google/redirect" class="google-button"><svg class="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true" data-v-1d1db822=""><path fill="#4285F4" d="M21.6 12.23c0-.68-.06-1.33-.17-1.96H12v3.7h5.39a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.97-4.34 2.97-7.26Z" data-v-1d1db822=""></path><path fill="#34A853" d="M12 22c2.7 0 4.97-.9 6.63-2.45l-3.24-2.5c-.9.6-2.04.96-3.39.96-2.6 0-4.8-1.76-5.59-4.12H3.06v2.58A10 10 0 0 0 12 22Z" data-v-1d1db822=""></path><path fill="#FBBC05" d="M6.41 13.89A6 6 0 0 1 6.1 12c0-.66.11-1.3.31-1.89V7.53H3.06A10 10 0 0 0 2 12c0 1.61.39 3.13 1.06 4.47l3.35-2.58Z" data-v-1d1db822=""></path><path fill="#EA4335" d="M12 5.98c1.47 0 2.8.5 3.85 1.5l2.88-2.88C16.96 2.96 14.7 2 12 2A10 10 0 0 0 3.06 7.53l3.35 2.58C7.2 7.74 9.4 5.98 12 5.98Z" data-v-1d1db822=""></path></svg><span data-v-1d1db822="">Continue with Google</span></a></form><p data-v-1d1db822="" class="mt-5 text-center text-sm text-[#6B7280]"> New here? <a data-v-1d1db822="" href="#/register" class="font-semibold text-[#1495E8]">Create an account</a></p></div></section></div></div></div></div>
+    
+
+</body></html>

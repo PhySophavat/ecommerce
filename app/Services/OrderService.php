@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
 use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -53,6 +54,7 @@ class OrderService
             }
 
             $subtotal = 0.0;
+            $paymentType = $this->paymentTypeForMethod($payload['payment_method']);
 
             foreach ($cartLines as $line) {
                 /** @var Product $product */
@@ -99,10 +101,21 @@ class OrderService
             $order = Order::query()->create([
                 'customer_id' => $customer->id,
                 'number' => $this->nextOrderNumber(),
+                'order_code' => $this->nextOrderCode(),
                 'status' => 'pending',
+                'order_status' => match ($paymentType) {
+                    'cash' => 'pending',
+                    'manual_transfer' => 'pending_payment',
+                    default => 'pending_payment',
+                },
                 'payment_method' => $payload['payment_method'],
-                'payment_status' => 'unpaid',
-                'payment_reference' => $payload['payment_reference'] ?? null,
+                'payment_type' => $paymentType,
+                'payment_status' => match ($paymentType) {
+                    'cash' => 'unpaid',
+                    'manual_transfer' => 'pending',
+                    default => 'pending',
+                },
+                'payment_reference' => $payload['transaction_reference'] ?? ($payload['payment_reference'] ?? null),
                 'customer_name' => $payload['customer_name'],
                 'email' => $payload['email'],
                 'phone' => $payload['phone'],
@@ -168,7 +181,7 @@ class OrderService
 
     public function updateOrderStatus(Order $order, string $status): Order
     {
-        if (!in_array($status, Order::ORDER_STATUSES, true)) {
+        if (!in_array($status, Order::LEGACY_ORDER_STATUSES, true)) {
             throw ValidationException::withMessages([
                 'status' => ['Invalid order status selected.'],
             ]);
@@ -176,13 +189,27 @@ class OrderService
 
         $order->forceFill(['status' => $status]);
 
-        if ($status === 'paid' && $order->payment_status === 'unpaid') {
-            $order->payment_status = 'paid';
+        if ($status === 'paid' && in_array($order->payment_status, ['pending', 'submitted', 'unpaid'], true)) {
+            $order->payment_status = 'approved';
+            $order->order_status = 'processing';
             $order->paid_at ??= now();
         }
 
-        if ($status === 'refunded' && $order->payment_status === 'paid') {
-            $order->payment_status = 'refunded';
+        if (in_array($status, ['processing', 'shipped'], true)) {
+            $order->order_status = 'processing';
+        }
+
+        if (in_array($status, ['completed', 'delivered'], true)) {
+            $order->order_status = 'completed';
+        }
+
+        if (in_array($status, ['cancelled', 'failed', 'payment_failed', 'refunded'], true)) {
+            $order->order_status = 'cancelled';
+
+            if (!in_array($order->payment_status, ['paid', 'approved'], true)) {
+                $order->payment_status = 'rejected';
+                $order->paid_at = null;
+            }
         }
 
         $order->save();
@@ -203,20 +230,66 @@ class OrderService
 
         $order->payment_status = $paymentStatus;
 
-        if ($paymentStatus === 'paid' && $order->status === 'pending') {
-            $order->status = 'paid';
+        if ($paymentStatus === 'approved') {
+            $order->status = 'processing';
+            $order->order_status = 'processing';
             $order->paid_at ??= now();
         }
 
-        if (in_array($paymentStatus, ['unpaid', 'failed'], true)) {
+        if (in_array($paymentStatus, ['unpaid', 'pending', 'failed', 'auto_failed', 'rejected'], true)) {
             $order->paid_at = null;
         }
 
-        if ($paymentStatus === 'refunded') {
-            $order->status = 'refunded';
+        if ($paymentStatus === 'submitted') {
+            $order->order_status = 'payment_submitted';
+        }
+
+        if ($paymentStatus === 'rejected') {
+            $order->order_status = 'pending_payment';
+        }
+
+        if ($paymentStatus === 'auto_failed') {
+            $order->order_status = 'pending_payment';
+            $order->status = 'pending';
         }
 
         $order->save();
+
+        $order = $order->fresh(['customer', 'items.merchant.user', 'items.product']);
+        $this->financeReportingService->syncOrder($order);
+
+        return $order;
+    }
+
+    public function markPaymentPaid(Order $order, ?CarbonInterface $paidAt = null): Order
+    {
+        $order->forceFill([
+            'payment_status' => 'approved',
+            'order_status' => 'processing',
+            'status' => 'processing',
+            'paid_at' => $paidAt ?? now(),
+        ])->save();
+
+        $order = $order->fresh(['customer', 'items.merchant.user', 'items.product']);
+        $this->financeReportingService->syncOrder($order);
+
+        return $order;
+    }
+
+    public function markPaymentOutcome(Order $order, string $paymentStatus): Order
+    {
+        if (!in_array($paymentStatus, ['failed', 'auto_failed', 'rejected'], true)) {
+            throw ValidationException::withMessages([
+                'payment_status' => ['Invalid payment outcome selected.'],
+            ]);
+        }
+
+        $order->forceFill([
+            'payment_status' => $paymentStatus,
+            'order_status' => in_array($paymentStatus, ['rejected', 'auto_failed'], true) ? 'pending_payment' : $order->order_status,
+            'status' => in_array($paymentStatus, ['rejected', 'auto_failed'], true) ? 'pending' : $order->status,
+            'paid_at' => null,
+        ])->save();
 
         $order = $order->fresh(['customer', 'items.merchant.user', 'items.product']);
         $this->financeReportingService->syncOrder($order);
@@ -231,5 +304,23 @@ class OrderService
         } while (Order::query()->where('number', $number)->exists());
 
         return $number;
+    }
+
+    private function nextOrderCode(): string
+    {
+        do {
+            $code = 'PAY-'.now()->format('Ymd').'-'.Str::upper(Str::random(8));
+        } while (Order::query()->where('order_code', $code)->exists());
+
+        return $code;
+    }
+
+    public function paymentTypeForMethod(string $method): string
+    {
+        return match ($method) {
+            'cash' => 'cash',
+            'aba_qr', 'acleda', 'wing' => 'manual_transfer',
+            default => 'gateway',
+        };
     }
 }

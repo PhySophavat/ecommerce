@@ -52,4 +52,8 @@ return [
         'url' => env('FRONTEND_URL', env('APP_URL').'/frontend'),
     ],
 
+    'ocr' => [
+        'tesseract_path' => env('OCR_TESSERACT_PATH', 'tesseract'),
+    ],
+
 ];

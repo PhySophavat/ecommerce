@@ -10,6 +10,8 @@ class Payment extends Model
 {
     use HasFactory;
 
+    protected $table = 'merchant_payments';
+
     protected $fillable = [
         'payment_code',
         'order_id',

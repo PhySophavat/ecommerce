@@ -8,6 +8,7 @@ import LoginPage from '../pages/LoginPage.vue';
 import OrderDetailPage from '../pages/OrderDetailPage.vue';
 import OrderHistoryPage from '../pages/OrderHistoryPage.vue';
 import OrderSuccessPage from '../pages/OrderSuccessPage.vue';
+import PaymentPage from '../pages/PaymentPage.vue';
 import ProductDetailPage from '../pages/ProductDetailPage.vue';
 import ProfilePage from '../pages/ProfilePage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
@@ -29,6 +30,7 @@ const routes = [
             { path: 'profile', name: 'profile', component: ProfilePage, meta: { requiresAuth: true } },
             { path: 'orders', name: 'orders', component: OrderHistoryPage, meta: { requiresAuth: true } },
             { path: 'orders/:id', name: 'order-detail', component: OrderDetailPage, props: true, meta: { requiresAuth: true } },
+            { path: 'payment/:id', name: 'payment', component: PaymentPage, props: true, meta: { requiresAuth: true } },
             { path: 'order-success/:id', name: 'order-success', component: OrderSuccessPage, props: true, meta: { requiresAuth: true } },
         ],
     },

@@ -124,12 +124,12 @@
                                         <p class="mt-2 text-2xl font-bold text-emerald-600">{{ selectedMethod.paid_count }}</p>
                                     </div>
                                     <div class="rounded-2xl bg-slate-50 px-4 py-4">
-                                        <p class="text-xs uppercase tracking-[0.08em] text-slate-400">Unpaid orders</p>
-                                        <p class="mt-2 text-2xl font-bold text-amber-600">{{ selectedMethod.unpaid_count }}</p>
+                                        <p class="text-xs uppercase tracking-[0.08em] text-slate-400">Pending payments</p>
+                                        <p class="mt-2 text-2xl font-bold text-amber-600">{{ selectedMethod.pending_count }}</p>
                                     </div>
                                     <div class="rounded-2xl bg-slate-50 px-4 py-4">
-                                        <p class="text-xs uppercase tracking-[0.08em] text-slate-400">Failed or refunded</p>
-                                        <p class="mt-2 text-2xl font-bold text-rose-600">{{ selectedMethod.failed_count + selectedMethod.refunded_count }}</p>
+                                        <p class="text-xs uppercase tracking-[0.08em] text-slate-400">Failed or cancelled</p>
+                                        <p class="mt-2 text-2xl font-bold text-rose-600">{{ selectedMethod.failed_count + selectedMethod.cancelled_count }}</p>
                                     </div>
                                 </div>
                             </div>

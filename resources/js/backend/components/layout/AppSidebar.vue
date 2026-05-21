@@ -1,42 +1,42 @@
 <template>
     <aside
-        class="hidden h-screen shrink-0 self-start border-r border-[#E5E7EB] bg-[#F8FAFC] text-[#111827] transition-[width] duration-300 ease-out lg:sticky lg:top-0 lg:flex lg:flex-col"
-        :class="isCollapsed ? 'w-[88px]' : 'w-[280px]'"
+        class="hidden h-[calc(100vh-1.5rem)] shrink-0 self-start border-r border-[#E5E7EB] bg-[#F8FAFC] text-[#111827] transition-[width] duration-300 ease-out lg:sticky lg:top-3 lg:flex lg:flex-col"
+        :class="isCollapsed ? 'w-[84px]' : 'w-[248px]'"
     >
-        <div class="px-3 pt-4" :class="isCollapsed ? 'pb-2' : ''">
-            <div class="rounded-[18px] border border-[#E5E7EB] bg-white px-3 py-3 shadow-[0_10px_24px_rgba(17,24,39,0.04)]">
+        <div class="px-3 pt-3" :class="isCollapsed ? 'pb-2' : ''">
+            <div class="rounded-[18px] border border-[#E5E7EB] bg-white px-3 py-3 shadow-[0_8px_20px_rgba(17,24,39,0.04)]">
                 <div class="flex items-center gap-3" :class="isCollapsed ? 'justify-center' : ''">
                     <img
                         :src="logoUrl"
                         alt="Store logo"
-                        class="h-10 w-10 rounded-[14px] border border-[#E5E7EB] bg-[#F8FAFC] p-1.5 shadow-[0_6px_14px_rgba(17,24,39,0.04)]"
+                        class="h-9 w-9 rounded-[12px] border border-[#E5E7EB] bg-[#F8FAFC] p-1.5 shadow-[0_4px_10px_rgba(17,24,39,0.04)]"
                     >
                     <div v-if="!isCollapsed" class="min-w-0">
                         <p class="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#9CA3AF]">Backend access</p>
-                        <h1 class="truncate text-base font-semibold tracking-[-0.03em] text-[#111827]">{{ brandName }}</h1>
+                        <h1 class="truncate text-[15px] font-semibold tracking-[-0.03em] text-[#111827]">{{ brandName }}</h1>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="soft-scroll flex-1 overflow-y-auto px-3 py-5">
-            <nav class="space-y-1.5">
+        <div class="soft-scroll flex-1 overflow-y-auto px-3 py-4">
+            <nav class="space-y-1">
                 <div v-for="item in menuItems" :key="item.slug">
                     <button
                         v-if="itemChildren(item).length"
                         type="button"
-                        class="group relative flex h-12 w-full items-center rounded-[14px] text-left text-sm transition duration-200"
-                        :class="[isCollapsed ? 'justify-center px-2' : 'gap-3 px-3 pl-5 pr-3', parentItemClass(item), 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
+                        class="group relative flex h-11 w-full items-center rounded-[14px] text-left text-[13px] transition duration-200"
+                        :class="[isCollapsed ? 'justify-center px-2' : 'gap-2.5 px-3 pl-4 pr-3', parentItemClass(item), 'outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.22)]']"
                         :title="isCollapsed ? item.label : null"
                         @click="$emit('toggle-menu', item.slug)"
                     >
                         <span
-                            class="absolute left-1.5 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-[#A25F88] transition"
+                            class="absolute left-1.5 top-1/2 h-5 w-1 -translate-y-1/2 rounded-full bg-[#A25F88] transition"
                             :class="isParentMenuHighlighted(item) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'"
                         ></span>
-                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border" :class="parentIconWrapClass(item)">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-[11px] border" :class="parentIconWrapClass(item)">
                             <svg
-                                class="h-5 w-5 shrink-0"
+                                class="h-[18px] w-[18px] shrink-0"
                                 :class="parentIconClass(item)"
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -62,8 +62,8 @@
                     <button
                         v-else
                         type="button"
-                        class="group relative flex h-12 w-full items-center rounded-[14px] text-left text-sm transition duration-200"
-                        :class="[isCollapsed ? 'justify-center px-2' : 'gap-3 px-3 pl-5 pr-3', item.is_active ? 'bg-[#A25F88] font-semibold text-white shadow-[0_8px_18px_rgba(162,95,136,0.18)]' : 'text-[#111827] hover:bg-[rgba(162,95,136,0.08)] hover:text-[#A25F88]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
+                        class="group relative flex h-11 w-full items-center rounded-[14px] text-left text-[13px] transition duration-200"
+                        :class="[isCollapsed ? 'justify-center px-2' : 'gap-2.5 px-3 pl-4 pr-3', item.is_active ? 'bg-[#A25F88] font-semibold text-white shadow-[0_10px_18px_rgba(162,95,136,0.18)]' : 'text-[#111827] hover:bg-[rgba(162,95,136,0.08)] hover:text-[#A25F88]', 'outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.22)]']"
                         :title="isCollapsed ? item.label : null"
                         :disabled="menuIsInteractive(item) === false"
                         @click="$emit('select-item', item)"
@@ -72,9 +72,9 @@
                             class="absolute left-1.5 top-1/2 h-6 w-1 -translate-y-1/2 rounded-full bg-[#A25F88] transition"
                             :class="item.is_active ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'"
                         ></span>
-                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border" :class="item.is_active ? 'border-[rgba(162,95,136,0.45)] bg-white/12 shadow-[0_6px_14px_rgba(162,95,136,0.12)]' : 'border-[#E5E7EB] bg-white group-hover:border-[rgba(162,95,136,0.35)]'">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-[11px] border" :class="item.is_active ? 'border-[rgba(255,255,255,0.24)] bg-white/12 shadow-[0_6px_12px_rgba(162,95,136,0.14)]' : 'border-[#E5E7EB] bg-white group-hover:border-[rgba(162,95,136,0.35)]'">
                             <svg
-                                class="h-5 w-5 shrink-0"
+                                class="h-[18px] w-[18px] shrink-0"
                                 :class="item.is_active ? 'text-white' : 'text-[#A25F88] group-hover:text-[#A25F88]'"
                                 viewBox="0 0 24 24"
                                 fill="none"
@@ -88,15 +88,15 @@
                     </button>
                     <div
                         v-if="!isCollapsed && itemChildren(item).length && isOpen(item)"
-                        class="ml-5 mt-1.5 space-y-1 border-l pl-4"
+                        class="ml-4 mt-1 space-y-1 border-l pl-3.5"
                         :class="isParentMenuHighlighted(item) ? 'border-[rgba(162,95,136,0.35)]' : 'border-[#E5E7EB]'"
                     >
                         <button
                             v-for="child in itemChildren(item)"
                             :key="child.slug"
                             type="button"
-                            class="group relative flex min-h-[38px] w-full items-center rounded-[12px] px-3 py-2 pl-4 text-left text-[13px] font-medium transition duration-200"
-                            :class="[child.is_active ? 'bg-[#A25F88] font-semibold text-white shadow-[0_8px_16px_rgba(162,95,136,0.16)]' : 'text-[#6B7280] hover:bg-[rgba(162,95,136,0.08)] hover:text-[#A25F88]', 'outline-none focus:ring-2 focus:ring-[#A25F88]']"
+                            class="group relative flex min-h-[34px] w-full items-center rounded-[12px] px-3 py-2 pl-4 text-left text-[12px] font-medium transition duration-200"
+                            :class="[child.is_active ? 'bg-[#A25F88] font-semibold text-white shadow-[0_8px_16px_rgba(162,95,136,0.15)]' : 'text-[#6B7280] hover:bg-[rgba(162,95,136,0.08)] hover:text-[#A25F88]', 'outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.22)]']"
                             :disabled="menuIsInteractive(child) === false"
                             @click="$emit('select-item', child)"
                         >
@@ -111,11 +111,11 @@
             </nav>
         </div>
 
-        <div class="mt-auto border-t border-[#E5E7EB] px-3 pb-4 pt-3">
+        <div class="mt-auto border-t border-[#E5E7EB] px-3 pb-3 pt-3">
             <div class="flex justify-center">
                 <button
                     type="button"
-                    class="flex h-11 w-11 items-center justify-center rounded-[14px] border border-[#E5E7EB] bg-white text-[#A25F88] transition hover:bg-[rgba(162,95,136,0.08)] focus:outline-none focus:ring-2 focus:ring-[#A25F88]"
+                    class="flex h-10 w-10 items-center justify-center rounded-[14px] border border-[#E5E7EB] bg-white text-[#A25F88] transition hover:bg-[rgba(162,95,136,0.08)] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.22)]"
                     @click="toggleCollapsedState"
                 >
                     <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">

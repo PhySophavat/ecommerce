@@ -897,10 +897,10 @@ class AdminDashboardData
         })->values()->all();
 
         $orderStatusSummary = [
-            ['label' => 'Completed', 'value' => $ordersInRange->whereIn('status', ['completed', 'delivered'])->count(), 'color' => '#A25F88'],
-            ['label' => 'Cancelled', 'value' => $ordersInRange->where('status', 'cancelled')->count(), 'color' => '#D16D82'],
-            ['label' => 'Refunded', 'value' => $ordersInRange->whereIn('status', ['refunded'])->count(), 'color' => '#E7B6D1'],
-            ['label' => 'Failed', 'value' => $ordersInRange->whereIn('status', ['failed', 'payment_failed'])->count(), 'color' => '#F59E0B'],
+            ['label' => 'Completed', 'value' => $ordersInRange->whereIn('status', ['completed', 'delivered'])->count(), 'color' => '#10B981'],
+            ['label' => 'Cancelled', 'value' => $ordersInRange->where('status', 'cancelled')->count(), 'color' => '#94A3B8'],
+            ['label' => 'Refunded', 'value' => $ordersInRange->whereIn('status', ['refunded'])->count(), 'color' => '#60A5FA'],
+            ['label' => 'Failed', 'value' => $ordersInRange->whereIn('status', ['failed', 'payment_failed'])->count(), 'color' => '#EF4444'],
         ];
 
         $paymentCountByBank = collect([
@@ -918,10 +918,10 @@ class AdminDashboardData
                 'value' => $paymentCount > 0 ? $paymentCount : $fallbackCount,
                 'color' => [
                     'ABA' => '#A25F88',
-                    'ACLEDA' => '#B97097',
-                    'Wing' => '#CF8AAD',
-                    'Cash' => '#E5B9CF',
-                    'Card' => '#F1D9E6',
+                    'ACLEDA' => '#3B82F6',
+                    'Wing' => '#F59E0B',
+                    'Cash' => '#10B981',
+                    'Card' => '#8B5CF6',
                 ][$label],
             ];
         })->values()->all();
@@ -931,8 +931,8 @@ class AdminDashboardData
             : $fallbackTransactions;
 
         $transactionFlow = [
-            ['label' => 'IN', 'value' => round((float) $transactionsForRange->where('type', 'IN')->sum('amount') ?: (float) $transactionsForRange->where('direction', 'credit')->sum('amount'), 2), 'color' => '#A25F88'],
-            ['label' => 'OUT', 'value' => round((float) $transactionsForRange->where('type', 'OUT')->sum('amount') ?: (float) $transactionsForRange->where('direction', 'debit')->sum('amount'), 2), 'color' => '#E8C4D7'],
+            ['label' => 'IN', 'value' => round((float) $transactionsForRange->where('type', 'IN')->sum('amount') ?: (float) $transactionsForRange->where('direction', 'credit')->sum('amount'), 2), 'color' => '#10B981'],
+            ['label' => 'OUT', 'value' => round((float) $transactionsForRange->where('type', 'OUT')->sum('amount') ?: (float) $transactionsForRange->where('direction', 'debit')->sum('amount'), 2), 'color' => '#F59E0B'],
         ];
 
         $topProductSales = OrderItem::query()

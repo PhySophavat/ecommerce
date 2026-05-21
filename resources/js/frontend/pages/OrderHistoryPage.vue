@@ -6,7 +6,7 @@
         </div>
 
         <div class="space-y-4">
-            <article v-for="order in store.orders" :key="order.id" class="rounded-[30px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <article v-for="order in sortedOrders" :key="order.id" class="rounded-[30px] border border-[#E5E7EB] bg-white p-6 shadow-sm">
                 <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                     <div>
                         <div class="text-xs font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">{{ formatDate(order.placed_at) }}</div>
@@ -53,7 +53,7 @@
                 </div>
             </article>
 
-            <div v-if="!store.orders.length && !store.orderLoading" class="rounded-[30px] border border-dashed border-[#D8B4C7] bg-white px-6 py-16 text-center text-[#6B7280]">
+            <div v-if="!sortedOrders.length && !store.orderLoading" class="rounded-[30px] border border-dashed border-[#D8B4C7] bg-white px-6 py-16 text-center text-[#6B7280]">
                 No orders yet. Place an order from checkout to see history here.
             </div>
         </div>
@@ -61,11 +61,17 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { computed, onMounted } from 'vue';
 import { RouterLink } from 'vue-router';
 import { useStorefrontStore } from '../stores/storefront';
 
 const store = useStorefrontStore();
+const sortedOrders = computed(() => [...store.orders].sort((left, right) => {
+    const leftTime = new Date(left.placed_at || left.created_at || 0).getTime();
+    const rightTime = new Date(right.placed_at || right.created_at || 0).getTime();
+
+    return rightTime - leftTime;
+}));
 
 onMounted(async () => {
     await store.initialize();

@@ -51,6 +51,7 @@ class WalletController extends Controller
                 'order_number' => $transaction->order?->number,
                 'amount' => number_format(abs((float) $transaction->amount), 2, '.', ''),
                 'description' => $transaction->description,
+                'created_at' => optional($transaction->created_at)?->toIso8601String(),
                 'created_at_label' => optional($transaction->created_at)?->format('d M Y, h:i A'),
             ])->values()->all(),
         ]);

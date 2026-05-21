@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Frontend\Home\HomeController as FrontendApiHomeController;
+use App\Http\Controllers\Api\Frontend\PaymentController as FrontendPaymentController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -37,4 +38,10 @@ Route::prefix('merchant')->name('merchant.')->group(base_path('routes/merchant.p
 
 Route::prefix('api')->name('api.legacy.')->group(function (): void {
     Route::get('/storefront', FrontendApiHomeController::class)->name('storefront');
+    Route::post('/payments/webhook', [FrontendPaymentController::class, 'webhook'])->name('payments.webhook');
+
+    Route::middleware(['auth:sanctum', 'role:customer'])->group(function (): void {
+        Route::post('/payments/create', [FrontendPaymentController::class, 'create'])->name('payments.create');
+        Route::get('/orders/{order}/payment-status', [FrontendPaymentController::class, 'status'])->name('orders.payment-status');
+    });
 });

@@ -54,7 +54,7 @@ class WithdrawalPageController extends Controller
                 'app' => 'backend-payment-records',
                 'screen' => 'payment-records',
                 'role_scope' => 'admin',
-                'endpoint' => route('api.admin.orders.index'),
+                'endpoint' => route('api.admin.payments.index'),
             ],
         ]);
     }

@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class PlatformFeeService
 {
+    private const MINIMUM_FEEABLE_TOTAL = 1.00;
+
     public function __construct(
         private readonly WalletTransactionService $walletTransactionService,
         private readonly FinanceReportingService $financeReportingService,
@@ -140,7 +142,10 @@ class PlatformFeeService
 
     private function calculateFee(float $merchantOrderTotal, PlatformFeeSetting $setting): float
     {
-        if (!$setting->is_enabled) {
+        if (
+            !$setting->is_enabled
+            || round($merchantOrderTotal, 2) < self::MINIMUM_FEEABLE_TOTAL
+        ) {
             return 0.0;
         }
 

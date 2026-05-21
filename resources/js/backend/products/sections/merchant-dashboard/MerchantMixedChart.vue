@@ -1,5 +1,5 @@
 <template>
-    <article class="h-full rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF] p-5 shadow-[0_12px_30px_rgba(17,24,39,0.045)] sm:p-6">
+    <article class="h-full rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF] p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
         <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">{{ eyebrow }}</p>
@@ -14,11 +14,11 @@
         <div class="mt-5 overflow-x-auto">
             <div class="min-w-[680px]">
                 <div class="grid grid-cols-[52px_minmax(0,1fr)] gap-3">
-                    <div class="flex h-[262px] flex-col justify-between pb-7 pr-1 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
+                    <div class="flex h-[230px] flex-col justify-between pb-7 pr-1 text-right text-[10px] font-semibold uppercase tracking-[0.08em] text-[#9CA3AF]">
                         <span v-for="tick in yAxisTicks" :key="`tick-${tick}`">{{ formatTick(tick) }}</span>
                     </div>
 
-                    <div class="relative h-[262px]">
+                    <div class="relative h-[230px]">
                         <div
                             v-for="tick in yAxisTicks"
                             :key="`grid-${tick}`"
@@ -41,8 +41,8 @@
                                     :y="point.barY"
                                     :width="barWidth"
                                     :height="Math.max(svgHeight - axisBottom - point.barY, 8)"
-                                    rx="10"
-                                    fill="#E7C9DA"
+                                rx="10"
+                                fill="#EAD4E1"
                                 />
                                 <circle
                                     :cx="point.x"
@@ -58,10 +58,10 @@
                         <div class="absolute inset-x-0 bottom-0 grid gap-3 border-t border-[#E5E7EB] pt-3" :style="{ gridTemplateColumns: `repeat(${safePointCount}, minmax(0, 1fr))` }">
                             <div v-for="point in points" :key="`${point.label}-label`" class="text-center">
                                 <p class="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">{{ point.label }}</p>
-                                <p class="mt-1 text-[11px] text-[#9CA3AF]">{{ point.orders }} orders</p>
+                                    <p class="mt-1 text-[11px] text-[#9CA3AF]">{{ point.orders }} orders</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -80,8 +80,8 @@ const props = defineProps({
 });
 
 const safePointCount = computed(() => Math.max(props.points.length, 1));
-const chartHeight = 188;
-const svgHeight = 224;
+const chartHeight = 162;
+const svgHeight = 196;
 const axisBottom = 28;
 const sidePadding = 20;
 const barWidth = 18;

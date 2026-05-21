@@ -29,7 +29,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        if (!in_array($user->role, ['admin', 'merchant'], true)) {
+        if (!in_array($user->role, ['admin', 'super_admin'], true)) {
             return response()->json([
                 'message' => 'You do not have permission to access the backend area.',
             ], 403);
@@ -50,12 +50,35 @@ class AuthController extends Controller
         ]);
     }
 
+    public function session(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (!$user || !in_array($user->role, ['admin', 'super_admin'], true)) {
+            return response()->json([
+                'message' => 'Unauthorized access.',
+            ], 403);
+        }
+
+        $token = $user->createToken('backend-api-token')->plainTextToken;
+
+        return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'token' => $token,
+        ]);
+    }
+
     /**
      * Handle logout request via API
      */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()?->currentAccessToken()?->delete();
 
         return response()->json([
             'message' => 'Logout successful',

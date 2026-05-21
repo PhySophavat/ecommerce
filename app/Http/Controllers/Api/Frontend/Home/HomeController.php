@@ -6,11 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Slide;
+use App\Services\PaymentGatewayService;
 use App\Support\StorefrontData;
 use Illuminate\Http\JsonResponse;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        private readonly PaymentGatewayService $paymentGatewayService,
+    ) {
+    }
+
     public function __invoke(): JsonResponse
     {
         $storefrontStatuses = ['approved', 'active'];
@@ -49,6 +55,7 @@ class HomeController extends Controller
                 'eyebrow' => 'Category-led storefront',
                 'headline' => 'Shop the catalog by category.',
                 'subheadline' => 'The website header now pulls its navigation directly from product categories managed in the admin dashboard.',
+                'payment_gateway_enabled' => $this->paymentGatewayService->isGatewayAvailable(),
                 'stats' => [
                     ['value' => (string) $categories->count(), 'label' => 'catalog categories'],
                     ['value' => (string) $products->count(), 'label' => 'storefront products'],

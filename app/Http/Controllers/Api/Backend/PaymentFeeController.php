@@ -13,6 +13,8 @@ use Illuminate\Http\JsonResponse;
 
 class PaymentFeeController extends Controller
 {
+    private const MINIMUM_FEEABLE_TOTAL = 1.00;
+
     public function __invoke(): JsonResponse
     {
         $collectedRecords = MerchantTransaction::query()
@@ -70,7 +72,7 @@ class PaymentFeeController extends Controller
             ->whereNull('platform_fee_processed_at')
             ->where(function ($query): void {
                 $query->whereNotNull('payment_reference')
-                    ->orWhere('payment_status', 'paid');
+                    ->orWhereIn('payment_status', ['paid', 'approved']);
             })
             ->latest('placed_at')
             ->get()
@@ -105,7 +107,7 @@ class PaymentFeeController extends Controller
 
     private function calculateFee(float $subtotal, PlatformFeeSetting $setting): float
     {
-        if (! $setting->is_enabled) {
+        if (! $setting->is_enabled || round($subtotal, 2) < self::MINIMUM_FEEABLE_TOTAL) {
             return 0.0;
         }
 

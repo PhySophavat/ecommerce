@@ -1,5 +1,5 @@
 <template>
-    <article class="h-full rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF] p-5 shadow-[0_12px_30px_rgba(17,24,39,0.045)] sm:p-6">
+    <article class="h-full rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF] p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
         <div class="flex items-start justify-between gap-4">
             <div>
                 <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">{{ eyebrow }}</p>
@@ -8,10 +8,10 @@
             <span class="rounded-full bg-[#F8FAFC] px-2.5 py-1 text-[11px] font-semibold text-[#6B7280]">{{ totalLabel }}</span>
         </div>
 
-        <div class="mt-4 grid gap-4 lg:grid-cols-[minmax(132px,156px)_minmax(0,1fr)] lg:items-center">
-            <div class="relative mx-auto h-[148px] w-[148px] sm:h-[156px] sm:w-[156px]">
+        <div class="mt-4 grid gap-4 lg:grid-cols-[140px_minmax(0,1fr)] lg:items-center">
+            <div class="relative mx-auto h-[136px] w-[136px] sm:h-[144px] sm:w-[144px]">
                 <svg viewBox="0 0 120 120" class="h-full w-full -rotate-90">
-                    <circle cx="60" cy="60" r="42" fill="none" stroke="#E5E7EB" stroke-width="14" />
+                    <circle cx="60" cy="60" r="42" fill="none" stroke="#EEF2F7" stroke-width="12" />
                     <circle
                         v-for="segment in segments"
                         :key="segment.label"
@@ -20,7 +20,7 @@
                         r="42"
                         fill="none"
                         :stroke="segment.color"
-                        stroke-width="14"
+                        stroke-width="12"
                         stroke-linecap="round"
                         :stroke-dasharray="segment.dasharray"
                         :stroke-dashoffset="segment.dashoffset"
@@ -28,12 +28,12 @@
                 </svg>
                 <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">Total</p>
-                    <p class="mt-1 text-[1.7rem] font-black tracking-[-0.04em] text-[#111827]">{{ totalLabel }}</p>
+                    <p class="mt-1 text-[1.1rem] font-black tracking-[-0.04em] text-[#111827]">{{ totalLabel }}</p>
                 </div>
             </div>
 
             <div class="space-y-2.5">
-                <div v-for="item in normalizedItems" :key="item.label" class="rounded-[18px] border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-3">
+                <div v-for="item in normalizedItems" :key="item.label" class="rounded-[16px] border border-[#E5E7EB] bg-[#F8FAFC] px-3.5 py-3">
                     <div class="flex items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <span class="h-3 w-3 rounded-full" :style="{ backgroundColor: item.color }"></span>
@@ -41,7 +41,7 @@
                         </div>
                         <p class="text-[13px] font-bold text-[#111827]">{{ item.displayValue }}</p>
                     </div>
-                    <p class="mt-1 text-[10px] uppercase tracking-[0.14em] text-[#6B7280]">{{ item.percent }}%</p>
+                    <p class="mt-1 text-[11px] text-[#6B7280]">{{ item.percent }}%</p>
                 </div>
             </div>
         </div>

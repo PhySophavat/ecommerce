@@ -1,9 +1,9 @@
 <template>
-    <article class="rounded-[22px] border border-[#9DB7F5] bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.04)] sm:p-6">
+    <article class="rounded-[22px] border border-[#E5E7EB] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
         <div class="flex items-start justify-between gap-4">
             <div>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">{{ eyebrow }}</p>
-                <h3 class="mt-2 text-lg font-bold tracking-[-0.03em] text-[#111827]">{{ title }}</h3>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">{{ eyebrow }}</p>
+                <h3 class="mt-1 text-[1.45rem] font-bold tracking-[-0.03em] text-[#111827]">{{ title }}</h3>
             </div>
             <div class="flex items-center gap-2 text-xs font-semibold text-[#64748B]">
                 <span class="h-3 w-3 rounded-sm" :style="{ background: barColor }"></span>
@@ -26,7 +26,7 @@
                         <div
                             v-for="tick in yAxisTicks"
                             :key="`grid-${tick}`"
-                            class="absolute inset-x-0 border-t border-[#E2E8F0]"
+                            class="absolute inset-x-0 border-t border-[#EEF2F7]"
                             :style="{ bottom: `${gridBottom(tick)}px` }"
                         ></div>
 
@@ -34,8 +34,8 @@
                             <div v-for="item in normalizedItems" :key="item.label" class="flex min-w-0 flex-1 flex-col items-center gap-2">
                                 <div class="flex h-[128px] w-full items-end justify-center">
                                     <div
-                                        class="w-full max-w-[52px] rounded-t-[10px] transition-all duration-300 hover:brightness-105"
-                                        :style="{ height: `${item.height}%`, background: barColor }"
+                                        class="w-full max-w-[52px] rounded-t-[12px] transition-all duration-300 hover:brightness-105"
+                                        :style="{ height: `${item.height}%`, background: barFill }"
                                         :title="`${item.label}: ${formatTick(item.value)}`"
                                     ></div>
                                 </div>
@@ -74,6 +74,7 @@ const normalizedItems = computed(() => nonZeroItems.value.map((item) => ({
     value: Number(item.value || 0),
     height: Math.max(3, Math.round((Number(item.value || 0) / scaleMax.value) * 100)),
 })));
+const barFill = computed(() => `linear-gradient(180deg, ${withAlpha(props.barColor, 0.82)} 0%, ${props.barColor} 100%)`);
 
 function roundedScale(value) {
     if (value <= 10) {
@@ -106,5 +107,19 @@ function shortLabel(label) {
     }
 
     return `${value.slice(0, 12)}...`;
+}
+
+function withAlpha(hex, alpha) {
+    const value = String(hex || '').replace('#', '');
+
+    if (value.length !== 6) {
+        return hex;
+    }
+
+    const red = Number.parseInt(value.slice(0, 2), 16);
+    const green = Number.parseInt(value.slice(2, 4), 16);
+    const blue = Number.parseInt(value.slice(4, 6), 16);
+
+    return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 </script>

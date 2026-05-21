@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Api\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Services\OrderService;
+use App\Services\PaymentGatewayService;
 use App\Support\OrderData;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class CheckoutController extends Controller
 {
-    public function __construct(private readonly OrderService $orderService)
+    public function __construct(
+        private readonly OrderService $orderService,
+        private readonly PaymentGatewayService $paymentGatewayService,
+    )
     {
     }
 
@@ -27,12 +31,8 @@ class CheckoutController extends Controller
             'postal_code' => ['required', 'string', 'max:20'],
             'notes' => ['nullable', 'string'],
             'payment_method' => ['required', 'in:cash,aba_qr,acleda,wing,card'],
-            'payment_reference' => [
-                'nullable',
-                'string',
-                'max:120',
-                Rule::requiredIf(fn () => $request->input('payment_method') !== 'cash'),
-            ],
+            'payment_reference' => ['nullable', 'string', 'max:120'],
+            'transaction_reference' => ['nullable', 'string', 'max:120'],
             'payment_notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'integer', 'exists:products,id'],
@@ -40,7 +40,20 @@ class CheckoutController extends Controller
             'items.*.quantity' => ['required', 'integer', 'min:1'],
         ]);
 
+        $methodBehavior = $this->paymentGatewayService->methodBehavior($validated['payment_method']);
+
+        if (!$methodBehavior['enabled']) {
+            throw ValidationException::withMessages([
+                'payment_method' => ['This payment method is not available right now.'],
+            ]);
+        }
+
         $order = $this->orderService->checkout($request->user(), $validated);
+
+        if ($order->payment_type !== 'cash') {
+            $this->paymentGatewayService->ensurePaymentRecord($order);
+            $order = $order->fresh(['customer', 'items.merchant.user', 'items.product']);
+        }
 
         return response()->json([
             'message' => 'Order placed successfully.',

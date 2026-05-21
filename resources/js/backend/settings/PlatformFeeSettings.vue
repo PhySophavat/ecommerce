@@ -37,22 +37,20 @@
                     </section>
 
                     <div v-if="isLoading" class="rounded-[28px] border border-[#E5E7EB] bg-white px-6 py-14 text-center text-sm text-[#6B7280] shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
-                        Loading platform fee settings...
+                        Loading settings...
                     </div>
 
                     <div v-else class="grid gap-6 2xl:grid-cols-[minmax(0,1.18fr),minmax(360px,420px)]">
                         <section class="rounded-[30px] border border-[#E5E7EB] bg-white px-6 py-6 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:px-7 sm:py-7">
-                            <div class="flex flex-col gap-2 border-b border-[#F1F5F9] pb-6">
+                            <div class="flex flex-col gap-2 border-b border-[#F1F5F9] pb-5">
                                 <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Platform fee settings</p>
-                                <h2 class="text-[1.9rem] font-bold tracking-[-0.04em] text-[#111827]">Commission rules for merchant payouts</h2>
-                                <p class="max-w-2xl text-sm leading-7 text-[#6B7280]">Choose when the platform deducts commission and how much should be withheld from merchant balance.</p>
+                                <h2 class="text-[1.9rem] font-bold tracking-[-0.04em] text-[#111827]">Commission rules</h2>
                             </div>
 
                             <form class="mt-7 space-y-6" @submit.prevent="submitSettings">
                                 <label class="flex items-center justify-between gap-4 rounded-[24px] border border-[#E5E7EB] bg-[#F8FAFC] px-5 py-5">
                                     <div>
                                         <p class="text-sm font-semibold text-[#111827]">Enable Platform Fee</p>
-                                        <p class="mt-1 text-sm text-[#6B7280]">Turn automatic commission deduction on or off.</p>
                                     </div>
                                     <button
                                         type="button"
@@ -94,7 +92,6 @@
                                             >
                                             <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-slate-400">%</span>
                                         </div>
-                                        <p class="text-xs text-[#6B7280]">Enter a value from 0 to 100.</p>
                                         <p v-if="errors.fee_value" class="text-xs text-rose-600">{{ errors.fee_value[0] }}</p>
                                     </label>
                                 </div>
@@ -116,8 +113,8 @@
                                     <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                         <div>
                                             <p class="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#A25F88]">Rule summary</p>
-                                            <p class="mt-2 max-w-2xl text-sm leading-7 text-[#6B7280]">
-                                                {{ form.is_enabled ? `The platform fee will be deducted when the order reaches ${applyStageLabel.toLowerCase()}.` : 'The platform fee is disabled, so merchants receive the full amount.' }}
+                                            <p class="mt-2 max-w-2xl text-sm text-[#6B7280]">
+                                                {{ form.is_enabled ? `Deduct on ${applyStageLabel.toLowerCase()}.` : 'Fee disabled.' }}
                                             </p>
                                         </div>
                                         <button
@@ -136,13 +133,11 @@
                             <div class="rounded-[26px] border border-[#EDE7EC] bg-[linear-gradient(180deg,#FCFAFB_0%,#FFFFFF_100%)] p-5 sm:p-6">
                                 <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">Preview</p>
                                 <h3 class="mt-2 text-[1.9rem] font-bold tracking-[-0.04em] text-[#111827]">Example payout</h3>
-                                <p class="mt-2 text-sm leading-7 text-[#6B7280]">This example uses an order total of $100.00 to show what the merchant receives and what the platform earns.</p>
 
                                 <div class="mt-6 grid gap-4 md:grid-cols-3">
                                     <div class="rounded-[22px] border border-[#E5E7EB] bg-white px-5 py-5 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
                                         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">Order Total</p>
                                         <p class="mt-3 text-3xl font-bold tracking-[-0.04em] text-[#111827]">${{ preview.order_total }}</p>
-                                        <p class="mt-2 text-xs text-[#6B7280]">Base amount used for this payout example.</p>
                                     </div>
 
                                     <div class="rounded-[22px] border border-[#F0D9E6] bg-[#FCF4F8] px-5 py-5 shadow-[0_10px_24px_rgba(162,95,136,0.06)]">
@@ -154,7 +149,6 @@
                                     <div class="rounded-[22px] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-[0_10px_24px_rgba(16,185,129,0.06)]">
                                         <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">Merchant Receives</p>
                                         <p class="mt-3 text-3xl font-bold tracking-[-0.04em] text-emerald-700">${{ preview.merchant_receives }}</p>
-                                        <p class="mt-2 text-xs text-emerald-700/80">Net amount released to merchant balance.</p>
                                     </div>
                                 </div>
 
@@ -162,7 +156,6 @@
                                     <div class="flex items-center justify-between gap-3 border-b border-[#E5E7EB] pb-4">
                                         <div>
                                             <p class="text-sm font-semibold text-[#111827]">Payout details</p>
-                                            <p class="mt-1 text-xs uppercase tracking-[0.16em] text-[#9CA3AF]">Current rule snapshot</p>
                                         </div>
                                         <span class="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#A25F88] shadow-sm">
                                             {{ form.is_enabled ? 'Fee enabled' : 'Fee disabled' }}
@@ -232,10 +225,10 @@ const preview = computed(() => {
 });
 const previewDescription = computed(() => {
     if (!form.is_enabled) {
-        return 'Platform fee is disabled for this example.';
+        return 'Disabled';
     }
 
-    return `${trimmedFeeValue()}% of the order total`;
+    return `${trimmedFeeValue()}% of total`;
 });
 
 onMounted(async () => {
@@ -405,7 +398,7 @@ function initialDashboard() {
             brand: 'E-commerce',
             page_title: 'Platform Fee Settings',
             kicker: 'Commission control',
-            subheadline: 'Configure how the platform deducts commission from merchant balances after each qualifying order stage.',
+            subheadline: 'Set the platform commission rule.',
             links: {
                 frontend: '/frontend',
                 admin_users: '/admin/users',

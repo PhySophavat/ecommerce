@@ -1,11 +1,11 @@
 <template>
-    <header class="px-4 pt-4 sm:px-6 lg:px-7 lg:pt-5">
-        <article class="overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-[linear-gradient(135deg,#FFFFFF_0%,#FCFAFB_58%,#F7EEF4_100%)] text-[#111827] shadow-[0_10px_25px_rgba(15,23,42,0.04)]">
-            <div class="flex flex-col gap-4 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-6">
+    <header class="px-4 pt-4 sm:px-6 lg:px-7 lg:pt-4">
+        <article class="overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-[linear-gradient(135deg,#FFFFFF_0%,#FDFBFC_56%,#F8F2F6_100%)] text-[#111827] shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
+            <div class="flex flex-col gap-4 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex min-w-0 items-start gap-3">
                     <button
                         type="button"
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white text-[#A25F88] shadow-[0_8px_20px_rgba(15,23,42,0.05)] transition hover:bg-[rgba(162,95,136,0.08)] lg:hidden"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] border border-[#E5E7EB] bg-white text-[#A25F88] shadow-[0_6px_14px_rgba(15,23,42,0.05)] transition hover:bg-[rgba(162,95,136,0.08)] lg:hidden"
                         @click="$emit('toggle-menu')"
                     >
                         <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -15,23 +15,37 @@
 
                     <div class="min-w-0 max-w-4xl">
                         <p v-if="heroEyebrow" class="text-[12px] font-semibold uppercase tracking-[0.22em] text-[#A25F88]">{{ heroEyebrow }}</p>
-                        <h1 class="mt-1.5 text-[1.75rem] font-bold tracking-[-0.045em] text-[#111827] sm:text-[1.85rem]">{{ heroTitle }}</h1>
+                        <h1 class="mt-1.5 text-[1.8rem] font-bold tracking-[-0.045em] text-[#111827] sm:text-[2rem]">{{ heroTitle }}</h1>
                         <p v-if="heroSubtitle" class="mt-2 max-w-3xl text-[14px] leading-6 text-[#6B7280]">{{ heroSubtitle }}</p>
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-2.5 sm:flex-row sm:justify-start lg:justify-end">
+                <div class="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-start lg:justify-end">
+                    <label
+                        v-if="toolbarFilter"
+                        class="flex min-h-[44px] items-center gap-3 rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#111827] shadow-[0_6px_16px_rgba(15,23,42,0.04)]"
+                    >
+                        <span class="font-medium text-[#6B7280]">{{ toolbarFilter.label }}</span>
+                        <select
+                            :value="toolbarFilter.value"
+                            class="bg-transparent pr-6 font-semibold text-[#111827] outline-none"
+                            @change="$emit('header-filter-change', $event.target.value)"
+                        >
+                            <option v-for="option in toolbarFilter.options" :key="option.value" :value="option.value">{{ option.label }}</option>
+                        </select>
+                    </label>
                     <button
-                        v-if="showUtilityActions"
+                        v-if="showSecondaryRefresh"
                         type="button"
-                        class="min-h-[46px] rounded-2xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#6B7280] shadow-[0_8px_18px_rgba(15,23,42,0.05)] transition hover:border-[#D9B7CA] hover:text-[#A25F88] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.18)]"
+                        class="inline-flex min-h-[44px] min-w-[132px] items-center justify-center rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm font-semibold text-[#6B7280] shadow-[0_6px_16px_rgba(15,23,42,0.04)] transition hover:border-[#D9B7CA] hover:text-[#A25F88] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.18)]"
                         @click="$emit('refresh')"
                     >
                         Refresh
                     </button>
                     <button
+                        v-if="showPrimaryAction"
                         type="button"
-                        class="min-h-[46px] rounded-2xl border border-[#A25F88] bg-[#A25F88] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_12px_24px_rgba(162,95,136,0.18)] transition hover:bg-[#92557a] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.24)]"
+                        class="inline-flex min-h-[44px] min-w-[160px] items-center justify-center rounded-[14px] border border-[#A25F88] bg-[#A25F88] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(162,95,136,0.16)] transition hover:border-[#8E4F76] hover:bg-[#8E4F76] focus:outline-none focus:ring-2 focus:ring-[rgba(162,95,136,0.24)]"
                         @click="$emit('primary-action')"
                     >
                         {{ primaryActionLabel }}
@@ -45,7 +59,7 @@
 <script setup>
 import { computed } from 'vue';
 
-defineEmits(['primary-action', 'refresh', 'scroll-add-product', 'select-item', 'toggle-menu']);
+defineEmits(['primary-action', 'refresh', 'scroll-add-product', 'select-item', 'toggle-menu', 'header-filter-change']);
 
 const props = defineProps({
     dashboard: {
@@ -149,5 +163,19 @@ const primaryActionLabel = computed(() => props.dashboard.meta.primary_action_la
     'merchant-details': 'Back to merchants',
     'merchant-orders': 'Refresh orders',
 }[props.screen] ?? '+ Add product'));
-const showUtilityActions = computed(() => props.screen !== 'sliders');
+const toolbarFilter = computed(() => {
+    const config = props.dashboard.meta?.toolbar_filter;
+
+    if (!config?.options?.length) {
+        return null;
+    }
+
+    return {
+        label: config.label || 'Filter',
+        value: config.value ?? config.options[0]?.value ?? '',
+        options: config.options,
+    };
+});
+const showSecondaryRefresh = computed(() => props.screen !== 'sliders' && !props.dashboard.meta?.hide_secondary_refresh);
+const showPrimaryAction = computed(() => Boolean(primaryActionLabel.value));
 </script>

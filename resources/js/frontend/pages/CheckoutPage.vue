@@ -49,15 +49,14 @@
         <transition name="modal-fade">
             <div v-if="showPaymentModal" class="fixed inset-0 z-50 flex items-center justify-center px-3 py-6 sm:px-6">
                 <div class="absolute inset-0 bg-[rgba(15,23,42,0.55)] backdrop-blur-[6px]" @click="closePaymentModal"></div>
-                <div class="payment-modal relative z-10 flex max-h-[88vh] flex-col overflow-hidden rounded-[20px] border border-[#E5E7EB] bg-white shadow-[0_20px_50px_rgba(15,23,42,0.16)]">
+                <div class="payment-modal relative z-10 flex max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_20px_50px_rgba(15,23,42,0.16)]">
                     <div
                         class="flex justify-between gap-4 border-b border-[#F3F4F6] px-5 pb-4 pt-5 sm:px-6"
-                        :class="paymentModalStep === 'detail' ? 'items-center' : 'items-start'"
+                        :class="['detail', 'proof'].includes(paymentModalStep) ? 'items-center' : 'items-start'"
                     >
                         <template v-if="paymentModalStep === 'select'">
                             <div>
-                                <h2 class="text-lg font-semibold tracking-[-0.02em] text-[#111827]">Select payment method</h2>
-                                <p class="mt-1.5 text-sm text-[#6B7280]">Preferred method with secure transactions.</p>
+                                <h2 class="text-lg font-semibold tracking-[-0.02em] text-[#111827]">Payment method</h2>
                             </div>
                             <button
                                 type="button"
@@ -78,6 +77,26 @@
                             </button>
                             <div class="min-w-0 flex-1 px-2 text-center">
                                 <h2 class="truncate text-base font-semibold tracking-[-0.02em] text-[#111827]">{{ selectedPaymentMethod.title }}</h2>
+                            </div>
+                            <button
+                                type="button"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:border-[#A25F88] hover:text-[#A25F88]"
+                                @click="closePaymentModal"
+                            >
+                                &times;
+                            </button>
+                        </template>
+
+                        <template v-else-if="paymentModalStep === 'proof'">
+                            <button
+                                type="button"
+                                class="inline-flex min-h-[34px] items-center justify-center rounded-[10px] border border-[#E5E7EB] bg-white px-3 text-sm font-medium text-[#111827] transition hover:border-[#A25F88] hover:text-[#A25F88]"
+                                @click="paymentModalStep = 'detail'"
+                            >
+                                Back
+                            </button>
+                            <div class="min-w-0 flex-1 px-2 text-center">
+                                <h2 class="truncate text-base font-semibold tracking-[-0.02em] text-[#111827]">Upload Payment Proof</h2>
                             </div>
                             <button
                                 type="button"
@@ -124,13 +143,13 @@
                         </template>
                     </div>
 
-                    <div v-if="paymentModalStep === 'select'" class="px-5 pb-5 pt-4 sm:px-6">
+                    <div v-if="paymentModalStep === 'select'" class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-4 sm:px-6">
                         <div class="space-y-2.5">
                             <label
                                 v-for="method in paymentMethods"
                                 :key="method.value"
-                                class="flex min-h-[52px] w-full cursor-pointer items-center gap-3 rounded-[10px] border border-[#E5E7EB] bg-white px-3.5 py-3 transition duration-200"
-                                :class="paymentMethod === method.value ? 'border-[#A25F88] bg-[rgba(162,95,136,0.08)] text-[#A25F88]' : 'hover:bg-[rgba(162,95,136,0.05)]'"
+                                class="flex w-full gap-3 rounded-[14px] border px-3.5 py-3 transition duration-200"
+                                :class="paymentMethodCardClass(method)"
                             >
                                 <div class="payment-brand-mark payment-brand-mark-compact shrink-0" :class="method.visualClass">
                                     <img
@@ -141,8 +160,16 @@
                                     >
                                     <span v-else>{{ method.badge }}</span>
                                 </div>
-                                <div class="min-w-0 flex-1 text-sm font-medium" :class="paymentMethod === method.value ? 'text-[#A25F88]' : 'text-[#111827]'">
-                                    {{ method.label }}
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <div class="text-sm font-semibold" :class="paymentMethod === method.value ? 'text-[#A25F88]' : 'text-[#111827]'">
+                                            {{ method.label }}
+                                        </div>
+                                        <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em]" :class="paymentMethodBadgeClass(method)">
+                                            {{ method.badgeText }}
+                                        </span>
+                                    </div>
+                                    <p v-if="method.description" class="mt-1 text-xs leading-5 text-[#6B7280]">{{ method.description }}</p>
                                 </div>
                                 <div
                                     class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border transition"
@@ -150,11 +177,11 @@
                                 >
                                     <span class="text-[11px] leading-none">&#9679;</span>
                                 </div>
-                                <input v-model="paymentMethod" :value="method.value" type="radio" class="sr-only">
+                                <input v-model="paymentMethod" :value="method.value" type="radio" class="sr-only" :disabled="!method.enabled">
                             </label>
                         </div>
 
-                        <div class="mt-5 grid gap-3">
+                        <div class="mt-5 grid gap-3 border-t border-[#F3F4F6] pt-4">
                             <button
                                 type="button"
                                 class="inline-flex min-h-[44px] items-center justify-center rounded-[12px] bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8E4F76]"
@@ -172,69 +199,87 @@
                         </div>
                     </div>
 
-                    <div v-else-if="paymentModalStep === 'detail'" class="min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-4 sm:px-6">
-                        <div class="rounded-[14px] border border-[#F1E7ED] bg-[#FCFAFB] p-3.5">
-                            <div class="flex items-center gap-3">
-                                <div class="payment-brand-mark payment-brand-mark-compact shrink-0" :class="selectedPaymentMethod.visualClass">
-                                    <img
-                                        v-if="selectedPaymentMethod.logoSrc"
-                                        :src="selectedPaymentMethod.logoSrc"
-                                        :alt="`${selectedPaymentMethod.label} logo`"
-                                        class="payment-logo-image"
-                                    >
-                                    <span v-else>{{ selectedPaymentMethod.badge }}</span>
+                    <div v-else-if="paymentModalStep === 'detail'" class="min-h-0 flex-1 overflow-y-auto px-5 pb-5 pt-4 sm:px-6">
+                        <div class="space-y-4">
+                            <div v-if="selectedPaymentMethod.paymentType === 'manual_transfer'" class="rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-4">
+                                <div class="rounded-2xl bg-white px-4 py-3 shadow-sm">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Pay Amount</p>
+                                    <p class="mt-1 text-[1.75rem] font-black tracking-[-0.04em] text-[#A25F88]">{{ orderTotalLabel }}</p>
                                 </div>
-                                <div class="min-w-0">
-                                    <div class="text-sm font-semibold text-[#111827]">{{ selectedPaymentMethod.label }}</div>
-                                    <div class="mt-1 text-xs leading-5 text-[#6B7280]">{{ selectedPaymentMethod.instructions }}</div>
-                                </div>
-                            </div>
 
-                            <div v-if="selectedPaymentMethod.showTransferPanel" class="mt-4 grid gap-3">
-                                <div class="rounded-[12px] border border-[#E5E7EB] bg-white p-3">
-                                    <div class="payment-detail-logo-wrap">
+                                <div class="mt-4 text-center">
+                                    <div class="payment-brand-mark payment-brand-mark-compact mx-auto" :class="selectedPaymentMethod.visualClass">
                                         <img
                                             v-if="selectedPaymentMethod.logoSrc"
                                             :src="selectedPaymentMethod.logoSrc"
                                             :alt="`${selectedPaymentMethod.label} logo`"
-                                            class="payment-detail-logo"
+                                            class="payment-logo-image"
                                         >
                                         <span v-else>{{ selectedPaymentMethod.badge }}</span>
                                     </div>
-                                    <img src="/khqr.jpg" alt="Payment QR code" class="mx-auto mt-3 h-[120px] w-[120px] rounded-[10px] object-cover">
+                                    <p class="mt-3 text-sm font-semibold uppercase tracking-[0.14em] text-[#A25F88]">Scan to Pay</p>
+                                    <p class="mt-1 text-sm text-[#6B7280]">Open your banking app and scan this QR.</p>
                                 </div>
-                                <div class="rounded-[12px] border border-[#E5E7EB] bg-white p-3 text-xs text-[#111827]">
-                                    <div><span class="font-semibold text-[#6B7280]">Account:</span> {{ selectedPaymentMethod.accountName || 'Manual payment' }}</div>
-                                    <div class="mt-1"><span class="font-semibold text-[#6B7280]">Number:</span> {{ selectedPaymentMethod.accountNumber || 'Reference required' }}</div>
+
+                                <div class="mt-4 rounded-2xl border border-[#E5E7EB] bg-white p-4">
+                                    <div class="qr-crop-shell qr-crop-shell-large mx-auto">
+                                        <img src="/khqr.jpg" alt="Payment QR code" class="qr-crop-image">
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827]">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <span class="font-medium text-[#6B7280]">Account</span>
+                                        <span class="text-right font-semibold">{{ selectedPaymentMethod.accountName || 'Manual payment' }}</span>
+                                    </div>
+                                    <div class="mt-2 flex items-center justify-between gap-4">
+                                        <span class="font-medium text-[#6B7280]">Number</span>
+                                        <span class="text-right font-semibold">{{ selectedPaymentMethod.accountNumber || 'Reference required' }}</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div v-else class="mt-4 rounded-[12px] border border-[#E5E7EB] bg-white p-3 text-xs leading-5 text-[#6B7280]">
+                            <div v-else class="rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-4 text-sm leading-6 text-[#6B7280]">
                                 {{ selectedPaymentMethod.cashNote }}
                             </div>
                         </div>
+                    </div>
 
-                        <div class="mt-4 grid gap-3">
-                            <input
-                                v-model.trim="form.payment_reference"
-                                type="text"
-                                class="field-input"
-                                :placeholder="selectedPaymentMethod.referencePlaceholder"
-                                :disabled="paymentMethod === 'cash'"
-                            >
+                    <div v-else-if="paymentModalStep === 'proof'" class="min-h-0 flex-1 overflow-y-auto px-5 pb-28 pt-4 sm:px-6">
+                        <div class="space-y-4">
+                            <div class="rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC] p-4">
+                                <div class="grid gap-3 sm:grid-cols-3">
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Order number</p>
+                                        <p class="mt-1 text-sm font-semibold text-[#111827]">{{ manualTransferOrder?.order_code || 'Pending...' }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Method</p>
+                                        <p class="mt-1 text-sm font-semibold text-[#111827]">{{ selectedPaymentMethod.label }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Amount</p>
+                                        <p class="mt-1 text-sm font-semibold text-[#A25F88]">{{ orderTotalLabel }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label class="flex min-h-[180px] cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#A25F88] bg-[#F8FAFC] px-4 py-5 text-center">
+                                <span class="text-sm font-semibold text-[#111827]">{{ paymentScreenshotName || 'Choose payment screenshot' }}</span>
+                                <span class="mt-2 text-xs text-[#6B7280]">JPG, PNG, WEBP up to 4MB</span>
+                                <input type="file" accept="image/*" class="sr-only" @change="handleScreenshotChange">
+                            </label>
+
+                            <div v-if="paymentScreenshotPreview" class="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white">
+                                <img :src="paymentScreenshotPreview" alt="Payment proof preview" class="h-auto max-h-[240px] w-full object-contain bg-[#F8FAFC]">
+                            </div>
+
                             <textarea
                                 v-model.trim="form.payment_notes"
-                                rows="2"
-                                class="field-input !rounded-[12px]"
-                                :placeholder="selectedPaymentMethod.notesPlaceholder"
+                                rows="3"
+                                class="field-input !rounded-[14px]"
+                                placeholder="Optional sender name or payment note"
                             ></textarea>
-                        </div>
-
-                        <div class="mt-4 rounded-[12px] border border-[#F1E7ED] bg-[#FCFAFB] px-4 py-3">
-                            <div class="flex items-center justify-between gap-4">
-                                <span class="text-sm font-medium text-[#111827]">Order total</span>
-                                <span class="text-sm font-semibold text-[#A25F88]">{{ orderTotalLabel }}</span>
-                            </div>
                         </div>
                     </div>
 
@@ -273,15 +318,15 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13 9 17 19 7" />
                             </svg>
                         </div>
-                        <h3 class="mt-5 text-xl font-semibold text-[#111827]">Order placed successfully</h3>
-                        <p class="mt-2 text-sm leading-6 text-[#6B7280]">Your order has been submitted and is now being processed.</p>
+                        <h3 class="mt-5 text-xl font-semibold text-[#111827]">{{ successTitle }}</h3>
+                        <p class="mt-2 text-sm leading-6 text-[#6B7280]">{{ successMessage }}</p>
                         <div class="mt-6 grid gap-3">
                             <button
                                 type="button"
                                 class="inline-flex min-h-[44px] items-center justify-center rounded-[12px] bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8E4F76]"
-                                @click="viewPlacedOrder"
+                                @click="primarySuccessAction"
                             >
-                                View order
+                                {{ successPrimaryLabel }}
                             </button>
                             <button
                                 type="button"
@@ -312,14 +357,14 @@
                         </div>
                     </div>
 
-                    <div v-if="paymentModalStep === 'detail'" class="border-t border-[#F3F4F6] px-5 pb-5 pt-4 sm:px-6">
+                    <div v-if="['detail', 'proof'].includes(paymentModalStep)" class="border-t border-[#F3F4F6] bg-white px-5 pb-5 pt-4 sm:px-6">
                         <button
                             type="button"
                             class="inline-flex min-h-[44px] w-full items-center justify-center rounded-[12px] bg-[#A25F88] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8E4F76] disabled:cursor-not-allowed disabled:opacity-60"
-                            :disabled="submitting"
-                            @click="confirmOrder"
+                            :disabled="submitButtonDisabled"
+                            @click="handleDetailFooterAction"
                         >
-                            {{ submitting ? 'Confirming...' : 'Confirm order' }}
+                            {{ submitting ? submitButtonBusyLabel : submitButtonLabel }}
                         </button>
                     </div>
                 </div>
@@ -342,9 +387,13 @@ const error = ref('');
 const showPaymentModal = ref(false);
 const paymentModalStep = ref('select');
 const latestOrderId = ref(null);
+const manualTransferOrder = ref(null);
 const modalErrorMessage = ref('Unable to place this order.');
 const processingStepIndex = ref(0);
 const paymentMethod = ref('cash');
+const paymentScreenshotName = ref('');
+const paymentScreenshotFile = ref(null);
+const paymentScreenshotPreview = ref('');
 let processingInterval = null;
 const processingSteps = [
     'Checking payment information...',
@@ -352,35 +401,34 @@ const processingSteps = [
     'Updating product stock...',
     'Finalizing order...',
 ];
-const paymentMethods = [
+const gatewayEnabled = computed(() => Boolean(store.meta?.payment_gateway_enabled));
+const paymentMethodDefinitions = [
     {
         value: 'cash',
         label: 'Cash',
         title: 'Cash payment',
-        text: 'Cash on delivery or manual settlement.',
-        description: 'Collect payment when the order reaches the customer or when a manual handoff is completed.',
-        instructions: 'No transfer is required. Confirm the order and collect payment at delivery or at the merchant handoff point.',
-        referencePlaceholder: 'No payment reference needed for cash',
+        text: 'Cash on delivery.',
+        description: 'Pay when delivered.',
+        instructions: 'No transfer needed. Pay when the order arrives.',
         notesPlaceholder: 'Optional note for delivery or cash handling',
         badge: 'CA',
         visualClass: 'payment-brand-cash',
         logoSrc: '/cash.jpg',
-        showTransferPanel: false,
-        cashNote: 'Cash orders do not require a transfer slip. Add an optional note if the rider or merchant needs a special collection instruction.',
+        paymentType: 'cash',
+        cashNote: 'No transfer slip needed.',
     },
     {
         value: 'aba_qr',
         label: 'ABA QR',
         title: 'ABA QR transfer',
-        text: 'Customer pays with ABA QR transfer.',
-        description: 'Scan the QR or transfer to the ABA account, then provide the transfer reference for verification.',
-        instructions: 'Use ABA app to scan the QR or transfer to the listed account. After payment, enter the ABA transfer reference and optional sender note.',
-        referencePlaceholder: 'ABA transfer reference',
+        text: 'ABA transfer.',
+        description: 'Scan QR and enter reference.',
+        instructions: 'Pay with ABA, then enter the transfer reference.',
         notesPlaceholder: 'Optional payment note or sender name',
         badge: 'ABA',
         visualClass: 'payment-brand-aba',
         logoSrc: '/aba.png',
-        showTransferPanel: true,
+        paymentType: 'manual_transfer',
         accountName: 'E-Commerce ABA Collection',
         accountNumber: '001 234 567',
         channelLabel: 'ABA QR / Bank transfer',
@@ -389,15 +437,14 @@ const paymentMethods = [
         value: 'acleda',
         label: 'ACLEDA',
         title: 'ACLEDA transfer',
-        text: 'Customer pays with ACLEDA transfer.',
-        description: 'Use ACLEDA banking to transfer the total amount, then submit the payment reference.',
-        instructions: 'Transfer the total to the ACLEDA account shown here. Enter the ACLEDA transaction reference so admin can verify the payment record.',
-        referencePlaceholder: 'ACLEDA transfer reference',
+        text: 'ACLEDA transfer.',
+        description: 'Transfer and enter reference.',
+        instructions: 'Pay with ACLEDA, then enter the transfer reference.',
         notesPlaceholder: 'Optional payment note or sender name',
         badge: 'AC',
         visualClass: 'payment-brand-acleda',
         logoSrc: '/ac.png',
-        showTransferPanel: true,
+        paymentType: 'manual_transfer',
         accountName: 'E-Commerce ACLEDA Account',
         accountNumber: '091 002 884',
         channelLabel: 'ACLEDA transfer',
@@ -406,15 +453,14 @@ const paymentMethods = [
         value: 'wing',
         label: 'Wing',
         title: 'Wing wallet payment',
-        text: 'Customer pays with Wing wallet.',
-        description: 'Send the payment through Wing and record the wallet transaction reference.',
-        instructions: 'Open Wing, send the amount to the wallet shown in this panel, then paste the Wing transaction reference before confirming the order.',
-        referencePlaceholder: 'Wing transaction reference',
+        text: 'Wing payment.',
+        description: 'Send payment and enter reference.',
+        instructions: 'Pay with Wing, then enter the transaction reference.',
         notesPlaceholder: 'Optional sender phone or payment note',
         badge: 'WG',
         visualClass: 'payment-brand-wing',
         logoSrc: '/wing.png',
-        showTransferPanel: true,
+        paymentType: 'manual_transfer',
         accountName: 'E-Commerce Wing Wallet',
         accountNumber: '012 555 909',
         channelLabel: 'Wing wallet',
@@ -423,16 +469,15 @@ const paymentMethods = [
         value: 'card',
         label: 'Card',
         title: 'Card payment',
-        text: 'Card payment is available when enabled.',
-        description: 'Use this option when card payment is enabled for the order and the payment reference is captured manually.',
-        instructions: 'Process the card charge using the enabled card terminal or gateway, then enter the transaction reference and cardholder note if needed.',
-        referencePlaceholder: 'Card transaction reference',
+        text: 'Card payment.',
+        description: 'Available when enabled.',
+        instructions: 'Use card payment when the gateway is enabled.',
         notesPlaceholder: 'Optional card holder or transaction note',
         badge: 'CD',
         visualClass: 'payment-brand-card',
         logoSrc: '/paypal.png',
-        showTransferPanel: false,
-        cashNote: 'Card payment is recorded as a manual reference in this flow. Use the transaction reference field on the right to capture the confirmation code.',
+        paymentType: 'gateway',
+        cashNote: 'Card payment only becomes available after a real gateway is connected and configured.',
     },
 ];
 
@@ -449,11 +494,69 @@ const form = reactive({
     payment_notes: '',
 });
 
-const selectedPaymentMethod = computed(() => paymentMethods.find((method) => method.value === paymentMethod.value) ?? paymentMethods[0]);
+const paymentMethods = computed(() => paymentMethodDefinitions.map((method) => {
+    const isEnabled = method.paymentType !== 'gateway' || gatewayEnabled.value;
+
+    return {
+        ...method,
+        enabled: isEnabled,
+        badgeText: method.paymentType === 'cash'
+            ? 'Pay later'
+            : method.paymentType === 'manual_transfer'
+                ? 'Manual verification'
+                : (isEnabled ? 'Gateway ready' : 'Coming soon'),
+    };
+}));
+const selectedPaymentMethod = computed(() => paymentMethods.value.find((method) => method.value === paymentMethod.value) ?? paymentMethods.value[0]);
 const orderTotalLabel = computed(() => store.orderSummaryLines().total);
+const isManualTransferMethod = computed(() => selectedPaymentMethod.value?.paymentType === 'manual_transfer');
+const submitButtonLabel = computed(() => {
+    if (paymentModalStep.value === 'detail' && isManualTransferMethod.value) {
+        return 'I have paid, continue';
+    }
+
+    if (paymentModalStep.value === 'proof') {
+        return 'Submit Payment Proof';
+    }
+
+    if (selectedPaymentMethod.value?.paymentType === 'gateway') {
+        return 'Confirm order';
+    }
+
+    return 'Place order';
+});
+const submitButtonBusyLabel = computed(() => {
+    if (paymentModalStep.value === 'proof') {
+        return 'Submitting proof...';
+    }
+
+    return 'Confirming...';
+});
+const submitButtonDisabled = computed(() => {
+    if (submitting.value) {
+        return true;
+    }
+
+    if (paymentModalStep.value === 'proof') {
+        return !paymentScreenshotFile.value;
+    }
+
+    return false;
+});
+const successTitle = computed(() => isManualTransferMethod.value ? 'Payment proof submitted' : 'Order placed successfully');
+const successMessage = computed(() => isManualTransferMethod.value
+    ? 'Payment proof submitted. Admin will verify your payment soon.'
+    : 'Your order has been submitted and is now being processed.');
+const successPrimaryLabel = computed(() => isManualTransferMethod.value ? 'View order' : 'View order');
 
 onMounted(async () => {
     await store.initialize();
+
+    if (!store.cartItems.length) {
+        await router.replace('/cart');
+        return;
+    }
+
     if (store.user) {
         form.customer_name = store.user.name || '';
         form.email = store.user.email || '';
@@ -465,6 +568,12 @@ watch(showPaymentModal, (isOpen) => {
     document.body.classList.toggle('overflow-hidden', isOpen);
 });
 
+watch(paymentMethods, (methods) => {
+    if (!methods.find((method) => method.value === paymentMethod.value && method.enabled)) {
+        paymentMethod.value = methods.find((method) => method.enabled)?.value ?? 'cash';
+    }
+}, { immediate: true });
+
 onUnmounted(() => {
     document.body.classList.remove('overflow-hidden');
 });
@@ -472,11 +581,18 @@ onUnmounted(() => {
 function openPaymentModal() {
     if (!store.cartItems.length) {
         error.value = 'Your cart is empty.';
+        router.push('/cart');
         return false;
     }
 
     error.value = '';
     paymentModalStep.value = 'select';
+    paymentMethod.value = paymentMethods.value.find((method) => method.enabled)?.value ?? 'cash';
+    manualTransferOrder.value = null;
+    paymentScreenshotName.value = '';
+    paymentScreenshotFile.value = null;
+    paymentScreenshotPreview.value = '';
+    form.payment_notes = '';
     showPaymentModal.value = true;
 
     return true;
@@ -489,11 +605,26 @@ function closePaymentModal() {
 
     stopProcessingAnimation();
     paymentModalStep.value = 'select';
+    manualTransferOrder.value = null;
+    paymentScreenshotName.value = '';
+    paymentScreenshotFile.value = null;
+    paymentScreenshotPreview.value = '';
     showPaymentModal.value = false;
 }
 
 function goToPaymentDetail() {
+    if (!selectedPaymentMethod.value?.enabled) {
+        return;
+    }
+
     paymentModalStep.value = 'detail';
+}
+
+function handleScreenshotChange(event) {
+    const [file] = event.target.files ?? [];
+    paymentScreenshotFile.value = file ?? null;
+    paymentScreenshotName.value = file?.name ?? '';
+    paymentScreenshotPreview.value = file ? URL.createObjectURL(file) : '';
 }
 
 function startProcessingAnimation() {
@@ -552,13 +683,93 @@ async function continueShopping() {
 }
 
 function retryOrder() {
-    paymentModalStep.value = 'detail';
+    paymentModalStep.value = isManualTransferMethod.value ? 'proof' : 'detail';
+}
+
+function paymentMethodCardClass(method) {
+    if (!method.enabled) {
+        return 'cursor-not-allowed border-[#E5E7EB] bg-[#F8FAFC] opacity-65';
+    }
+
+    return paymentMethod.value === method.value
+        ? 'cursor-pointer border-[#A25F88] bg-[rgba(162,95,136,0.08)]'
+        : 'cursor-pointer border-[#E5E7EB] bg-white hover:bg-[rgba(162,95,136,0.05)]';
+}
+
+function paymentMethodBadgeClass(method) {
+    if (!method.enabled) {
+        return 'bg-slate-200 text-slate-600';
+    }
+
+    return method.paymentType === 'gateway'
+        ? 'bg-[#FDF2F8] text-[#A25F88]'
+        : 'bg-[#EEF2FF] text-[#6366F1]';
+}
+
+async function handleDetailFooterAction() {
+    if (paymentModalStep.value === 'detail' && isManualTransferMethod.value) {
+        if (manualTransferOrder.value?.id) {
+            paymentModalStep.value = 'proof';
+            return;
+        }
+
+        await createManualTransferOrder();
+        return;
+    }
+
+    await confirmOrder();
+}
+
+async function createManualTransferOrder() {
+    if (!store.cartItems.length) {
+        error.value = 'Your cart is empty.';
+        showPaymentModal.value = false;
+        await router.push('/cart');
+        return;
+    }
+
+    error.value = '';
+    submitting.value = true;
+    modalErrorMessage.value = 'Unable to create this order.';
+    paymentModalStep.value = 'processing';
+    startProcessingAnimation();
+
+    try {
+        const response = await store.checkout({
+            ...form,
+            payment_method: paymentMethod.value,
+        });
+
+        stopProcessingAnimation();
+        processingStepIndex.value = processingSteps.length - 1;
+        latestOrderId.value = response.order.id;
+        manualTransferOrder.value = response.order;
+        showPaymentModal.value = false;
+        paymentModalStep.value = 'select';
+        await router.push(`/payment/${response.order.id}`);
+    } catch (requestError) {
+        stopProcessingAnimation();
+        const message = requestError?.response?.data?.message
+            || Object.values(requestError?.response?.data?.errors ?? {}).flat()?.[0]
+            || 'Unable to place this order.';
+        error.value = message;
+        modalErrorMessage.value = message;
+        paymentModalStep.value = 'error';
+    } finally {
+        submitting.value = false;
+    }
 }
 
 async function confirmOrder() {
     if (!store.cartItems.length) {
         error.value = 'Your cart is empty.';
         showPaymentModal.value = false;
+        await router.push('/cart');
+        return;
+    }
+
+    if (paymentModalStep.value === 'proof' && manualTransferOrder.value?.id) {
+        await submitManualTransferProof();
         return;
     }
 
@@ -577,7 +788,15 @@ async function confirmOrder() {
         stopProcessingAnimation();
         processingStepIndex.value = processingSteps.length - 1;
         latestOrderId.value = response.order.id;
-        paymentModalStep.value = 'success';
+
+        if (paymentMethod.value === 'cash') {
+            paymentModalStep.value = 'success';
+            return;
+        }
+
+        showPaymentModal.value = false;
+        paymentModalStep.value = 'select';
+        await router.push(`/payment/${response.order.id}`);
     } catch (requestError) {
         stopProcessingAnimation();
         const message = requestError?.response?.data?.message
@@ -591,8 +810,43 @@ async function confirmOrder() {
     }
 }
 
+async function submitManualTransferProof() {
+    if (!manualTransferOrder.value?.id || !paymentScreenshotFile.value) {
+        return;
+    }
+
+    error.value = '';
+    submitting.value = true;
+    modalErrorMessage.value = 'Unable to submit payment proof.';
+
+    try {
+        await store.submitPaymentProof(manualTransferOrder.value.id, {
+            screenshot: paymentScreenshotFile.value,
+            transaction_ref: '',
+            payment_note: form.payment_notes,
+        });
+        paymentModalStep.value = 'success';
+    } catch (requestError) {
+        const message = requestError?.response?.data?.message
+            || Object.values(requestError?.response?.data?.errors ?? {}).flat()?.[0]
+            || 'Unable to submit payment proof.';
+        error.value = message;
+        modalErrorMessage.value = message;
+        paymentModalStep.value = 'error';
+    } finally {
+        submitting.value = false;
+    }
+}
+
+async function primarySuccessAction() {
+    await viewPlacedOrder();
+}
+
 onUnmounted(() => {
     stopProcessingAnimation();
+    if (paymentScreenshotPreview.value) {
+        URL.revokeObjectURL(paymentScreenshotPreview.value);
+    }
 });
 </script>
 
@@ -638,24 +892,27 @@ onUnmounted(() => {
     animation: spin 0.9s linear infinite;
 }
 
-.payment-detail-logo-wrap {
-    display: flex;
-    height: 3rem;
-    width: 3rem;
-    align-items: center;
-    justify-content: center;
-    margin-inline: auto;
+.qr-crop-shell {
+    height: 7.5rem;
+    width: 7.5rem;
     overflow: hidden;
-    border-radius: 0.9rem;
+    border-radius: 1.1rem;
+    border: 1px solid #e5e7eb;
     background: #ffffff;
-    box-shadow: inset 0 0 0 1px #e5e7eb;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
 }
 
-.payment-detail-logo {
-    height: 100%;
-    width: 100%;
-    object-fit: cover;
+.qr-crop-shell-large {
+    height: 12.5rem;
+    width: 12.5rem;
+}
+
+.qr-crop-image {
     display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 64%;
 }
 
 .payment-brand-cash {

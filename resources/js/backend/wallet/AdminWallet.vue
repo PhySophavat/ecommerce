@@ -15,6 +15,7 @@
                     :is-menu-open="isMenuOpen"
                     :screen="screen"
                     @primary-action="loadDashboard"
+                    @header-filter-change="updatePeriodFilter"
                     @refresh="loadDashboard"
                     @select-item="handleMenuSelection"
                     @toggle-menu="toggleMenu"
@@ -48,7 +49,7 @@
                                     <h2 class="mt-1 text-xl font-bold text-slate-950">Highest fee contributors</h2>
                                 </div>
 
-                                <div v-if="topMerchants.length === 0" class="px-6 py-12 text-center text-sm text-slate-400">
+                                <div v-if="filteredTopMerchants.length === 0" class="px-6 py-12 text-center text-sm text-slate-400">
                                     No merchant fees have been recorded yet.
                                 </div>
 
@@ -63,7 +64,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-for="merchant in topMerchants" :key="merchant.id" class="border-t border-slate-100">
+                                            <tr v-for="merchant in filteredTopMerchants" :key="merchant.id" class="border-t border-slate-100">
                                                 <td class="px-6 py-4 font-semibold text-slate-900">{{ merchant.shop_name }}</td>
                                                 <td class="px-4 py-4 text-slate-600">{{ merchant.owner_name || '-' }}</td>
                                                 <td class="px-4 py-4 text-right font-semibold text-rose-600">{{ currency(merchant.total_platform_fee_paid) }}</td>
@@ -80,12 +81,12 @@
                                     <h2 class="mt-1 text-xl font-bold text-slate-950">Latest platform fee deductions</h2>
                                 </div>
 
-                                <div v-if="recentFees.length === 0" class="px-6 py-12 text-center text-sm text-slate-400">
+                                <div v-if="filteredRecentFees.length === 0" class="px-6 py-12 text-center text-sm text-slate-400">
                                     No recent fee activity yet.
                                 </div>
 
                                 <div v-else class="space-y-4 px-6 py-5">
-                                    <article v-for="fee in recentFees" :key="fee.id" class="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
+                                    <article v-for="fee in filteredRecentFees" :key="fee.id" class="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
                                         <div class="flex items-start justify-between gap-4">
                                             <div>
                                                 <p class="font-semibold text-slate-900">{{ fee.merchant_name }}</p>
@@ -120,6 +121,7 @@ const screen = window.__APP_CONTEXT__?.screen ?? 'wallet';
 const isLoading = ref(true);
 const notice = ref(null);
 const openMenus = ref({});
+const selectedPeriod = ref('30d');
 const dashboard = ref({
     meta: {
         brand: 'E-commerce',
@@ -127,6 +129,17 @@ const dashboard = ref({
         kicker: 'Platform wallet',
         subheadline: 'Track total platform fee balance collected from merchants and review the latest fee deductions.',
         primary_action_label: 'Refresh wallet',
+        hide_secondary_refresh: true,
+        toolbar_filter: {
+            label: 'Period',
+            value: '30d',
+            options: [
+                { label: 'All', value: 'all' },
+                { label: 'Today', value: 'today' },
+                { label: '7 Days', value: '7d' },
+                { label: '30 Days', value: '30d' },
+            ],
+        },
     },
     menu: [],
 });
@@ -142,9 +155,11 @@ const recentFees = ref([]);
 const statCards = computed(() => [
     { label: 'Platform Fee Balance', value: currency(summary.value.platform_fee_balance), tone: 'text-rose-600' },
     { label: 'Merchants Charged', value: String(summary.value.merchants_charged ?? 0), tone: 'text-slate-950' },
-    { label: 'Recent Fee Records', value: String(summary.value.fee_transactions ?? 0), tone: 'text-slate-950' },
+    { label: 'Recent Fee Records', value: String(filteredRecentFees.value.length), tone: 'text-slate-950' },
     { label: 'Average Per Merchant', value: currency(summary.value.average_fee_per_merchant), tone: 'text-amber-600' },
 ]);
+const filteredRecentFees = computed(() => recentFees.value.filter((fee) => matchesPeriod(fee.created_at)));
+const filteredTopMerchants = computed(() => topMerchants.value);
 
 onMounted(async () => {
     await loadDashboard();
@@ -160,7 +175,15 @@ async function loadDashboard() {
         recentFees.value = response.data.recent_fees ?? [];
         dashboard.value = {
             ...dashboard.value,
-            meta: response.data.meta ?? dashboard.value.meta,
+            meta: {
+                ...dashboard.value.meta,
+                ...(response.data.meta ?? {}),
+                toolbar_filter: {
+                    ...(dashboard.value.meta.toolbar_filter ?? {}),
+                    ...(response.data.meta?.toolbar_filter ?? {}),
+                    value: selectedPeriod.value,
+                },
+            },
             menu: response.data.menu ?? dashboard.value.menu,
         };
         syncOpenMenus(response.data.menu ?? []);
@@ -208,5 +231,44 @@ async function handleMenuSelection(item) {
 function currency(value) {
     const amount = Number.parseFloat(String(value ?? '0'));
     return `$${Number.isNaN(amount) ? '0.00' : amount.toFixed(2)}`;
+}
+
+function updatePeriodFilter(value) {
+    selectedPeriod.value = value || '30d';
+    dashboard.value = {
+        ...dashboard.value,
+        meta: {
+            ...dashboard.value.meta,
+            toolbar_filter: {
+                ...(dashboard.value.meta.toolbar_filter ?? {}),
+                value: selectedPeriod.value,
+            },
+        },
+    };
+}
+
+function matchesPeriod(value) {
+    if (selectedPeriod.value === 'all') {
+        return true;
+    }
+
+    const date = value ? new Date(value) : null;
+
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return selectedPeriod.value === '30d';
+    }
+
+    const now = new Date();
+
+    if (selectedPeriod.value === 'today') {
+        return date.getFullYear() === now.getFullYear()
+            && date.getMonth() === now.getMonth()
+            && date.getDate() === now.getDate();
+    }
+
+    const days = selectedPeriod.value === '7d' ? 7 : 30;
+    const diff = now.getTime() - date.getTime();
+
+    return diff <= days * 24 * 60 * 60 * 1000;
 }
 </script>

@@ -55,7 +55,7 @@
                             </div>
 
                             <div class="withdraw-toolbar border-b border-slate-200 px-6 py-3">
-                                <!-- <p class="text-xs text-slate-500">Review merchant payout requests.</p> -->
+                                <p class="text-sm text-slate-500">Review merchant payout requests and update their status from the table below.</p>
                             </div>
 
                             <div class="mt-6 flex justify-center px-6">
@@ -179,7 +179,7 @@
                             </div>
 
                             <div class="withdraw-table-wrap mt-5 overflow-x-auto">
-                                <table class="min-w-[1180px] w-full text-sm">
+                                <table class="min-w-[1160px] w-full text-sm">
                                     <thead class="bg-slate-50 text-left text-[11px] uppercase tracking-[0.16em] text-slate-400">
                                         <tr class="withdraw-table-head">
                                             <th class="px-5 py-4">Merchant</th>
@@ -223,13 +223,16 @@
                                                     {{ item.status }}
                                                 </span>
                                             </td>
-                                            <td class="px-4 py-4 text-slate-600">{{ formatDate(item.created_at) }}</td>
+                                            <td class="px-4 py-4 text-slate-600">
+                                                <p>{{ formatDate(item.created_at) }}</p>
+                                                <p class="mt-1 text-xs text-slate-400">{{ formatTime(item.created_at) }}</p>
+                                            </td>
                                             <td class="px-5 py-4 text-right">
-                                                <div class="flex flex-nowrap justify-end gap-2 whitespace-nowrap">
+                                                <div class="flex flex-wrap justify-end gap-2">
                                                     <button
                                                         v-if="item.status === 'pending'"
                                                         type="button"
-                                                        class="rounded-full bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 whitespace-nowrap"
+                                                        class="action-button action-button-approve"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'approve')"
                                                     >
@@ -238,7 +241,7 @@
                                                     <button
                                                         v-if="item.status === 'pending'"
                                                         type="button"
-                                                        class="rounded-full bg-rose-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 whitespace-nowrap"
+                                                        class="action-button action-button-reject"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'reject')"
                                                     >
@@ -247,7 +250,7 @@
                                                     <button
                                                         v-if="item.status === 'approved'"
                                                         type="button"
-                                                        class="rounded-full bg-slate-950 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800 whitespace-nowrap"
+                                                        class="action-button action-button-paid"
                                                         :disabled="processingId === item.id"
                                                         @click="runAction(item, 'mark-paid')"
                                                     >
@@ -830,6 +833,17 @@ function formatDate(value) {
     }).format(new Date(value));
 }
 
+function formatTime(value) {
+    if (!value) {
+        return '-';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(new Date(value));
+}
+
 function formatDateTime(value) {
     if (!value) {
         return '-';
@@ -920,34 +934,40 @@ function statusClass(status) {
 
 .withdraw-table-wrap {
     border-top: 0.5px solid #e2e8f0;
+    background: #fff;
 }
 
 .withdraw-table-head th {
     font-size: 11px;
-    font-weight: 500;
+    font-weight: 600;
     color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.1em;
     border-bottom: 0.5px solid #e2e8f0;
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: #f8fafc;
 }
 
 .withdraw-table-row {
     border-bottom: 0.5px solid #f1f5f9;
-    transition: background 0.1s;
+    transition: background 0.16s ease;
 }
 
 .withdraw-table-row:hover {
-    background: #f8fafc;
+    background: #fbfcfe;
 }
 
 .withdraw-badge {
     display: inline-block;
     font-size: 11px;
-    font-weight: 500;
-    padding: 2px 9px;
+    font-weight: 600;
+    padding: 4px 10px;
     border-radius: 999px;
     white-space: nowrap;
+    text-transform: capitalize;
 }
 
 .badge-pending { background: #fef3c7; color: #92400e; }
@@ -955,4 +975,45 @@ function statusClass(status) {
 .badge-rejected { background: #fee2e2; color: #991b1b; }
 .badge-paid { background: #d1fae5; color: #065f46; }
 .badge-default { background: #f1f5f9; color: #64748b; }
+
+.action-button {
+    border-radius: 999px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.16s ease;
+    white-space: nowrap;
+}
+
+.action-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.action-button-approve {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+.action-button-approve:hover {
+    background: #d1fae5;
+}
+
+.action-button-reject {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+.action-button-reject:hover {
+    background: #ffe4e6;
+}
+
+.action-button-paid {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.action-button-paid:hover {
+    background: #dbeafe;
+}
 </style>

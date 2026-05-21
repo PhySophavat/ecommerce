@@ -1,6 +1,6 @@
 <template>
-    <div class="chatgpt-admin min-h-screen px-3 py-3 sm:px-5 lg:px-8 lg:py-6">
-        <div class="admin-panel mx-auto flex min-h-[calc(100vh-1.5rem)] w-full max-w-[1800px] overflow-x-clip rounded-[36px]">
+    <div class="min-h-screen bg-[#F8FAFC] px-4 py-4 sm:px-6 lg:px-8">
+        <div class="mx-auto flex min-h-[calc(100vh-2rem)] max-w-[1800px] overflow-hidden rounded-[32px] border border-[#E5E7EB] bg-white">
             <AdminSidebar
                 :dashboard="dashboard"
                 :is-menu-open="isMenuOpen"
@@ -14,141 +14,246 @@
                     :dashboard="dashboard"
                     :is-menu-open="isMenuOpen"
                     :screen="screen"
-                    @primary-action="loadRecords"
-                    @refresh="loadRecords"
+                    @primary-action="loadPayments"
+                    @refresh="loadPayments"
                     @select-item="handleMenuSelection"
                     @toggle-menu="toggleMenu"
                 />
 
                 <main class="flex-1 p-4 sm:p-6 lg:p-7">
-                    <section
-                        v-if="notice"
-                        class="mb-5 rounded-xl px-5 py-3.5 text-sm"
-                        :class="notice.type === 'error' ? 'border border-rose-200 bg-rose-50 text-rose-700' : 'border border-emerald-200 bg-emerald-50 text-emerald-700'"
-                    >
+                    <section v-if="notice" class="mb-5 rounded-[18px] border px-4 py-3 text-sm" :class="notice.type === 'error' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'">
                         {{ notice.text }}
                     </section>
 
-                    <section class="mb-5 grid gap-3 grid-cols-2 sm:grid-cols-4">
-                        <article v-for="card in summaryCards" :key="card.label" class="rounded-2xl border border-slate-200 bg-white px-5 py-4">
-                            <p class="text-[11px] uppercase tracking-[0.08em] text-slate-400">{{ card.label }}</p>
-                            <p class="mt-2 text-2xl font-bold" :class="card.valueClass">{{ card.value }}</p>
+                    <section class="mb-5 grid gap-3 sm:grid-cols-3">
+                        <article v-for="card in summaryCards" :key="card.label" class="rounded-[22px] border border-[#E5E7EB] bg-[#FFFFFF] px-5 py-4">
+                            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">{{ card.label }}</p>
+                            <p class="mt-2 text-2xl font-black text-[#111827]">{{ card.value }}</p>
                         </article>
                     </section>
 
-                    <section class="grid gap-5 2xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
-                        <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-                            <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
-                                <div class="grid gap-3 lg:grid-cols-2 2xl:grid-cols-4">
-                                    <input v-model.trim="filters.search" type="text" placeholder="Search order, customer, reference..." class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none">
-                                    <select v-model="filters.paymentStatus" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none">
-                                        <option value="">All payment statuses</option>
-                                        <option v-for="status in paymentStatuses" :key="status" :value="status">{{ status }}</option>
-                                    </select>
-                                    <select v-model="filters.paymentMethod" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none">
-                                        <option value="">All payment methods</option>
-                                        <option v-for="method in paymentMethods" :key="method.value" :value="method.value">{{ method.label }}</option>
-                                    </select>
-                                    <select v-model="filters.orderStatus" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none">
-                                        <option value="">All order statuses</option>
-                                        <option v-for="status in orderStatuses" :key="status" :value="status">{{ status }}</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div v-if="loading" class="px-6 py-12 text-center text-sm text-slate-400">Loading payment records...</div>
-                            <div v-else-if="filteredRecords.length === 0" class="px-6 py-12 text-center text-sm text-slate-400">No payment records matched the current filters.</div>
-                            <div v-else class="overflow-x-auto">
-                                <table class="min-w-[920px] w-full text-sm">
-                                    <thead class="bg-slate-50">
-                                        <tr>
-                                            <th class="min-w-[220px] px-4 py-3 text-left text-[11px] uppercase tracking-[0.08em] text-slate-400">Order</th>
-                                            <th class="min-w-[140px] px-3 py-3 text-left text-[11px] uppercase tracking-[0.08em] text-slate-400">Customer</th>
-                                            <th class="min-w-[140px] px-3 py-3 text-left text-[11px] uppercase tracking-[0.08em] text-slate-400">Method</th>
-                                            <th class="min-w-[150px] px-3 py-3 text-left text-[11px] uppercase tracking-[0.08em] text-slate-400">Reference</th>
-                                            <th class="min-w-[130px] px-3 py-3 text-left text-[11px] uppercase tracking-[0.08em] text-slate-400">Payment status</th>
-                                            <th class="min-w-[110px] px-3 py-3 text-left text-[11px] uppercase tracking-[0.08em] text-slate-400">Order status</th>
-                                            <th class="min-w-[90px] px-4 py-3 text-right text-[11px] uppercase tracking-[0.08em] text-slate-400">Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr
-                                            v-for="record in filteredRecords"
-                                            :key="record.id"
-                                            class="cursor-pointer border-t border-slate-100 transition hover:bg-slate-50"
-                                            :class="selectedRecord?.id === record.id ? 'bg-rose-50/40' : ''"
-                                            @click="selectRecord(record)"
-                                        >
-                                            <td class="px-4 py-4">
-                                                <p class="truncate font-semibold text-slate-900">{{ record.number }}</p>
-                                                <p class="text-xs text-slate-400">{{ formatDate(record.placed_at) }}</p>
-                                            </td>
-                                            <td class="px-3 py-4 text-slate-600">{{ record.customer_name }}</td>
-                                            <td class="px-3 py-4">
-                                                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase text-slate-700">{{ record.payment_method_label }}</span>
-                                            </td>
-                                            <td class="px-3 py-4 text-slate-600">{{ record.payment_reference || 'No reference' }}</td>
-                                            <td class="px-3 py-4">
-                                                <span class="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold uppercase text-sky-700">{{ record.payment_status }}</span>
-                                            </td>
-                                            <td class="px-3 py-4">
-                                                <span class="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold uppercase text-rose-700">{{ record.status }}</span>
-                                            </td>
-                                            <td class="px-4 py-4 text-right font-semibold text-slate-900">${{ Number(record.total_amount).toFixed(2) }}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                    <section class="overflow-hidden rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF]">
+                        <div class="border-b border-[#E5E7EB] bg-[#F8FAFC] px-5 py-4">
+                            <div class="grid gap-3 lg:grid-cols-3">
+                                <input v-model.trim="filters.search" type="text" placeholder="Search order or customer" class="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827] outline-none placeholder:text-[#6B7280]">
+                                <select v-model="filters.status" class="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827] outline-none">
+                                    <option value="">All statuses</option>
+                                    <option value="submitted">Submitted</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="auto_failed">Auto failed</option>
+                                    <option value="pending">Pending</option>
+                                </select>
+                                <select v-model="filters.payment_method" class="rounded-[14px] border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827] outline-none">
+                                    <option value="">All methods</option>
+                                    <option v-for="method in paymentMethods" :key="method" :value="method">{{ formatMethod(method) }}</option>
+                                </select>
                             </div>
                         </div>
 
-                        <aside class="rounded-2xl border border-slate-200 bg-white">
-                            <div class="border-b border-slate-200 px-6 py-4">
-                                <p class="text-[11px] uppercase tracking-[0.08em] text-slate-400">Payment detail</p>
-                                <h2 class="mt-1 text-xl font-bold text-slate-900">{{ selectedRecordDetail?.number || 'Select a payment record' }}</h2>
-                            </div>
-
-                            <div v-if="detailLoading" class="px-6 py-12 text-center text-sm text-slate-400">Loading detail...</div>
-                            <div v-else-if="!selectedRecordDetail" class="px-6 py-12 text-center text-sm text-slate-400">Choose a payment record to review customer payment information.</div>
-                            <div v-else class="space-y-6 px-6 py-5">
-                                <div class="rounded-2xl border border-slate-200 p-4">
-                                    <label class="text-xs uppercase tracking-[0.08em] text-slate-400">Payment status</label>
-                                    <select v-model="statusForm.payment_status" class="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none">
-                                        <option v-for="status in paymentStatuses" :key="status" :value="status">{{ status }}</option>
-                                    </select>
-                                    <button class="mt-3 rounded-xl bg-[#A25F88] px-4 py-2.5 text-sm font-semibold text-white" :disabled="updatingPaymentStatus" @click="savePaymentStatus">
-                                        {{ updatingPaymentStatus ? 'Saving...' : 'Update payment' }}
-                                    </button>
-                                </div>
-
-                                <div class="grid gap-3">
-                                    <div class="rounded-2xl bg-slate-50 px-4 py-4">
-                                        <p class="text-xs uppercase tracking-[0.08em] text-slate-400">Customer</p>
-                                        <p class="mt-2 font-semibold text-slate-900">{{ selectedRecordDetail.customer_name }}</p>
-                                        <p class="text-sm text-slate-500">{{ selectedRecordDetail.email }}</p>
-                                        <p class="text-sm text-slate-500">{{ selectedRecordDetail.phone }}</p>
-                                    </div>
-
-                                    <div class="rounded-2xl bg-slate-50 px-4 py-4">
-                                        <p class="text-xs uppercase tracking-[0.08em] text-slate-400">Payment</p>
-                                        <p class="mt-2 font-semibold text-slate-900">{{ selectedRecordDetail.payment_method_label }}</p>
-                                        <p class="text-sm text-slate-500">Status: {{ selectedRecordDetail.payment_status }}</p>
-                                        <p v-if="selectedRecordDetail.payment_reference" class="text-sm text-slate-500">Reference: {{ selectedRecordDetail.payment_reference }}</p>
-                                        <p v-if="selectedRecordDetail.paid_at" class="text-sm text-slate-500">Paid at: {{ formatDateTime(selectedRecordDetail.paid_at) }}</p>
-                                        <p class="mt-2 text-sm text-slate-500">{{ selectedRecordDetail.payment_instructions }}</p>
-                                    </div>
-
-                                    <div class="rounded-2xl bg-slate-50 px-4 py-4">
-                                        <p class="text-xs uppercase tracking-[0.08em] text-slate-400">Order total</p>
-                                        <p class="mt-2 text-xl font-bold text-slate-900">${{ Number(selectedRecordDetail.total_amount).toFixed(2) }}</p>
-                                        <p class="text-sm text-slate-500">Order status: {{ selectedRecordDetail.status }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
+                        <div v-if="loading" class="px-6 py-16 text-center text-sm text-[#6B7280]">Loading payments...</div>
+                        <div v-else-if="filteredPayments.length === 0" class="px-6 py-16 text-center text-sm text-[#6B7280]">No payment proofs found.</div>
+                        <div v-else class="overflow-x-auto">
+                            <table class="w-full min-w-[980px] text-sm">
+                                <thead class="bg-[#F8FAFC]">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Order</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Customer</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Method</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Reference</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Status</th>
+                                        <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Auto Check</th>
+                                        <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Amount</th>
+                                        <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Review</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="payment in filteredPayments"
+                                        :key="payment.id"
+                                        class="border-t border-[#E5E7EB] transition hover:bg-[#F8FAFC]"
+                                    >
+                                        <td class="px-4 py-4">
+                                            <p class="max-w-[260px] truncate font-semibold text-[#111827]">{{ payment.order_code }}</p>
+                                            <p class="mt-1 text-xs text-[#6B7280]">{{ formatDateTime(payment.created_at) }}</p>
+                                        </td>
+                                        <td class="px-4 py-4 text-[#6B7280]">{{ payment.customer_name }}</td>
+                                        <td class="px-4 py-4 text-[#6B7280]">{{ formatMethod(payment.payment_method) }}</td>
+                                        <td class="px-4 py-4 text-[#6B7280]">{{ payment.transaction_ref || 'No reference' }}</td>
+                                        <td class="px-4 py-4">
+                                            <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase" :class="statusClass(payment.status)">
+                                                {{ payment.status }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-4">
+                                            <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase" :class="autoCheckClass(payment.auto_check_status)">
+                                                {{ payment.auto_check_status || 'pending' }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-4 text-right font-semibold text-[#111827]">${{ Number(payment.amount || 0).toFixed(2) }}</td>
+                                        <td class="px-4 py-4 text-center">
+                                            <button
+                                                type="button"
+                                                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#A25F88] transition hover:border-[#A25F88] hover:bg-[#FCFAFB] hover:text-[#8E4F76]"
+                                                @click="openReviewModal(payment)"
+                                            >
+                                                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12Z" />
+                                                    <circle cx="12" cy="12" r="3" />
+                                                </svg>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </section>
                 </main>
             </div>
         </div>
+
+        <transition name="modal-fade">
+            <div v-if="isReviewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center px-4 py-6 sm:px-6">
+                <button type="button" class="absolute inset-0 bg-[rgba(15,23,42,0.68)]" @click="closeReviewModal"></button>
+
+                <div class="relative z-10 flex max-h-[90vh] w-full max-w-[760px] flex-col overflow-hidden rounded-2xl bg-[#FFFFFF] shadow-[0_32px_80px_rgba(15,23,42,0.24)]">
+                    <div class="flex items-start justify-between gap-4 border-b border-[#E5E7EB] px-6 py-5">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Payment review</p>
+                            <h2 class="mt-1 text-2xl font-black tracking-[-0.03em] text-[#111827]">{{ selectedPaymentDetail?.order_code || 'Review payment' }}</h2>
+                        </div>
+                        <button
+                            type="button"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#6B7280] transition hover:border-[#A25F88] hover:text-[#A25F88]"
+                            @click="closeReviewModal"
+                        >
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6 6 18" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div v-if="detailLoading" class="px-6 py-16 text-center text-sm text-[#6B7280]">Loading payment...</div>
+                    <div v-else-if="selectedPaymentDetail" class="min-h-0 flex-1 overflow-y-auto px-6 py-6">
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div class="rounded-2xl bg-[#F8FAFC] p-5">
+                                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Order number</p>
+                                <p class="mt-2 text-lg font-bold text-[#111827]">{{ selectedPaymentDetail.order_code }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-[#F8FAFC] p-5">
+                                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Status</p>
+                                <div class="mt-2">
+                                    <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase" :class="statusClass(selectedPaymentDetail.status)">
+                                        {{ selectedPaymentDetail.status }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="rounded-2xl bg-[#F8FAFC] p-5">
+                                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Customer name</p>
+                                <p class="mt-2 text-base font-semibold text-[#111827]">{{ selectedPaymentDetail.customer_name }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-[#F8FAFC] p-5">
+                                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Customer email</p>
+                                <p class="mt-2 text-base font-semibold text-[#111827]">{{ selectedPaymentDetail.customer_email }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-[#F8FAFC] p-5">
+                                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Payment method</p>
+                                <p class="mt-2 text-base font-semibold text-[#111827]">{{ formatMethod(selectedPaymentDetail.payment_method) }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-[#F8FAFC] p-5">
+                                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Amount</p>
+                                <p class="mt-2 text-base font-semibold text-[#111827]">${{ Number(selectedPaymentDetail.amount || 0).toFixed(2) }}</p>
+                            </div>
+                            <div class="rounded-2xl bg-[#F8FAFC] p-5 md:col-span-2">
+                                <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Reference</p>
+                                <p class="mt-2 text-base font-semibold text-[#111827]">{{ selectedPaymentDetail.transaction_ref || 'No reference' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 rounded-2xl border border-[#E5E7EB] bg-[#FFFFFF] p-5">
+                            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Auto check</p>
+                            <div class="mt-4 grid gap-4 md:grid-cols-2">
+                                <div class="rounded-2xl bg-[#F8FAFC] p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Final result</p>
+                                    <div class="mt-2 flex items-center gap-3">
+                                        <span class="rounded-full px-3 py-1 text-xs font-semibold uppercase" :class="autoCheckClass(selectedPaymentDetail.auto_check_status)">
+                                            {{ selectedPaymentDetail.auto_check_status || 'pending' }}
+                                        </span>
+                                        <span class="text-sm font-semibold text-[#111827]">{{ selectedPaymentDetail.auto_check_score ?? 0 }}%</span>
+                                    </div>
+                                </div>
+                                <div class="rounded-2xl bg-[#F8FAFC] p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Auto checked at</p>
+                                    <p class="mt-2 text-sm font-semibold text-[#111827]">{{ formatDateTime(selectedPaymentDetail.auto_checked_at) }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-[#F8FAFC] p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Amount match</p>
+                                    <p class="mt-2 text-sm font-semibold" :class="booleanClass(selectedPaymentDetail.auto_check_result?.amount_match)">{{ yesNo(selectedPaymentDetail.auto_check_result?.amount_match) }}</p>
+                                </div>
+                                <div class="rounded-2xl bg-[#F8FAFC] p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">OCR engine</p>
+                                    <p class="mt-2 text-sm font-semibold" :class="booleanClass(selectedPaymentDetail.auto_check_result?.ocr_available)">
+                                        {{ selectedPaymentDetail.auto_check_result?.ocr_available ? 'Ready' : 'Unavailable' }}
+                                    </p>
+                                    <p v-if="selectedPaymentDetail.auto_check_result?.ocr_error" class="mt-2 text-xs text-rose-600">
+                                        {{ selectedPaymentDetail.auto_check_result.ocr_error }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 rounded-2xl border border-[#E5E7EB] bg-[#FFFFFF] p-5">
+                            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Uploaded payment screenshot</p>
+                            <div class="mt-4 overflow-hidden rounded-2xl border border-[#E5E7EB] bg-[#F8FAFC]">
+                                <img
+                                    v-if="selectedPaymentDetail.screenshot_url"
+                                    :src="selectedPaymentDetail.screenshot_url"
+                                    alt="Payment proof screenshot"
+                                    class="h-auto max-h-[360px] w-full object-contain bg-white"
+                                >
+                                <div v-else class="px-4 py-12 text-center text-sm text-[#6B7280]">No screenshot uploaded.</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 rounded-2xl border border-[#E5E7EB] bg-[#FFFFFF] p-5">
+                            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">OCR extracted text</p>
+                            <pre class="mt-4 max-h-[240px] overflow-auto whitespace-pre-wrap rounded-2xl bg-[#F8FAFC] p-4 text-sm leading-6 text-[#111827]">{{ selectedPaymentDetail.ocr_text || 'No OCR text extracted.' }}</pre>
+                        </div>
+
+                        <div class="mt-4 rounded-2xl border border-[#E5E7EB] bg-[#FFFFFF] p-5">
+                            <label class="text-xs font-semibold uppercase tracking-[0.12em] text-[#6B7280]">Admin note</label>
+                            <textarea
+                                v-model.trim="reviewForm.admin_note"
+                                rows="4"
+                                class="mt-3 w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827] outline-none placeholder:text-[#6B7280]"
+                                placeholder="Write an approval or rejection reason"
+                            />
+                        </div>
+                    </div>
+
+                    <div v-if="selectedPaymentDetail" class="border-t border-[#E5E7EB] bg-white px-6 py-5">
+                        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                class="inline-flex min-h-[46px] items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-5 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                                :disabled="rejecting || !reviewForm.admin_note"
+                                @click="rejectPayment"
+                            >
+                                {{ rejecting ? 'Rejecting...' : 'Reject Payment' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="inline-flex min-h-[46px] items-center justify-center rounded-xl bg-[#A25F88] px-5 text-sm font-semibold text-white transition hover:bg-[#8E4F76] disabled:cursor-not-allowed disabled:opacity-60"
+                                :disabled="approving"
+                                @click="approvePayment"
+                            >
+                                {{ approving ? 'Approving...' : 'Approve Payment' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -158,52 +263,38 @@ import AdminHeader from '../layout/AdminHeader.vue';
 import AdminSidebar from '../layout/AdminSidebar.vue';
 import { buildFallbackMenu } from '../layout/adminMenuFallback.js';
 
-const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/orders';
+const endpoint = window.__APP_CONTEXT__?.endpoint ?? '/api/admin/payments';
 const screen = window.__APP_CONTEXT__?.screen ?? 'payment-records';
 const roleScope = window.__APP_CONTEXT__?.role_scope ?? 'admin';
 const openMenus = ref({});
 const dashboard = ref(initialDashboard());
 const loading = ref(false);
 const detailLoading = ref(false);
-const updatingPaymentStatus = ref(false);
+const approving = ref(false);
+const rejecting = ref(false);
+const isReviewModalOpen = ref(false);
 const notice = ref(null);
-const records = ref([]);
-const selectedRecord = ref(null);
-const selectedRecordDetail = ref(null);
+const payments = ref([]);
+const selectedPaymentDetail = ref(null);
 const filters = reactive({
     search: '',
-    paymentStatus: '',
-    paymentMethod: '',
-    orderStatus: '',
+    status: '',
+    payment_method: '',
 });
-const statusForm = reactive({
-    payment_status: 'unpaid',
+const reviewForm = reactive({
+    admin_note: '',
 });
 
-const paymentStatuses = ['unpaid', 'paid', 'failed', 'refunded'];
-const orderStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
-const paymentMethods = [
-    { value: 'aba_qr', label: 'ABA QR' },
-    { value: 'acleda', label: 'ACLEDA' },
-    { value: 'wing', label: 'Wing' },
-    { value: 'card', label: 'Card' },
-    { value: 'cash', label: 'Cash' },
-];
+const paymentMethods = computed(() => [...new Set(payments.value.map((payment) => payment.payment_method).filter(Boolean))]);
 
-const paymentRecords = computed(() => records.value.filter((record) => record.payment_method !== 'cash' || record.payment_reference));
-
-const filteredRecords = computed(() => paymentRecords.value.filter((record) => {
+const filteredPayments = computed(() => payments.value.filter((payment) => {
     const query = filters.search.trim().toLowerCase();
 
-    if (filters.paymentStatus && record.payment_status !== filters.paymentStatus) {
+    if (filters.status && payment.status !== filters.status) {
         return false;
     }
 
-    if (filters.paymentMethod && record.payment_method !== filters.paymentMethod) {
-        return false;
-    }
-
-    if (filters.orderStatus && record.status !== filters.orderStatus) {
+    if (filters.payment_method && payment.payment_method !== filters.payment_method) {
         return false;
     }
 
@@ -212,100 +303,164 @@ const filteredRecords = computed(() => paymentRecords.value.filter((record) => {
     }
 
     return [
-        record.number,
-        record.customer_name,
-        record.payment_reference,
-        record.payment_method_label,
+        payment.order_code,
+        payment.customer_name,
+        payment.transaction_ref,
     ].join(' ').toLowerCase().includes(query);
 }));
 
 const summaryCards = computed(() => [
-    { label: 'Records', value: String(paymentRecords.value.length), valueClass: 'text-slate-900' },
-    { label: 'Paid', value: String(paymentRecords.value.filter((record) => record.payment_status === 'paid').length), valueClass: 'text-emerald-600' },
-    { label: 'Unpaid', value: String(paymentRecords.value.filter((record) => record.payment_status === 'unpaid').length), valueClass: 'text-amber-600' },
-    { label: 'Revenue', value: `$${paymentRecords.value.reduce((sum, record) => sum + Number(record.total_amount || 0), 0).toFixed(2)}`, valueClass: 'text-rose-600' },
+    { label: 'Submitted', value: String(payments.value.filter((payment) => payment.status === 'submitted').length) },
+    { label: 'Approved', value: String(payments.value.filter((payment) => payment.status === 'approved').length) },
+    { label: 'Rejected', value: String(payments.value.filter((payment) => payment.status === 'rejected').length) },
 ]);
 
-onMounted(loadRecords);
+onMounted(loadPayments);
 
 watch(
-    () => [filters.paymentStatus, filters.paymentMethod, filters.orderStatus],
-    async ([nextPaymentStatus, nextPaymentMethod, nextOrderStatus], [previousPaymentStatus, previousPaymentMethod, previousOrderStatus]) => {
-        if (nextPaymentStatus === previousPaymentStatus && nextPaymentMethod === previousPaymentMethod && nextOrderStatus === previousOrderStatus) {
-            return;
-        }
-
-        await loadRecords();
+    () => [filters.status, filters.payment_method],
+    async () => {
+        await loadPayments();
     },
 );
 
-async function loadRecords() {
+async function loadPayments() {
     loading.value = true;
 
     try {
         const response = await window.axios.get(endpoint, {
             params: {
-                payment_status: filters.paymentStatus || undefined,
-                payment_method: filters.paymentMethod || undefined,
-                status: filters.orderStatus || undefined,
+                status: filters.status || undefined,
+                payment_method: filters.payment_method || undefined,
             },
         });
-        records.value = response.data.orders ?? [];
 
-        if (filteredRecords.value.length > 0) {
-            const nextSelected = selectedRecord.value
-                ? filteredRecords.value.find((record) => record.id === selectedRecord.value.id) ?? filteredRecords.value[0]
-                : filteredRecords.value[0];
-
-            await selectRecord(nextSelected);
-        } else {
-            selectedRecord.value = null;
-            selectedRecordDetail.value = null;
-        }
-
+        payments.value = response.data.payments ?? [];
         notice.value = null;
     } catch (error) {
-        notice.value = { type: 'error', text: extractMessage(error, 'Unable to load payment records right now.') };
+        notice.value = { type: 'error', text: extractMessage(error, 'Unable to load payments.') };
     } finally {
         loading.value = false;
     }
 }
 
-async function selectRecord(record) {
-    if (!record) {
-        return;
-    }
-
-    selectedRecord.value = record;
+async function openReviewModal(payment) {
+    isReviewModalOpen.value = true;
     detailLoading.value = true;
+    selectedPaymentDetail.value = null;
+    reviewForm.admin_note = '';
 
     try {
-        const response = await window.axios.get(`${endpoint}/${record.id}`);
-        selectedRecordDetail.value = response.data.order;
-        statusForm.payment_status = response.data.order.payment_status;
+        const response = await window.axios.get(`${endpoint}/${payment.id}`);
+        selectedPaymentDetail.value = response.data.payment;
+        reviewForm.admin_note = response.data.payment.admin_note || '';
     } catch (error) {
-        notice.value = { type: 'error', text: extractMessage(error, 'Unable to load the selected payment record.') };
+        notice.value = { type: 'error', text: extractMessage(error, 'Unable to load payment detail.') };
+        isReviewModalOpen.value = false;
     } finally {
         detailLoading.value = false;
     }
 }
 
-async function savePaymentStatus() {
-    if (!selectedRecord.value) {
+function closeReviewModal() {
+    if (approving.value || rejecting.value) {
         return;
     }
 
-    updatingPaymentStatus.value = true;
+    isReviewModalOpen.value = false;
+    selectedPaymentDetail.value = null;
+    reviewForm.admin_note = '';
+}
+
+async function approvePayment() {
+    if (!selectedPaymentDetail.value) {
+        return;
+    }
+
+    approving.value = true;
 
     try {
-        await window.axios.put(`${endpoint}/${selectedRecord.value.id}/payment-status`, { payment_status: statusForm.payment_status });
-        notice.value = { type: 'success', text: 'Payment status updated successfully.' };
-        await loadRecords();
+        await window.axios.post(`${endpoint}/${selectedPaymentDetail.value.id}/approve`, {
+            admin_note: reviewForm.admin_note || null,
+        });
+        notice.value = { type: 'success', text: 'Payment approved successfully.' };
+        closeReviewModal();
+        await loadPayments();
     } catch (error) {
-        notice.value = { type: 'error', text: extractMessage(error, 'Unable to update payment status.') };
+        notice.value = { type: 'error', text: extractMessage(error, 'Unable to approve payment.') };
     } finally {
-        updatingPaymentStatus.value = false;
+        approving.value = false;
     }
+}
+
+async function rejectPayment() {
+    if (!selectedPaymentDetail.value || !reviewForm.admin_note) {
+        return;
+    }
+
+    rejecting.value = true;
+
+    try {
+        await window.axios.post(`${endpoint}/${selectedPaymentDetail.value.id}/reject`, {
+            admin_note: reviewForm.admin_note,
+        });
+        notice.value = { type: 'success', text: 'Payment rejected successfully.' };
+        closeReviewModal();
+        await loadPayments();
+    } catch (error) {
+        notice.value = { type: 'error', text: extractMessage(error, 'Unable to reject payment.') };
+    } finally {
+        rejecting.value = false;
+    }
+}
+
+function formatMethod(value) {
+    return {
+        aba_qr: 'ABA QR',
+        acleda: 'ACLEDA',
+        wing: 'Wing',
+        card: 'Card',
+        cash: 'Cash',
+    }[value] ?? value ?? 'Payment';
+}
+
+function statusClass(status) {
+    return {
+        submitted: 'bg-amber-100 text-amber-700',
+        approved: 'bg-emerald-100 text-emerald-700',
+        rejected: 'bg-rose-100 text-rose-700',
+        pending: 'bg-slate-100 text-slate-700',
+    }[status] ?? 'bg-slate-100 text-slate-700';
+}
+
+function autoCheckClass(status) {
+    return {
+        auto_verified: 'bg-emerald-100 text-emerald-700',
+        auto_failed: 'bg-amber-100 text-amber-700',
+        pending: 'bg-slate-100 text-slate-700',
+    }[status] ?? 'bg-slate-100 text-slate-700';
+}
+
+function yesNo(value) {
+    return value ? 'Yes' : 'No';
+}
+
+function booleanClass(value) {
+    return value ? 'text-emerald-700' : 'text-rose-700';
+}
+
+function formatDateTime(value) {
+    if (!value) {
+        return 'Pending';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(new Date(value));
 }
 
 function handleMenuSelection(item) {
@@ -338,28 +493,6 @@ function isMenuOpen(slug) {
     return Boolean(openMenus.value[slug]);
 }
 
-function formatDate(value) {
-    if (!value) {
-        return 'Recent';
-    }
-
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(value));
-}
-
-function formatDateTime(value) {
-    if (!value) {
-        return 'Pending';
-    }
-
-    return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    }).format(new Date(value));
-}
-
 function initialDashboard() {
     const menu = buildFallbackMenu(screen, roleScope);
 
@@ -368,25 +501,30 @@ function initialDashboard() {
     return {
         meta: {
             brand: 'E-commerce',
-            page_title: 'Payment Records',
-            kicker: 'Frontend payments',
-            subheadline: 'Review customer checkout payment records, references, and payment statuses from storefront orders.',
-            primary_action_label: 'Refresh records',
+            page_title: 'Payments',
+            kicker: 'Manual verification',
+            subheadline: 'Review uploaded payment screenshots and approve or reject them manually.',
+            primary_action_label: 'Refresh payments',
         },
         menu,
     };
 }
 
 function extractMessage(error, fallback) {
-    const data = error?.response?.data;
-
-    if (data?.errors) {
-        const first = Object.values(data.errors).flat()[0];
-        if (first) {
-            return first;
-        }
-    }
-
-    return data?.message ?? fallback;
+    return error?.response?.data?.message
+        || Object.values(error?.response?.data?.errors ?? {}).flat()?.[0]
+        || fallback;
 }
 </script>
+
+<style scoped>
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+    transition: opacity 180ms ease;
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+    opacity: 0;
+}
+</style>

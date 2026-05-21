@@ -1,5 +1,5 @@
 <template>
-    <article class="h-full rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF] p-5 shadow-[0_12px_30px_rgba(17,24,39,0.045)] sm:p-6">
+    <article class="h-full rounded-[24px] border border-[#E5E7EB] bg-[#FFFFFF] p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
         <div class="flex items-start justify-between gap-4">
             <div>
                 <p class="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">{{ eyebrow }}</p>
@@ -10,11 +10,11 @@
 
         <div class="mt-4 overflow-x-auto">
             <div class="min-w-[520px]">
-                <svg :viewBox="`0 0 ${viewWidth} 188`" class="h-[170px] w-full">
+                <svg :viewBox="`0 0 ${viewWidth} 176`" class="h-[156px] w-full">
                     <defs>
                         <linearGradient id="merchant-area-fill" x1="0%" x2="0%" y1="0%" y2="100%">
-                            <stop offset="0%" stop-color="#E7C9DA" stop-opacity="0.78" />
-                            <stop offset="100%" stop-color="#F6EAF1" stop-opacity="0.12" />
+                            <stop offset="0%" stop-color="#E7C9DA" stop-opacity="0.42" />
+                            <stop offset="100%" stop-color="#F6EAF1" stop-opacity="0.08" />
                         </linearGradient>
                     </defs>
                     <line v-for="tick in yGridTicks" :key="`tick-${tick}`" x1="0" :x2="viewWidth" :y1="tick" :y2="tick" stroke="#E5E7EB" stroke-dasharray="4 5" />
@@ -48,8 +48,8 @@ const props = defineProps({
     points: { type: Array, required: true },
 });
 
-const chartHeight = 140;
-const chartBottom = 156;
+const chartHeight = 128;
+const chartBottom = 144;
 const chartPadding = 20;
 const safePointCount = computed(() => Math.max(props.points.length, 1));
 const step = computed(() => Math.max(52, Math.round(420 / safePointCount.value)));

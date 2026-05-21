@@ -1,9 +1,9 @@
 <template>
-    <article class="rounded-[22px] border border-[#9DB7F5] bg-white p-5 shadow-[0_12px_28px_rgba(15,23,42,0.04)] sm:p-6">
+    <article class="rounded-[22px] border border-[#E5E7EB] bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-6">
         <div class="flex items-start justify-between gap-4">
             <div>
-                <p class="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">{{ eyebrow }}</p>
-                <h3 class="mt-2 text-xl font-black tracking-[-0.04em] text-[#0F172A]">{{ title }}</h3>
+                <p class="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#6B7280]">{{ eyebrow }}</p>
+                <h3 class="mt-1 text-[1.7rem] font-bold tracking-[-0.04em] text-[#111827]">{{ title }}</h3>
             </div>
             <div class="rounded-full px-3 py-1 text-xs font-semibold" :class="trendBadgeClass">
                 {{ trendLabel }}
@@ -20,7 +20,7 @@
                 <svg :viewBox="`0 0 ${viewWidth} 230`" class="h-[220px] w-full">
                     <defs>
                         <linearGradient id="dashboard-line-fill" x1="0%" x2="0%" y1="0%" y2="100%">
-                            <stop offset="0%" stop-color="#93C5FD" stop-opacity="0.35" />
+                            <stop offset="0%" :stop-color="fillColor" stop-opacity="0.24" />
                             <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.04" />
                         </linearGradient>
                     </defs>
@@ -37,7 +37,7 @@
                     />
 
                     <path :d="areaPath" fill="url(#dashboard-line-fill)" />
-                    <path :d="trendPath" fill="none" stroke="#64748B" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
+                    <path :d="trendPath" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
                     <path :d="linePath" fill="none" :stroke="lineColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
 
                     <g v-for="point in plottedPoints" :key="point.label">
@@ -76,6 +76,7 @@ const props = defineProps({
     eyebrow: { type: String, default: 'Trend' },
     points: { type: Array, default: () => [] },
     trend: { type: Object, default: () => ({ direction: 'up', label: '+0.0%', delta: 'No change' }) },
+    lineColor: { type: String, default: '' },
 });
 
 const hoveredLabel = ref('');
@@ -87,7 +88,8 @@ const step = computed(() => Math.max(46, Math.round(520 / safePointCount.value))
 const viewWidth = computed(() => Math.max(720, chartPadding * 2 + ((safePointCount.value - 1) * step.value)));
 const maxValue = computed(() => Math.max(...props.points.map((point) => Number(point.value || 0)), 1));
 const yGridTicks = computed(() => [24, 64, 104, 144]);
-const lineColor = computed(() => props.trend?.direction === 'down' ? '#EF4444' : '#38BDF8');
+const lineColor = computed(() => props.lineColor || (props.trend?.direction === 'down' ? '#EF4444' : '#3B82F6'));
+const fillColor = computed(() => props.lineColor || (props.trend?.direction === 'down' ? '#FCA5A5' : '#93C5FD'));
 const trendLabel = computed(() => props.trend?.label ?? '+0.0%');
 const trendDescription = computed(() => props.trend?.delta ?? 'No change');
 const trendBadgeClass = computed(() => props.trend?.direction === 'down'
